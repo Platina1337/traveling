@@ -1,0 +1,11 @@
+venv/scripts/activate
+ cd traveling
+
+подключение селери
+celery -A traveling worker --loglevel=info
+
+редис докер
+docker run -it --rm --name redis -p 6379:6379 redis
+
+python manage.py makemigrations
+python manage.py migrate

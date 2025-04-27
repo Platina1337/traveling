@@ -1,0 +1,187 @@
+{% extends "main/base.html" %}
+{% load add_class %}
+{% load static %}
+
+{% block css %}
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="{% static 'main/catalog.css' %}">
+{% endblock %}
+
+{% block title %}
+Название
+{% endblock %}
+
+{% block content %}
+    <main class="main-container">
+        <aside>
+            <form id="filter-form" action="{% url 'main:catalog' %}" method="GET" class="search-filters">
+                <div class="filter-group">
+                    <label for="departure-city">Город отправления</label>
+                    <div class="input-container">
+                        <img src="{% static 'img/departure-icon.svg' %}" alt="Icon" class="input-icon">
+                        <input type="text" id="departure-city" name="departure_city" value="{{ selected_departure_city }}" autocomplete="off" placeholder="Москва" data-url="{% url 'main:city_suggestions' %}">
+                        <div id="departure-city-suggestions" class="suggestions"></div>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label for="arrival-city">Город прибытия</label>
+                    <div class="input-container">
+                        <img src="{% static 'img/departure-icon.svg' %}" alt="Icon" class="input-icon">
+                        <input type="text" id="arrival-city" name="destination_city" value="{{ selected_destination_city }}" autocomplete="off" placeholder="Екатеринбург" data-url="{% url 'main:city_suggestions' %}">
+                        <div id="arrival-city-suggestions" class="suggestions"></div>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label for="trip-date">Дата поездки</label>
+                    <div class="input-container">
+                        <img src="{% static 'img/date-icon.svg' %}" alt="Icon" class="input-icon">
+                        <input type="date" id="trip-date" name="date" value="{{ selected_date }}">
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label for="passengers">Количество пассажиров</label>
+                    <div class="select-container">
+                        <img src="{% static 'img/passengers-icon.svg' %}" alt="Icon" class="select-icon">
+                        <select id="passengers" name="passengers">
+                            <option value="" {% if selected_passengers == '' %}selected{% endif %}>Выберите количество</option>
+                            <option value="1" {% if selected_passengers == '1' %}selected{% endif %}>1 человек</option>
+                            <option value="2" {% if selected_passengers == '2' %}selected{% endif %}>2 человека</option>
+                            <option value="3" {% if selected_passengers == '3' %}selected{% endif %}>3 человека</option>
+                            <option value="4" {% if selected_passengers == '4' %}selected{% endif %}>4 человека</option>
+                        </select>
+                    </div>
+                </div>
+                <input type="hidden" name="price_min" value="{{ selected_price_min }}">
+                <input type="hidden" name="price_max" value="{{ selected_price_max }}">
+                <button class="search-button" type="submit">Найти поездку</button>
+            </form>
+            <div class="additional-filters">
+                <a href="{% url 'main:catalog' %}" class="reset-filters">Сбросить фильтры</a>
+                <form id="cost-filter-form" action="{% url 'main:catalog' %}" method="GET">
+                    <input type="hidden" name="departure_city" value="{{ selected_departure_city }}">
+                    <input type="hidden" name="destination_city" value="{{ selected_destination_city }}">
+                    <input type="hidden" name="date" value="{{ selected_date }}">
+                    <input type="hidden" name="passengers" value="{{ selected_passengers }}">
+                    <div class="filter-group">
+                        <label for="trip-cost" class="trip-cost">Стоимость поездки</label>
+                        <div class="range-slider">
+                            <input type="range" id="min-cost" name="price_min" min="{{ min_price }}" max="{{ max_price }}" value="{{ selected_price_min }}">
+                            <input type="range" id="max-cost" name="price_max" min="{{ min_price }}" max="{{ max_price }}" value="{{ selected_price_max }}">
+                            <div class="slider-track"></div>
+                        </div>
+                        <div class="range-values">
+                            <span>от</span>
+                            <input type="number" id="min-cost-value" name="price_min" value="{{ selected_price_min }}" min="{{ min_price }}" max="{{ max_price }}"> ₽
+                            <span>до</span>
+                            <input type="number" id="max-cost-value" name="price_max" value="{{ selected_price_max }}" min="{{ min_price }}" max="{{ max_price }}"> ₽
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </aside>
+        <section class="trip-results" id="trips-container">
+    <p>Всего найдено {{ trips|length }} поездок</p>
+    {% for trip in trips %}
+        <div class="trip" data-trip-id="{{ trip.id }}" data-price="{{ trip.price }}">
+            {% if trip.car.image %}
+                <img src="{{ trip.car.image.url }}" alt="{{ trip.car.brand }}">
+            {% else %}
+                <img src="{% static 'img/defolt.png' %}" alt="{{ trip.car.brand }}">
+            {% endif %}
+            <div class="trip-info">
+                <div class="trip-location">
+                    <h2>{{ trip.car.brand }} {{ trip.car.model }}</h2>
+                    <div class="trip-time">
+                        <div class="time-card">
+                            <div class="time">{{ trip.departure_time|time:"H:i" }}</div>
+                            <div class="time">{{ trip.arrival_time|time:"H:i" }}</div>
+                        </div>
+                        <div class="svg-container">
+                            <svg class="svg-large" width="63" height="14" viewBox="0 0 63 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect width="50" height="2" transform="translate(13 6)" fill="#444766"/>
+                                <path d="M7 0C3.14008 0 0 3.14008 0 7C0 10.8599 3.14008 14 7 14C10.8599 14 14 10.8599 14 7C14 3.14008 10.8599 0 7 0ZM7 12.8333C3.7835 12.8333 1.16667 10.2165 1.16667 7C1.16667 3.7835 3.7835 1.16667 7 1.16667C10.2165 1.16667 12.8333 3.7835 12.8333 7C12.8333 10.2165 10.2165 12.8333 7 12.8333ZM9.33333 7C9.33333 8.28858 8.28858 9.33333 7 9.33333C5.71142 9.33333 4.66667 8.28858 4.66667 7C4.66667 5.71142 5.71142 4.66667 7 4.66667C8.28858 4.66667 9.33333 5.71142 9.33333 7Z" fill="#444766"/>
+                            </svg>
+                            <svg class="svg-small" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M7 0C3.14008 0 0 3.14008 0 7C0 10.8599 3.14008 14 7 14C10.8599 14 14 10.8599 14 7C14 3.14008 10.8599 0 7 0ZM7 12.8333C3.7835 12.8333 1.16667 10.2165 1.16667 7C1.16667 3.7835 3.7835 1.16667 7 1.16667C10.2165 1.16667 12.8333 3.7835 12.8333 7C12.8333 10.2165 10.2165 12.8333 7 12.8333ZM9.33333 7C9.33333 8.28858 8.28858 9.33333 7 9.33333C5.71142 9.33333 4.66667 8.28858 4.66667 7C4.66667 5.71142 5.71142 4.66667 7 4.66667C8.28858 4.66667 9.33333 5.71142 9.33333 7Z" fill="#444766"/>
+                            </svg>
+                            <div class="duration">
+                                <span>{{ trip.duration_hours }} ч {{ trip.duration_minutes }} м</span>
+                            </div>
+                            <svg class="svg-large" width="63" height="14" viewBox="0 0 63 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect width="50" height="2" transform="matrix(-1 0 0 -1 50 8)" fill="#444766"/>
+                                <path d="M55.998 14C59.858 14 62.998 10.8599 62.998 7C62.998 3.14008 59.858 0 55.998 0C52.1381 0 48.998 3.14008 48.998 7C48.998 10.8599 52.1381 14 55.998 14ZM55.998 1.16667C59.2145 1.16667 61.8314 3.7835 61.8314 7C61.8314 10.2165 59.2145 12.8333 55.998 12.8333C52.7815 12.8333 50.1647 10.2165 50.1647 7C50.1647 3.7835 52.7815 1.16667 55.998 1.16667ZM53.6647 7C53.6647 5.71142 54.7095 4.66667 55.998 4.66667C57.2866 4.66667 58.3314 5.71142 58.3314 7C58.3314 8.28858 57.2866 9.33333 55.998 9.33333C54.7095 9.33333 53.6647 8.28858 53.6647 7Z" fill="#444766"/>
+                            </svg>
+                            <svg class="svg-small" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M7 0C3.14008 0 0 3.14008 0 7C0 10.8599 3.14008 14 7 14C10.8599 14 14 10.8599 14 7C14 3.14008 10.8599 0 7 0ZM7 12.8333C3.7835 12.8333 1.16667 10.2165 1.16667 7C1.16667 3.7835 3.7835 1.16667 7 1.16667C10.2165 1.16667 12.8333 3.7835 12.8333 7C12.8333 10.2165 10.2165 12.8333 7 12.8333ZM9.33333 7C9.33333 8.28858 8.28858 9.33333 7 9.33333C5.71142 9.33333 4.66667 8.28858 4.66667 7C4.66667 5.71142 5.71142 4.66667 7 4.66667C8.28858 4.66667 9.33333 5.71142 9.33333 7Z" fill="#444766"/>
+                            </svg>
+                        </div>
+                        <div class="trip-locations">
+                            <div class="location">{{ trip.departure_city.name }}</div>
+                            <div class="location" style="text-align: right;">{{ trip.destination_city.name }}</div>
+                        </div>
+                    </div>
+                </div>
+                <p>{{ trip.max_passengers }} места</p>
+                <p class="trip-price-card">{{ trip.price }} ₽</p>
+                <div class="card-flex-name">
+                    <p>{{ trip.user.first_name }} {{ trip.user.last_name }}</p>
+                    <div class="card-flex-btns">
+                        {% csrf_token %}
+                        <button class="details-button" data-trip-id="{{ trip.id }}">Подробнее</button>
+                        {% if trip.passengers.count >= trip.max_passengers %}
+                            <button class="full-button" disabled>Места заняты</button>
+                        {% elif request.user.userprofile not in trip.passengers.all and request.user.userprofile not in trip.pending_passengers.all %}
+                            {% if request.user != trip.user %}
+                                <button class="add-button" data-trip-id="{{ trip.id }}">Добавить</button>
+                            {% endif %}
+                        {% elif request.user.userprofile in trip.pending_passengers.all %}
+                            <span class="request-span">Запрос отправлен</span>
+                        {% else %}
+                            <button class="delete-button" data-trip-id="{{ trip.id }}">Удалить</button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</section>
+<div id="customModal" class="custom-modal">
+    <div class="custom-modal-content">
+        <span class="custom-close-btn">&times;</span>
+        <div class="custom-driver-info">
+            <h3>О водителе</h3>
+            <img src="{% static 'img/women-high-fiving-car.png' %}" alt="Driver" class="custom-driver-photo" id="driver-photo">
+            <div class="custom-driver-details">
+                <h2 id="driver-name"><a href="{% url 'main:profile_user' %}?user_id={{ driver_id }}">{{ driver_name }} {{ driver_surname }} <span id="driver-rating" class="custom-rating">{{ driver_rating }}&#9733;</span></a></h2>
+                <p id="driver-description">Описание водителя</p>
+            </div>
+        </div>
+        <div class="custom-trip-details">
+            <h3>Детали поездки</h3>
+            <div class="custom-trip-info">
+                <div class="custom-from">
+                    <p><strong>Откуда</strong></p>
+                    <p id="trip-from-address">Адрес отправления</p>
+                    <p id="trip-from-time">Время отправления</p>
+                    <p id="trip-passengers">Количество пассажиров</p>
+                </div>
+                <div class="custom-to">
+                    <p><strong>Куда</strong></p>
+                    <p id="trip-to-address">Адрес прибытия</p>
+                    <p id="trip-to-time">Время прибытия</p>
+                    <p id="trip-price">Стоимость поездки</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</main>
+<button id="scrollToTopBtn" title="Наверх">
+    <img src="{% static 'img/arrow-up.svg' %}" alt="Наверх">
+  </button>
+<script>
+
+</script>
+    <script src="{% static 'js/search.js' %}"></script>
+{% endblock content %}

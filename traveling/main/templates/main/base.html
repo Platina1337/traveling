@@ -1,0 +1,85 @@
+{% load static %}
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    {% block css %}
+    {% endblock %}
+    <title>{% block title %}{% endblock %}</title>
+    <style>
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background-color: #f1f1f1;
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--color-lightgray);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: var(--color-lightergray);
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div class="header-container">
+        <a href="{% url 'main:main' %}" class="site-title">
+            <h1 class="brand-name">
+                <span>Название</span>
+            </h1>
+        </a>
+        <button class="navbar-toggle">&#9776;</button>
+        <div class="header-buttons">
+            <button class="add-trip" id="addButton">Добавить поездку</button>
+            {% if user.is_authenticated %}
+                <button class="profile" id="profileButton">Профиль</button>
+            {% else %}
+                <button class="login" id="loginButton">Вход/Регистрация</button>
+            {% endif %}
+        </div>
+    </div>
+</header>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Перенаправление на страницу входа/регистрации
+        document.getElementById('loginButton')?.addEventListener('click', function() {
+            window.location.href = "{% url 'main:login' %}";
+        });
+
+        // Перенаправление на страницу профиля
+        document.getElementById('profileButton')?.addEventListener('click', function() {
+            window.location.href = "{% url 'main:profile' %}";
+        });
+
+        // Переключение навбара
+        document.querySelector('.navbar-toggle').addEventListener('click', function() {
+            document.querySelector('.header-buttons').classList.toggle('active');
+        });
+
+        // Перенаправление при нажатии на кнопку "Добавить поездку"
+        document.getElementById('addButton').addEventListener('click', function() {
+            {% if user.is_authenticated %}
+                window.location.href = "{% url 'main:add_trip' %}";
+            {% else %}
+                window.location.href = "{% url 'main:register' %}";
+            {% endif %}
+        });
+    });
+</script>
+{% block content %}
+{% endblock %}
+
+{% block catalog %}
+{% endblock %}
+
+{% block footer %}
+{% endblock %}
+</body>
+</html>
