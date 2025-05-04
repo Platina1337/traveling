@@ -6,6 +6,51 @@
 <!--suppress ALL -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="{% static 'main/add.css' %}">
+<style>
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.btn-secondary:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.btn-secondary:not(:disabled):hover {
+    background-color: #5a6268;
+}
+
+.profile-warning {
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    color: #856404;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.profile-warning a {
+    color: #5B62FF;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.profile-warning a:hover {
+    text-decoration: underline;
+}
+
+.form-disabled {
+    opacity: 0.7;
+    pointer-events: none;
+}
+</style>
 {% endblock %}
 
 {% block title %}
@@ -17,84 +62,108 @@
     <main class="main-container">
         <section class="trip-form">
             <h1>Добавить поездку</h1>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="form-content">
-            {% if form.errors %}
-            <div class="error-messages">
-                <ul>
-                    {% for field, error_list in form.errors.items %}
-                        {% for error in error_list %}
-                        <li>{{ error }}</li>
-                        {% endfor %}
-                    {% endfor %}
-                </ul>
+            
+            {% if messages %}
+            <div class="profile-warning">
+                {% for message in messages %}
+                    {{ message }}
+                    <br>
+                    <a href="{% url 'main:profile' %}">Перейти в профиль</a>
+                {% endfor %}
             </div>
             {% endif %}
 
-            <div class="input-group">
-                <div class="full-width">
-                    <label for="id_car_name">Название машины</label>
-                    {{ form.car_name.errors }}
-                    {{ form.car_name|add_class:"full-width-input" }}
+            <form method="post" enctype="multipart/form-data" id="tripForm" {% if not profile_complete %}class="form-disabled"{% endif %}>
+                {% csrf_token %}
+                <div class="form-content">
+                    {% if form.errors %}
+                    <div class="error-messages">
+                        <ul>
+                            {% for field, error_list in form.errors.items %}
+                                {% for error in error_list %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <div class="input-group">
+                        <div class="full-width">
+                            <label for="id_car_name">Название машины</label>
+                            {{ form.car_name.errors }}
+                            {{ form.car_name|add_class:"full-width-input" }}
+                        </div>
+                        <div class="form-group">
+                            <div class="form-group-input">
+                                <label for="departure">Город отправления</label>
+                                {{ form.departure_city.errors }}
+                                {{ form.departure_city|add_class:"half-width-input" }}
+                                <datalist id="departure-list">
+                                    {% for city in cities %}
+                                    <option value="{{ city.name }}">
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                            <div class="form-group-input">
+                                <label for="arrival">Город прибытия</label>
+                                {{ form.destination_city.errors }}
+                                {{ form.destination_city|add_class:"half-width-input" }}
+                                <datalist id="arrival-list">
+                                    {% for city in cities %}
+                                    <option value="{{ city.name }}">
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                            <div class="form-group-input">
+                                <label for="id_departure_time">Время отправления</label>
+                                {{ form.departure_time.errors }}
+                                {{ form.departure_time|add_class:"half-width-input" }}
+                            </div>
+                            <div class="form-group-input">
+                                <label for="id_arrival_time">Время прибытия</label>
+                                {{ form.arrival_time.errors }}
+                                {{ form.arrival_time|add_class:"half-width-input" }}
+                            </div>
+                            <div class="form-group-input">
+                                <label for="id_max_passengers">Количество пассажиров</label>
+                                {{ form.max_passengers.errors }}
+                                {{ form.max_passengers|add_class:"half-width-input" }}
+                            </div>
+                            <div class="form-group-input">
+                                <label for="id_price">Стоимость поездки</label>
+                                {{ form.price.errors }}
+                                {{ form.price|add_class:"half-width-input" }}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <div class="form-group-input">
-                        <label for="departure">Город отправления</label>
-                        {{ form.departure_city.errors }}
-                        {{ form.departure_city|add_class:"half-width-input" }}
-                        <datalist id="departure-list"></datalist>
-                    </div>
-                    <div class="form-group-input">
-                        <label for="arrival">Город прибытия</label>
-                        {{ form.destination_city.errors }}
-                        {{ form.destination_city|add_class:"half-width-input" }}
-                        <datalist id="arrival-list"></datalist>
-                    </div>
-                    <div class="form-group-input">
-                        <label for="id_departure_time">Время отправления</label>
-                        {{ form.departure_time.errors }}
-                        {{ form.departure_time|add_class:"half-width-input" }}
-                    </div>
-                    <div class="form-group-input">
-                        <label for="id_arrival_time">Время прибытия</label>
-                        {{ form.arrival_time.errors }}
-                        {{ form.arrival_time|add_class:"half-width-input" }}
-                    </div>
-                    <div class="form-group-input">
-                        <label for="id_max_passengers">Количество пассажиров</label>
-                        {{ form.max_passengers.errors }}
-                        {{ form.max_passengers|add_class:"half-width-input" }}
-                    </div>
-                    <div class="form-group-input">
-                        <label for="id_price">Стоимость поездки</label>
-                        {{ form.price.errors }}
-                        {{ form.price|add_class:"half-width-input" }}
+                <div class="form-group textarea-grid">
+                    <label style="margin-bottom: -20px;">Комментарий</label>
+                    {{ form.comment.errors }}
+                    {{ form.comment|add_class:"full-width-textarea" }}
+                </div>
+                <span class="custom-span">Фотография автомобиля</span>
+                <div class="photo-container" id="photoContainer">
+                    <div class="photo-preview-container" id="photoPreviewContainer"></div>
+                    <div class="photo-group" id="photoGroup">
+                        <input type="file" id="id_car_image" name="car_image" style="display: none;">
+                        <label for="id_car_image">
+                            <img src="{% static 'img/add_photo.png' %}" alt="фото машины" class="car-photo" id="carPhotoLabel">
+                        </label>
+                        {{ form.car_image.errors }}
                     </div>
                 </div>
-            </div>
-        </div>
-        <div class="form-group textarea-grid">
-            <label style="margin-bottom: -20px;">Комментарий</label>
-            {{ form.comment.errors }}
-            {{ form.comment|add_class:"full-width-textarea" }}
-        </div>
-        <span class="custom-span">Фотография автомобиля</span>
-        <div class="photo-container" id="photoContainer">
-            <div class="photo-preview-container" id="photoPreviewContainer"></div>
-            <div class="photo-group" id="photoGroup">
-                <input type="file" id="id_car_image" name="car_image" style="display: none;">
-                <label for="id_car_image">
-                    <img src="{% static 'img/add_photo.png' %}" alt="фото машины" class="car-photo" id="carPhotoLabel">
-                </label>
-                {{ form.car_image.errors }}
-            </div>
-        </div>
-        <div class="form-actions">
-            <button type="button" style="background-color: var(--color-darkblue)">Отменить</button>
-            <button type="submit" style="background-color: var(--color-lightblue)">Опубликовать поездку</button>
-        </div>
-    </form>
+                <div id="trip-duration" class="trip-duration" style="display: none;">
+                    <h3>Расчетное время в пути:</h3>
+                    <p id="duration-text"></p>
+                    <button id="fill-time-btn" class="btn btn-secondary" disabled>Заполнить время прибытия</button>
+                </div>
+                <div class="form-actions">
+                    <button type="button" style="background-color: var(--color-darkblue)">Отменить</button>
+                    <button type="submit" style="background-color: var(--color-lightblue)" {% if not profile_complete %}disabled{% endif %}>Опубликовать поездку</button>
+                </div>
+            </form>
         </section>
         <section class="section trips">
             <div class="trips-header" style="display: flex;">
@@ -182,4 +251,99 @@
     </main>
     <script src="{% static 'js/add_trip.js' %}"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const departureCity = document.getElementById('departure');
+        const destinationCity = document.getElementById('arrival');
+        const durationText = document.getElementById('duration-text');
+        const tripDuration = document.getElementById('trip-duration');
+        const fillTimeBtn = document.getElementById('fill-time-btn');
+        const departureTimeInput = document.getElementById('id_departure_time');
+        const arrivalTimeInput = document.getElementById('id_arrival_time');
+        
+        let currentDuration = null; // Сохраняем текущую длительность маршрута
+
+        async function calculateDuration() {
+            const from = departureCity.value;
+            const to = destinationCity.value;
+            
+            // Скрываем блок, если не выбраны оба города
+            if (!from || !to) {
+                tripDuration.style.display = 'none';
+                currentDuration = null;
+                return;
+            }
+
+            if (from === to) {
+                tripDuration.style.display = 'none';
+                currentDuration = null;
+                return;
+            }
+
+            try {
+                const response = await fetch(`{% url 'main:calculate_route' %}?start=${encodeURIComponent(from)}&end=${encodeURIComponent(to)}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    const distance = data.distance; // в метрах
+                    const duration = data.duration; // в секундах
+                    currentDuration = duration; // Сохраняем длительность
+
+                    // Форматируем время
+                    const hours = Math.floor(duration / 3600);
+                    const minutes = Math.floor((duration % 3600) / 60);
+                    
+                    let durationText = '';
+                    if (hours > 0) {
+                        durationText += `${hours} ч. `;
+                    }
+                    if (minutes > 0) {
+                        durationText += `${minutes} мин.`;
+                    }
+
+                    document.getElementById('duration-text').textContent = 
+                        `Примерное время в пути: ${durationText} (${Math.round(distance / 1000)} км)`;
+                    tripDuration.style.display = 'block';
+                    
+                    // Обновляем состояние кнопки
+                    updateFillTimeButton();
+                } else {
+                    tripDuration.style.display = 'none';
+                    currentDuration = null;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                tripDuration.style.display = 'none';
+                currentDuration = null;
+            }
+        }
+
+        function updateFillTimeButton() {
+            // Кнопка активна только если есть время отправления и рассчитанная длительность
+            fillTimeBtn.disabled = !departureTimeInput.value || !currentDuration;
+        }
+
+        function fillArrivalTime() {
+            if (!departureTimeInput.value || !currentDuration) return;
+
+            const departureTime = new Date(departureTimeInput.value);
+            const arrivalTime = new Date(departureTime.getTime() + currentDuration * 1000);
+            
+            // Форматируем дату и время для input[type="datetime-local"]
+            const year = arrivalTime.getFullYear();
+            const month = String(arrivalTime.getMonth() + 1).padStart(2, '0');
+            const day = String(arrivalTime.getDate()).padStart(2, '0');
+            const hours = String(arrivalTime.getHours()).padStart(2, '0');
+            const minutes = String(arrivalTime.getMinutes()).padStart(2, '0');
+            
+            arrivalTimeInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        // Добавляем обработчики событий
+        departureCity.addEventListener('change', calculateDuration);
+        destinationCity.addEventListener('change', calculateDuration);
+        departureTimeInput.addEventListener('change', updateFillTimeButton);
+        fillTimeBtn.addEventListener('click', fillArrivalTime);
+    });
+    </script>
 {% endblock content %}

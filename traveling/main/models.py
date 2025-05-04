@@ -14,6 +14,7 @@ class UserProfile(models.Model):
     about_me = models.TextField(blank=True, null=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     gender = models.CharField(max_length=1, blank=True, null=True)
+    is_active = models.BooleanField(default=False)
 
     def set_password(self, raw_password):
         self.password = make_password(raw_password)

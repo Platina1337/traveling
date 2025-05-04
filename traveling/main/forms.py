@@ -45,10 +45,10 @@ class LoginForm(forms.Form):
 
 
 class UserRegistrationForm(forms.Form):
-    name = forms.CharField(max_length=255)
-    email = forms.EmailField()
-    phone = forms.CharField(max_length=20)
-    password = forms.CharField(widget=forms.PasswordInput)
+    name = forms.CharField(max_length=100, label='Имя и фамилия')
+    email = forms.EmailField(label='Email')
+    phone = forms.CharField(max_length=15, label='Номер телефона')
+    password = forms.CharField(widget=forms.PasswordInput, label='Пароль')
 
     def clean_name(self):
         name = self.cleaned_data.get('name')
@@ -59,14 +59,18 @@ class UserRegistrationForm(forms.Form):
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if User.objects.filter(email=email).exists():
-            raise forms.ValidationError('Пользователь с таким email уже существует.')
+            raise forms.ValidationError('Этот email уже зарегистрирован.')
         return email
 
     def clean_phone(self):
         phone = self.cleaned_data.get('phone')
+        # Проверка формата номера телефона
         phone_regex = re.compile(r'^\+?\d{9,15}$')
         if not phone_regex.match(phone):
             raise forms.ValidationError('Введите корректный номер телефона.')
+        # Проверка уникальности номера телефона
+        if UserProfile.objects.filter(phone_number=phone).exists():
+            raise forms.ValidationError('Этот номер телефона уже зарегистрирован.')
         return phone
 
     def clean_password(self):

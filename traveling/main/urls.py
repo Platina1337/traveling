@@ -11,6 +11,7 @@ urlpatterns = [
     path('get_trip_details/<int:trip_id>/', get_trip_details, name='get_trip_details'),
     path('get_trip_details_profile/<int:trip_id>/', get_trip_details_profile, name='get_trip_details_profile'),
     path('register/', register, name='register'),
+    path('activate/<str:uidb64>/<str:token>/', activate_account, name='activate_account'),
     path('profile_user/', ProfileUserView.as_view(), name='profile_user'),
     path('add_comment/', add_comment, name='add_comment'),
     path('profile/', ProfileView.as_view(), name='profile'),
@@ -19,6 +20,7 @@ urlpatterns = [
     path('city_suggestions/', city_suggestions, name='city_suggestions'),
     path('logout/', logout_view, name='logout'),
     path('add_trip/', add_trip, name='add_trip'),
+    path('calculate_route/', calculate_route, name='calculate_route'),
     path('remove_passenger/', remove_passenger, name='remove_passenger'),
     path('add_passenger/<int:trip_id>/', add_passenger, name='add_passenger'),
     path('handle_passenger_request/<int:notification_id>/<str:action>/', handle_passenger_request, name='handle_passenger_request'),
@@ -28,6 +30,7 @@ urlpatterns = [
     path('start_trip/<int:trip_id>/', start_trip, name='start_trip'),
     path('end_trip/<int:trip_id>/', end_trip, name='end_trip'),
     path('change_password/', change_password, name='change_password'),
+    path('resend-verification/', resend_verification, name='resend_verification'),
 
               ]
 if settings.DEBUG:

@@ -20,25 +20,36 @@
     <div class="form-side">
         <h1>Добро пожаловать, <br> зарегистрируйтесь в <span>Название</span></h1>
         <p>Введите ваши данные ниже</p>
-        <form method="post">
+
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" id="registerForm">
             {% csrf_token %}
             {{ form.non_field_errors }}
 
             <label for="name">Имя и фамилия</label>
             <input type="text" id="name" name="name" placeholder="Иван Иванов" value="{{ form.data.name|default_if_none:'' }}">
-            {{ form.errors.name }}
+            <div class="error-message" id="name-error"></div>
 
             <label for="email">Email</label>
             <input type="email" id="email" name="email" placeholder="ivanivanov@gmail.com" value="{{ form.data.email|default_if_none:'' }}">
-            {{ form.errors.email }}
+            <div class="error-message" id="email-error"></div>
 
             <label for="phone">Номер телефона</label>
             <input type="tel" id="phone" name="phone" placeholder="+7 (900) 123 45 67" value="{{ form.data.phone|default_if_none:'' }}">
-            {{ form.errors.phone }}
+            <div class="error-message" id="phone-error"></div>
 
             <label for="password">Пароль</label>
             <input type="password" id="password" name="password" placeholder="********">
-            {{ form.errors.password }}
+            <div class="error-message" id="password-error"></div>
 
             <div class="links-container">
                 <a href="{% url 'main:main' %}">Назад</a>
@@ -49,11 +60,88 @@
         </form>
     </div>
 </div>
+
+<!-- Modal Window -->
+<div class="modal" id="successModal">
+    <div class="modal-content">
+        <img src="{% static 'img/email-icon.png' %}" alt="Email Icon" class="modal-icon">
+        <h2 class="modal-title">Регистрация успешна!</h2>
+        <p class="modal-text">
+            Мы отправили письмо с подтверждением на ваш email.<br>
+            Пожалуйста, проверьте вашу почту и перейдите по ссылке для активации аккаунта.
+        </p>
+        <button class="modal-button" onclick="window.location.href='{% url 'main:login' %}'">Продолжить</button>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         new Cleave('#phone', {
             prefix: '+',
             numericOnly: true
+        });
+
+        const form = document.getElementById('registerForm');
+        const modal = document.getElementById('successModal');
+
+        // Функция для очистки всех ошибок
+        function clearErrors() {
+            document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+            document.querySelectorAll('.form-side input').forEach(input => {
+                input.classList.remove('error');
+            });
+        }
+
+        // Функция для отображения ошибок
+        function showErrors(errors) {
+            clearErrors();
+            for (const [field, messages] of Object.entries(errors)) {
+                const errorElement = document.getElementById(`${field}-error`);
+                const inputElement = document.getElementById(field);
+                
+                if (errorElement) {
+                    errorElement.textContent = Array.isArray(messages) ? messages[0] : messages;
+                }
+                
+                if (inputElement) {
+                    inputElement.classList.add('error');
+                }
+            }
+        }
+
+        // Очистка ошибок при фокусе на поле
+        document.querySelectorAll('.form-side input').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.classList.remove('error');
+                const errorElement = document.getElementById(`${this.id}-error`);
+                if (errorElement) {
+                    errorElement.textContent = '';
+                }
+            });
+        });
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            clearErrors();
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    modal.style.display = 'flex';
+                } else if (data.errors) {
+                    showErrors(data.errors);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
         });
     });
 </script>

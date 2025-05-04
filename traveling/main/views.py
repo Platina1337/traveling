@@ -11,6 +11,7 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from django.urls import reverse
 
 from .tasks import send_sms_task
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
@@ -26,6 +27,11 @@ from django.urls import reverse_lazy
 from .models import UserProfile, Trip, City, Car, Notification, Comment
 from .forms import LoginForm, UserRegistrationForm, UserLoginForm, TripForm, UserProfileForm, CustomPasswordChangeForm, \
     CommentForm
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 class MainView(View):
@@ -103,6 +109,83 @@ class AddTravelView(View):
         return render(request, self.template_name)
 
 
+def send_verification_email(user, request):
+    """Отправляет письмо для верификации пользователя"""
+    token = default_token_generator.make_token(user)
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    
+    # Формируем URL для верификации
+    verification_url = request.build_absolute_uri(
+        reverse('main:activate_account', kwargs={'uidb64': uid, 'token': token})
+    )
+    
+    # Формируем сообщение для email
+    email_message = f"""
+    Здравствуйте, {user.first_name}!
+
+    Спасибо за регистрацию на нашем сайте. Для активации вашего аккаунта, пожалуйста, перейдите по следующей ссылке:
+
+    {verification_url}
+
+    Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.
+
+    С уважением,
+    Команда Название
+    """
+    
+    # Отправляем email (в консоль для тестирования)
+    print("\n=== Email Message ===")
+    print(f"To: {user.email}")
+    print(f"Subject: Подтверждение регистрации")
+    print(f"Message:\n{email_message}")
+    print("===================\n")
+    
+    return True
+
+@require_POST
+def resend_verification(request):
+    """Обработчик для повторной отправки письма верификации"""
+    email = request.POST.get('email')
+    try:
+        user = User.objects.get(email=email)
+        # Проверяем только is_active в UserProfile, так как это наш основной индикатор активации
+        try:
+            profile = UserProfile.objects.get(user=user)
+            if not profile.is_active:
+                if send_verification_email(user, request):
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Письмо с подтверждением отправлено на ваш email.'
+                    })
+            return JsonResponse({
+                'success': False,
+                'message': 'Аккаунт уже активирован.'
+            })
+        except UserProfile.DoesNotExist:
+            # Если профиль не существует, создаем его и отправляем письмо
+            profile = UserProfile.objects.create(
+                user=user,
+                first_name=user.first_name,
+                last_name=user.last_name,
+                email=user.email,
+                is_active=False
+            )
+            if send_verification_email(user, request):
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Письмо с подтверждением отправлено на ваш email.'
+                })
+    except User.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Пользователь с таким email не найден.'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Произошла ошибка: {str(e)}'
+        })
+
 def login_view(request):
     if request.method == 'POST':
         form = UserLoginForm(request.POST)
@@ -110,7 +193,38 @@ def login_view(request):
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
             user = authenticate(request, username=email, password=password)
+            
             if user is not None:
+                # Проверяем активность пользователя
+                if not user.is_active:
+                    messages.error(request, 'Пожалуйста, активируйте ваш аккаунт через email.')
+                    # Добавляем в контекст информацию о возможности повторной отправки
+                    return render(request, 'main/login.html', {
+                        'form': form,
+                        'show_resend': True,
+                        'email': email
+                    })
+                
+                # Проверяем наличие и активность профиля
+                try:
+                    profile = UserProfile.objects.get(user=user)
+                    if not profile.is_active:
+                        messages.error(request, 'Пожалуйста, активируйте ваш аккаунт через email.')
+                        return render(request, 'main/login.html', {
+                            'form': form,
+                            'show_resend': True,
+                            'email': email
+                        })
+                except UserProfile.DoesNotExist:
+                    # Если профиль не существует, создаем его
+                    profile = UserProfile.objects.create(
+                        user=user,
+                        first_name=user.first_name,
+                        last_name=user.last_name,
+                        email=user.email,
+                        is_active=user.is_active
+                    )
+                
                 login(request, user)
                 return redirect('main:main')
             else:
@@ -118,30 +232,6 @@ def login_view(request):
     else:
         form = LoginForm()
     return render(request, 'main/login.html', {'form': form})
-class LoginView(View):
-    form_class = LoginForm
-    template_name = 'main/login.html'
-
-    def get(self, request):
-        form = self.form_class()
-        return render(request, self.template_name, {'form': form})
-
-    def post(self, request):
-        form = self.form_class(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data['email']
-            password = form.cleaned_data['password']
-            try:
-                user = User.objects.get(email=email)
-                user = authenticate(request, username=user.username, password=password)
-                if user is not None:
-                    login(request, user)
-                    return redirect('main:main')
-                else:
-                    form.add_error(None, 'Неверный email или пароль.')
-            except User.DoesNotExist:
-                form.add_error(None, 'Неверный email или пароль.')
-        return render(request, self.template_name, {'form': form})
 
 import logging
 
@@ -541,39 +631,112 @@ def city_suggestions(request):
 def register(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
-
         if form.is_valid():
             name = form.cleaned_data['name']
             email = form.cleaned_data['email']
             phone = form.cleaned_data['phone']
             password = form.cleaned_data['password']
 
-            # Разделим имя и фамилию
-            first_name, last_name = name.split(' ', 1)
+            # Разделяем имя на имя и фамилию
+            name_parts = name.split()
+            first_name = name_parts[0] if len(name_parts) > 0 else ''
+            last_name = ' '.join(name_parts[1:]) if len(name_parts) > 1 else ''
 
             # Создаем пользователя
-            user = User.objects.create_user(username=email, email=email, password=password)
-            user.first_name = first_name
-            user.last_name = last_name
-            user.save()
+            user = User.objects.create_user(
+                username=email,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name
+            )
 
-            # Создаем профиль пользователя
-            profile = UserProfile(
+            # Создаем профиль пользователя с теми же данными
+            profile = UserProfile.objects.create(
                 user=user,
                 first_name=first_name,
                 last_name=last_name,
-                phone_number=phone,
                 email=email,
+                phone_number=phone,
+                is_active=False
             )
 
-            profile.set_password(password)
-            profile.save()
-            # send_sms_task(phone, 'Добро пожаловать! Вы успешно зарегистрировались.')
-            return redirect('main:login')
+            # Генерируем токен для верификации
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+            # Формируем URL для верификации
+            verification_url = request.build_absolute_uri(
+                reverse('main:activate_account', kwargs={'uidb64': uid, 'token': token})
+            )
+
+            # Формируем сообщение для email
+            email_message = f"""
+            Здравствуйте, {first_name}!
+
+            Спасибо за регистрацию на нашем сайте. Для активации вашего аккаунта, пожалуйста, перейдите по следующей ссылке:
+
+            {verification_url}
+
+            Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.
+
+            С уважением,
+            Команда Название
+            """
+
+            # Отправляем email (в консоль для тестирования)
+            print("\n=== Email Message ===")
+            print(f"To: {email}")
+            print(f"Subject: Подтверждение регистрации")
+            print(f"Message:\n{email_message}")
+            print("===================\n")
+
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors})
     else:
         form = UserRegistrationForm()
-
     return render(request, 'main/register.html', {'form': form})
+
+def activate_account(request, uidb64, token):
+    try:
+        # Декодируем uid
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+        profile = UserProfile.objects.get(user=user)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist, UserProfile.DoesNotExist):
+        user = None
+        profile = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        # Активируем и пользователя, и профиль
+        user.is_active = True
+        user.save()
+        
+        if profile:
+            profile.is_active = True
+            profile.save()
+            
+        messages.success(request, 'Ваш аккаунт успешно активирован! Теперь вы можете войти в систему.')
+    else:
+        messages.error(request, 'Недействительная ссылка для активации аккаунта.')
+    
+    return redirect('main:login')
+
+def is_passenger_profile_complete(profile):
+    """
+    Проверяет, заполнены ли все обязательные поля профиля пассажира
+    (кроме автомобиля, так как пассажиру он не нужен)
+    """
+    required_fields = [
+        profile.first_name,
+        profile.last_name,
+        profile.phone_number,
+        profile.email
+    ]
+    
+    # Проверяем, что все поля заполнены
+    return all(required_fields)
 
 @csrf_exempt
 def add_passenger(request, trip_id):
@@ -581,6 +744,14 @@ def add_passenger(request, trip_id):
         try:
             trip = get_object_or_404(Trip, id=trip_id)
             user_profile = get_object_or_404(UserProfile, user=request.user)
+            
+            # Проверяем заполненность профиля пассажира
+            if not is_passenger_profile_complete(user_profile):
+                return JsonResponse({
+                    'success': False, 
+                    'error': 'Для присоединения к поездке необходимо заполнить профиль. Пожалуйста, перейдите в раздел "Профиль" и заполните все обязательные поля.'
+                })
+            
             if user_profile not in trip.passengers.all() and user_profile not in trip.pending_passengers.all() and trip.user != request.user:
                 if not trip.is_full:
                     trip.pending_passengers.add(user_profile)
@@ -708,8 +879,39 @@ def add_trip(request):
     errors = []
     user_profile = UserProfile.objects.get(user=request.user)
     user_trips = Trip.objects.filter(user=user_profile)
+    
+    # Проверяем заполненность профиля
+    profile_complete = True
+    missing_fields = []
+    
+    # Проверяем основные поля
+    if not user_profile.first_name:
+        missing_fields.append('имя')
+    if not user_profile.last_name:
+        missing_fields.append('фамилия')
+    if not user_profile.phone_number:
+        missing_fields.append('номер телефона')
+    if not user_profile.email:
+        missing_fields.append('email')
+        
+    # Проверяем наличие автомобиля
+    try:
+        car = Car.objects.get(owner=user_profile)
+        if not car.brand:
+            missing_fields.append('марка автомобиля')
+    except Car.DoesNotExist:
+        missing_fields.append('автомобиль')
+        
+    if missing_fields:
+        profile_complete = False
+        # Формируем сообщение с перечислением отсутствующих полей
+        fields_text = ', '.join(missing_fields)
+        messages.warning(request, f'Для создания поездки необходимо заполнить следующие поля в профиле: {fields_text}. Пожалуйста, перейдите в раздел "Профиль" и заполните все обязательные поля.')
 
     if request.method == 'POST':
+        if not profile_complete:
+            return redirect('main:profile')
+            
         form = TripForm(request.POST, request.FILES)
         if form.is_valid():
             car_image = form.cleaned_data['car_image']
@@ -726,15 +928,12 @@ def add_trip(request):
             departure_time = departure_datetime.time()
             arrival_date = arrival_datetime.date()
             arrival_time = arrival_datetime.time()
-            if car_image:
-                print("car_image is provided:", car_image)
-            else:
-                print("car_image is not provided")
+
             try:
                 car = Car.objects.get(brand=car_brand, owner=user_profile)
                 if car_image:
                     car.image = car_image
-                    car.save()  # Обязательно сохраните объект car после обновления поля image
+                    car.save()
             except Car.DoesNotExist:
                 car = Car.objects.create(
                     image=car_image,
@@ -780,4 +979,177 @@ def add_trip(request):
         form = TripForm()
 
     current_datetime = timezone.now().isoformat()
-    return render(request, 'main/add_travel.html', {'form': form, 'errors': errors, 'trips': user_trips, 'current_datetime': current_datetime})
+    return render(request, 'main/add_travel.html', {
+        'form': form, 
+        'errors': errors, 
+        'trips': user_trips, 
+        'current_datetime': current_datetime,
+        'profile_complete': profile_complete
+    })
+
+def is_profile_complete(profile):
+    """
+    Проверяет, заполнены ли все обязательные поля профиля
+    """
+    required_fields = [
+        profile.first_name,
+        profile.last_name,
+        profile.phone_number,
+        profile.email
+    ]
+    
+    # Проверяем, что все поля заполнены
+    if not all(required_fields):
+        return False
+        
+    # Проверяем наличие автомобиля
+    try:
+        car = Car.objects.get(owner=profile)
+        if not car.brand:
+            return False
+    except Car.DoesNotExist:
+        return False
+        
+    return True
+
+def calculate_route(request):
+    if request.method == 'GET':
+        start = request.GET.get('start')
+        end = request.GET.get('end')
+        
+        if not start or not end:
+            return JsonResponse({'error': 'Missing coordinates'}, status=400)
+            
+        # Словарь с расстояниями между основными городами (в километрах)
+        DISTANCES = {
+            # Центральный федеральный округ
+            ('Москва', 'Тверь'): 167,
+            ('Москва', 'Ярославль'): 265,
+            ('Москва', 'Воронеж'): 515,
+            ('Москва', 'Тула'): 183,
+            ('Москва', 'Рязань'): 196,
+            ('Москва', 'Калуга'): 188,
+            ('Москва', 'Смоленск'): 419,
+            ('Москва', 'Брянск'): 379,
+            ('Москва', 'Владимир'): 190,
+            ('Москва', 'Иваново'): 275,
+            ('Москва', 'Кострома'): 340,
+            ('Москва', 'Липецк'): 450,
+            ('Москва', 'Орел'): 368,
+            ('Москва', 'Курск'): 530,
+            ('Москва', 'Белгород'): 680,
+            
+            # Северо-Западный федеральный округ
+            ('Москва', 'Санкт-Петербург'): 705,
+            ('Санкт-Петербург', 'Тверь'): 480,
+            ('Санкт-Петербург', 'Ярославль'): 440,
+            ('Санкт-Петербург', 'Великий Новгород'): 180,
+            ('Санкт-Петербург', 'Псков'): 290,
+            ('Санкт-Петербург', 'Петрозаводск'): 430,
+            ('Санкт-Петербург', 'Мурманск'): 1350,
+            ('Санкт-Петербург', 'Архангельск'): 1140,
+            ('Санкт-Петербург', 'Вологда'): 700,
+            
+            # Приволжский федеральный округ
+            ('Москва', 'Нижний Новгород'): 400,
+            ('Москва', 'Казань'): 815,
+            ('Москва', 'Самара'): 1050,
+            ('Москва', 'Саратов'): 850,
+            ('Москва', 'Ульяновск'): 890,
+            ('Москва', 'Пенза'): 625,
+            ('Москва', 'Ижевск'): 1120,
+            ('Москва', 'Пермь'): 1380,
+            ('Москва', 'Уфа'): 1350,
+            ('Москва', 'Оренбург'): 1450,
+            ('Москва', 'Йошкар-Ола'): 860,
+            ('Москва', 'Чебоксары'): 650,
+            
+            # Южный федеральный округ
+            ('Москва', 'Ростов-на-Дону'): 1070,
+            ('Москва', 'Краснодар'): 1350,
+            ('Москва', 'Сочи'): 1620,
+            ('Москва', 'Волгоград'): 970,
+            ('Москва', 'Астрахань'): 1410,
+            ('Москва', 'Ставрополь'): 1450,
+            ('Москва', 'Махачкала'): 1850,
+            ('Москва', 'Грозный'): 2000,
+            ('Москва', 'Владикавказ'): 1950,
+            
+            # Уральский федеральный округ
+            ('Москва', 'Екатеринбург'): 1420,
+            ('Москва', 'Челябинск'): 1820,
+            ('Москва', 'Тюмень'): 2140,
+            ('Москва', 'Курган'): 2000,
+            ('Москва', 'Ханты-Мансийск'): 2800,
+            
+            # Сибирский федеральный округ
+            ('Москва', 'Новосибирск'): 3350,
+            ('Москва', 'Омск'): 2700,
+            ('Москва', 'Томск'): 3600,
+            ('Москва', 'Красноярск'): 4200,
+            ('Москва', 'Иркутск'): 5200,
+            ('Москва', 'Кемерово'): 3600,
+            ('Москва', 'Барнаул'): 3400,
+            
+            # Дальневосточный федеральный округ
+            ('Москва', 'Владивосток'): 9100,
+            ('Москва', 'Хабаровск'): 8500,
+            ('Москва', 'Благовещенск'): 8000,
+            ('Москва', 'Петропавловск-Камчатский'): 12000,
+            ('Москва', 'Магадан'): 11000,
+            ('Москва', 'Южно-Сахалинск'): 10500,
+            
+            # Дополнительные маршруты между крупными городами
+            ('Санкт-Петербург', 'Нижний Новгород'): 1100,
+            ('Санкт-Петербург', 'Казань'): 1500,
+            ('Санкт-Петербург', 'Воронеж'): 1200,
+            ('Санкт-Петербург', 'Ростов-на-Дону'): 1750,
+            ('Санкт-Петербург', 'Краснодар'): 2000,
+            ('Санкт-Петербург', 'Сочи'): 2300,
+            ('Санкт-Петербург', 'Волгоград'): 1650,
+            ('Санкт-Петербург', 'Самара'): 1700,
+            ('Санкт-Петербург', 'Екатеринбург'): 2100,
+            ('Санкт-Петербург', 'Новосибирск'): 3800,
+            ('Санкт-Петербург', 'Калининград'): 1200,
+            
+            # Популярные маршруты между соседними городами
+            ('Тверь', 'Ярославль'): 260,
+            ('Тверь', 'Великий Новгород'): 320,
+            ('Тверь', 'Ржев'): 120,
+            ('Тверь', 'Вышний Волочек'): 120,
+            ('Ярославль', 'Кострома'): 85,
+            ('Ярославль', 'Рыбинск'): 80,
+            ('Воронеж', 'Липецк'): 120,
+            ('Воронеж', 'Курск'): 220,
+            ('Тула', 'Калуга'): 120,
+            ('Тула', 'Орел'): 180,
+            ('Рязань', 'Тамбов'): 300,
+            ('Рязань', 'Пенза'): 450,
+            ('Калуга', 'Брянск'): 200,
+            ('Смоленск', 'Брянск'): 250,
+            ('Владимир', 'Иваново'): 120,
+            ('Владимир', 'Муром'): 130,
+            ('Иваново', 'Кострома'): 100,
+            ('Иваново', 'Шуя'): 30,
+            ('Кострома', 'Галич'): 120,
+            ('Кострома', 'Буй'): 100,
+        }
+        
+        # Проверяем оба варианта порядка городов
+        distance = None
+        if (start, end) in DISTANCES:
+            distance = DISTANCES[(start, end)]
+        elif (end, start) in DISTANCES:
+            distance = DISTANCES[(end, start)]
+            
+        if distance is not None:
+            # Предполагаем среднюю скорость 60 км/ч
+            duration = distance * 60  # время в минутах
+            return JsonResponse({
+                'distance': distance * 1000,  # переводим в метры
+                'duration': duration * 60     # переводим в секунды
+            })
+        else:
+            return JsonResponse({'error': 'Route not found'}, status=404)
+            
+    return JsonResponse({'error': 'Method not allowed'}, status=405)

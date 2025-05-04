@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block title %}
-Регистрация
+Вход
 {% endblock %}
 
 {% block content %}
@@ -19,6 +19,19 @@
     <div class="form-side">
         <h1>Добро пожаловать, <br> авторизуйтесь в <span>Название</span></h1>
         <p>Введите ваши данные ниже</p>
+
+        <div id="messageContainer"></div>
+
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <form method="post">
             {% csrf_token %}
             {{ form.non_field_errors }}
@@ -26,7 +39,6 @@
             <label for="email">Email</label>
             <input type="email" id="email" name="email" placeholder="ivanivanov@gmail.com" value="{{ form.data.email|default_if_none:'' }}">
             {{ form.errors.email }}
-
 
             <label for="password">Пароль</label>
             <input type="password" id="password" name="password" placeholder="********">
@@ -39,6 +51,153 @@
 
             <button type="submit">Авторизоваться</button>
         </form>
+
+        {% if show_resend %}
+        <div class="resend-verification">
+            <p>Не получили письмо с подтверждением?</p>
+            <button id="resendButton" class="resend-button" data-email="{{ email }}">Отправить письмо повторно</button>
+        </div>
+        {% endif %}
     </div>
 </div>
+
+<style>
+.login-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.login-form {
+    margin-top: 20px;
+}
+
+.login-button {
+    width: 100%;
+    padding: 10px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.login-button:hover {
+    background: #0056b3;
+}
+
+.resend-verification {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.resend-button {
+    padding: 8px 16px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.resend-button:hover {
+    background: #218838;
+}
+
+.resend-button:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+}
+
+.alert {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+#messageContainer {
+    margin-bottom: 15px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const resendButton = document.getElementById('resendButton');
+    const messageContainer = document.getElementById('messageContainer');
+    
+    if (resendButton) {
+        resendButton.addEventListener('click', function() {
+            const email = this.dataset.email;
+            const button = this;
+            
+            // Отключаем кнопку
+            button.disabled = true;
+            button.textContent = 'Отправка...';
+            
+            // Отправляем запрос
+            fetch('{% url "main:resend_verification" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: `email=${encodeURIComponent(email)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Показываем сообщение
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${data.success ? 'success' : 'error'}`;
+                alertDiv.textContent = data.message;
+                
+                // Очищаем предыдущие сообщения
+                messageContainer.innerHTML = '';
+                // Добавляем новое сообщение
+                messageContainer.appendChild(alertDiv);
+                
+                // Удаляем сообщение через 5 секунд
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 5000);
+                
+                // Восстанавливаем кнопку
+                button.disabled = false;
+                button.textContent = 'Отправить письмо повторно';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                button.disabled = false;
+                button.textContent = 'Отправить письмо повторно';
+                
+                // Показываем сообщение об ошибке
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-error';
+                alertDiv.textContent = 'Произошла ошибка при отправке письма. Пожалуйста, попробуйте позже.';
+                messageContainer.innerHTML = '';
+                messageContainer.appendChild(alertDiv);
+                
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 5000);
+            });
+        });
+    }
+});
+</script>
 {% endblock content %}

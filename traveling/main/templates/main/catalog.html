@@ -181,7 +181,49 @@
     <img src="{% static 'img/arrow-up.svg' %}" alt="Наверх">
   </button>
 <script>
+function joinTrip(tripId) {
+    fetch(`/join_trip/${tripId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Запрос на присоединение к поездке отправлен');
+            // Обновляем UI после успешного присоединения
+            updateTripUI(tripId);
+        } else {
+            // Показываем сообщение об ошибке
+            if (data.error) {
+                showNotification(data.error, 'error');
+            } else {
+                showNotification('Произошла ошибка при присоединении к поездке', 'error');
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Произошла ошибка при присоединении к поездке', 'error');
+    });
+}
 
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+        <span class="close" onclick="this.parentElement.remove()">&times;</span>
+        <p>${message}</p>
+    `;
+    document.body.appendChild(notification);
+    
+    // Автоматически удаляем уведомление через 5 секунд
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
+}
 </script>
     <script src="{% static 'js/search.js' %}"></script>
 {% endblock content %}
