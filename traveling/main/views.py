@@ -16,22 +16,23 @@ from django.urls import reverse
 from .tasks import send_sms_task
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.models import User
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.timezone import make_aware
 from django.views import View
 from django.views.generic import DetailView, CreateView, ListView, TemplateView
 from django.views.generic import UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
-from .models import UserProfile, Trip, City, Car, Notification, Comment
+from .models import UserProfile, Trip, City, Car, Notification, Comment, CarModel, CarBrand
 from .forms import LoginForm, UserRegistrationForm, UserLoginForm, TripForm, UserProfileForm, CustomPasswordChangeForm, \
-    CommentForm
+    CommentForm, CarForm
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
 from django.conf import settings
+import json
+from django.template.loader import render_to_string
 
 
 class MainView(View):
@@ -239,16 +240,47 @@ import logging
 
 @require_POST
 def delete_trip(request, trip_id):
-    trip = get_object_or_404(Trip, id=trip_id, user=request.user.userprofile)
-    trip.delete()
-    return JsonResponse({'success': True})
+    try:
+        trip = get_object_or_404(Trip, id=trip_id, user=request.user.userprofile)
+        
+        # Проверяем статус поездки
+        if trip.status == 'in_progress':
+            return JsonResponse({
+                'success': False, 
+                'message': 'Нельзя удалить начатую поездку. Сначала завершите поездку.'
+            }, status=400)
+        
+        trip.delete()
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
 
 @require_POST
 def leave_trip(request, trip_id):
-    profile = get_object_or_404(UserProfile, user=request.user)
-    trip = get_object_or_404(Trip, id=trip_id)
-    trip.passengers.remove(profile)
-    return JsonResponse({'success': True})
+    try:
+        profile = get_object_or_404(UserProfile, user=request.user)
+        trip = get_object_or_404(Trip, id=trip_id)
+        
+        # Проверяем статус поездки
+        if trip.status == 'in_progress':
+            return JsonResponse({
+                'success': False, 
+                'message': 'Нельзя выйти из начатой поездки.'
+            }, status=400)
+            
+        trip.passengers.remove(profile)
+        
+        # Создаем уведомление для водителя
+        Notification.objects.create(
+            recipient=trip.user,
+            sender=profile,
+            trip=trip,
+            message=f"{profile.first_name} {profile.last_name} вышел из поездки."
+        )
+        
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
 
 def logout_view(request):
     logout(request)
@@ -279,6 +311,16 @@ class ProfileView(LoginRequiredMixin, TemplateView):
                 profile = get_object_or_404(UserProfile, user=user)
                 trips = Trip.objects.filter(user=profile).exclude(status='completed').order_by('-status')
                 joined_trips = Trip.objects.filter(passengers=profile).exclude(user=profile).exclude(status='completed').order_by('-status')
+                cars = Car.objects.filter(owner=profile)
+                car_form = CarForm()
+                car_brands = CarBrand.objects.all()
+
+                # Получаем сообщения только для страницы профиля
+                messages_list = []
+                for message in messages.get_messages(self.request):
+                    if message.tags == 'success' and any(keyword in message.message.lower() for keyword in ['автомобиль', 'информация']):
+                        messages_list.append(message)
+                context['messages'] = messages_list
 
                 all_trips = []
 
@@ -339,19 +381,39 @@ class ProfileView(LoginRequiredMixin, TemplateView):
                 context['form'] = form
                 context['change_password_form'] = change_password_form
                 context['notifications'] = notifications
+                context['cars'] = cars
+                context['car_form'] = car_form
+                context['car_brands'] = car_brands
 
             except ValueError as e:
                 logging.error(f"Error in ProfileView: {e}")
                 context['profile'] = None
                 context['paginated_trips'] = []
                 context['notifications'] = []
+                context['cars'] = []
+                context['car_form'] = CarForm()
+                context['car_brands'] = CarBrand.objects.all()
 
         return context
 
     def post(self, request, *args, **kwargs):
         profile = get_object_or_404(UserProfile, user=request.user)
-        form = UserProfileForm(request.POST, request.FILES)
-
+        
+        # Обработка добавления автомобиля
+        if 'add_car' in request.POST:
+            form = CarForm(request.POST, request.FILES)
+            if form.is_valid():
+                car = form.save(commit=False)
+                car.owner = profile
+                car.save()
+                messages.success(request, 'Автомобиль успешно добавлен')
+                return redirect('main:profile')
+            else:
+                messages.error(request, 'Пожалуйста, исправьте ошибки в форме')
+                return redirect('main:profile')
+        else:
+            # Существующая логика обновления профиля
+            form = UserProfileForm(request.POST, request.FILES)
         if form.is_valid():
             profile.first_name = form.cleaned_data['first_name']
             profile.last_name = form.cleaned_data['last_name']
@@ -360,7 +422,6 @@ class ProfileView(LoginRequiredMixin, TemplateView):
             profile.about_me = form.cleaned_data['about_me']
             if 'avatar' in request.FILES:
                 profile.avatar = request.FILES['avatar']
-
             profile.save()
             messages.success(request, 'Ваш профиль был обновлен.')
         else:
@@ -371,6 +432,62 @@ class ProfileView(LoginRequiredMixin, TemplateView):
 
 logger = logging.getLogger(__name__)
 
+def send_trip_notification_email(recipients, subject, message, context=None):
+    """
+    Отправляет уведомления по email указанным получателям с использованием HTML шаблона
+    
+    :param recipients: список email адресов или один email
+    :param subject: тема письма
+    :param message: текстовое сообщение (для fallback)
+    :param context: словарь контекста для HTML шаблона
+    """
+    try:
+        # Импортируем здесь, чтобы избежать проблем с циклическими импортами
+        from django.core.mail import send_mail
+        from django.conf import settings
+        from django.template.loader import render_to_string
+        
+        # Если recipients - один email, преобразуем в список
+        if isinstance(recipients, str):
+            recipients = [recipients]
+            
+        # Проверка на пустые email и удаление их
+        recipients = [email for email in recipients if email]
+        
+        if not recipients:
+            return False
+            
+        # Если контекст не передан, создаем пустой словарь
+        if context is None:
+            context = {}
+        
+        # Добавляем сообщение в контекст, если его там нет
+        if 'message' not in context:
+            context['message'] = message
+            
+        # Если в контексте нет subject, добавляем его
+        if 'subject' not in context:
+            context['subject'] = subject
+            
+        # Если в контексте нет header, используем subject
+        if 'header' not in context:
+            context['header'] = 'Уведомление о поездке'
+            
+        # Рендерим HTML шаблон
+        html_message = render_to_string('main/email/trip_notification.html', context)
+            
+        send_mail(
+            subject,
+            message,  # Текстовая версия для клиентов, не поддерживающих HTML
+            settings.DEFAULT_FROM_EMAIL,
+            recipients,
+            fail_silently=True,
+            html_message=html_message  # HTML версия письма
+        )
+        return True
+    except Exception as e:
+        logger.error(f"Ошибка отправки email: {str(e)}")
+        return False
 
 def start_trip(request, trip_id):
     if request.method == 'POST':
@@ -386,13 +503,52 @@ def start_trip(request, trip_id):
             trip.save()
             logger.info(f"Trip {trip_id} started by user {request.user.id}.")
 
-            for passenger in trip.passengers.all():
+            # Получаем список пассажиров для уведомления
+            passengers = trip.passengers.all()
+            
+            for passenger in passengers:
+                # Создаем уведомление в системе
                 Notification.objects.create(
                     recipient=passenger,
                     sender=request.user.userprofile,
                     trip=trip,
                     message=f"Поездка {trip.departure_city.name} -> {trip.destination_city.name} началась"
                 )
+                
+                # Отправляем email уведомление с использованием HTML шаблона
+                subject = f"Поездка {trip.departure_city.name} -> {trip.destination_city.name} началась"
+                text_message = f"""
+                Здравствуйте, {passenger.first_name}!
+                
+                Ваша поездка из {trip.departure_city.name} в {trip.destination_city.name} началась.
+                
+                Дата: {trip.departure_date.strftime('%d.%m.%Y')}
+                Время отправления: {trip.departure_time.strftime('%H:%M')}
+                Время прибытия: {trip.arrival_time.strftime('%H:%M')}
+                
+                Водитель: {trip.user.first_name} {trip.user.last_name}
+                
+                С уважением,
+                Команда сервиса
+                """
+                
+                # Контекст для HTML шаблона
+                context = {
+                    'recipient_name': passenger.first_name,
+                    'subject': subject,
+                    'header': 'Поездка началась',
+                    'message': 'Ваша поездка началась! Пожалуйста, убедитесь, что вы прибыли к месту отправления вовремя.',
+                    'trip_details': True,
+                    'trip_departure': trip.departure_city.name,
+                    'trip_destination': trip.destination_city.name,
+                    'trip_date': trip.departure_date.strftime('%d.%m.%Y'),
+                    'trip_time_departure': trip.departure_time.strftime('%H:%M'),
+                    'trip_time_arrival': trip.arrival_time.strftime('%H:%M'),
+                    'driver_name': f"{trip.user.first_name} {trip.user.last_name}"
+                }
+                
+                send_trip_notification_email(passenger.email, subject, text_message, context)
+                
             return JsonResponse({'success': True})
         else:
             logger.warning(f"User {request.user.id} attempted to start trip {trip_id} but is not the driver.")
@@ -411,13 +567,52 @@ def end_trip(request, trip_id):
             trip.save()
             logger.info(f"Trip {trip_id} completed by user {request.user.id}.")
 
-            for passenger in trip.passengers.all():
+            # Получаем список пассажиров для уведомления
+            passengers = trip.passengers.all()
+            
+            for passenger in passengers:
+                # Создаем уведомление в системе
                 Notification.objects.create(
                     recipient=passenger,
                     sender=request.user.userprofile,
                     trip=trip,
                     message=f"Поездка {trip.departure_city.name} -> {trip.destination_city.name} завершена"
                 )
+                
+                # Отправляем email уведомление с использованием HTML шаблона
+                subject = f"Поездка {trip.departure_city.name} -> {trip.destination_city.name} завершена"
+                text_message = f"""
+                Здравствуйте, {passenger.first_name}!
+                
+                Ваша поездка из {trip.departure_city.name} в {trip.destination_city.name} успешно завершена.
+                
+                Дата: {trip.departure_date.strftime('%d.%m.%Y')}
+                
+                Спасибо, что воспользовались нашим сервисом! Вы можете оставить отзыв о поездке в личном кабинете.
+                
+                С уважением,
+                Команда сервиса
+                """
+                
+                # Добавляем профиль водителя для отзыва
+                profile_url = request.build_absolute_uri(f'/profile_user/?user_id={trip.user.id}')
+                
+                # Контекст для HTML шаблона
+                context = {
+                    'recipient_name': passenger.first_name,
+                    'subject': subject,
+                    'header': 'Поездка завершена',
+                    'message': 'Ваша поездка успешно завершена! Благодарим вас за использование нашего сервиса.',
+                    'trip_details': True,
+                    'trip_departure': trip.departure_city.name,
+                    'trip_destination': trip.destination_city.name,
+                    'trip_date': trip.departure_date.strftime('%d.%m.%Y'),
+                    'action_url': profile_url,
+                    'action_text': 'Оставить отзыв о водителе'
+                }
+                
+                send_trip_notification_email(passenger.email, subject, text_message, context)
+                
             return JsonResponse({'success': True})
         else:
             logger.warning(f"User {request.user.id} attempted to end trip {trip_id} but is not the driver.")
@@ -561,9 +756,16 @@ def get_trip_details_profile(request, trip_id):
     try:
         trip = get_object_or_404(Trip, id=trip_id)
         driver = trip.user
+        
+        # Создаем datetime из date и time
+        departure_datetime = datetime.combine(trip.departure_date, trip.departure_time)
+        departure_datetime = make_aware(departure_datetime)
+        
+        # Получаем всех пассажиров
+        passengers = trip.passengers.all()
 
         trip_data = {
-            'driver_id': driver.id,  # Добавляем driver_id
+            'driver_id': driver.id,
             'driver_name': driver.first_name,
             'driver_surname': driver.last_name,
             'driver_description': trip.comment if trip.comment else '',
@@ -576,10 +778,19 @@ def get_trip_details_profile(request, trip_id):
             'arrival_time': trip.arrival_time.strftime('%H:%M'),
             'price': str(trip.price),
             'comment': trip.comment,
-            'seats_taken': trip.passengers.count(),
+            'seats_taken': passengers.count(),
             'total_seats': trip.max_passengers,
-            'passengers': [{'id': p.id, 'name': p.first_name} for p in trip.passengers.all()],
-            'status': trip.status  # Добавляем статус поездки
+            'passengers_count': passengers.count(),  # Добавляем количество пассажиров
+            'max_passengers': trip.max_passengers,   # Добавляем максимальное количество пассажиров
+            'departure_datetime': departure_datetime.isoformat(),  # Добавляем дату и время отправления
+            'passengers': [
+                {
+                    'id': p.id,
+                    'first_name': p.first_name,
+                    'last_name': p.last_name
+                } for p in passengers
+            ],
+            'status': trip.status
         }
         return JsonResponse(trip_data)
     except Trip.DoesNotExist:
@@ -589,36 +800,123 @@ def get_trip_details_profile(request, trip_id):
 
 
 @csrf_exempt
-def remove_passenger(request):
+def remove_passenger(request, trip_id, passenger_id=None):
     if request.method == 'POST':
-        print('POST request received')
-
-        trip_id = request.POST.get('trip_id')
-        passenger_id = request.POST.get('passenger_id')
-
-        print(f'trip_id: {trip_id}')
-        print(f'passenger_id: {passenger_id}')
-
-        if not trip_id or not passenger_id:
-            return JsonResponse({'success': False, 'message': 'Missing trip_id or passenger_id'}, status=400)
-
         try:
-            trip = Trip.objects.get(id=trip_id)
-            passenger = UserProfile.objects.get(id=passenger_id)
-            print(trip_id, passenger_id)
-            if trip.passengers.filter(id=passenger_id).exists():
-                trip.passengers.remove(passenger)
-                return JsonResponse({'success': True})
+            trip = get_object_or_404(Trip, id=trip_id)
+            
+            # Проверка статуса поездки
+            if trip.status == 'in_progress':
+                return JsonResponse({
+                    'success': False, 
+                    'message': 'Нельзя удалить пассажира из начатой поездки.'
+                }, status=400)
+            
+            # Если passenger_id предоставлен, удаляем указанного пассажира (водитель удаляет пассажира)
+            if passenger_id:
+                # Проверяем, что запрос от водителя
+                if request.user != trip.user.user:
+                    return JsonResponse({
+                        'success': False, 
+                        'message': 'Только водитель может удалять пассажиров.'
+                    }, status=403)
+
+                passenger = get_object_or_404(UserProfile, id=passenger_id)
+                if passenger in trip.passengers.all():
+                    trip.passengers.remove(passenger)
+                    # Уведомление для пассажира в системе
+                    Notification.objects.create(
+                        recipient=passenger,
+                        sender=trip.user,
+                        trip=trip,
+                        message=f"Вы были удалены из поездки {trip.departure_city.name} -> {trip.destination_city.name}."
+                    )
+                    
+                    # Email уведомление пассажиру об исключении из поездки
+                    subject = f"Вы были исключены из поездки {trip.departure_city.name} -> {trip.destination_city.name}"
+                    text_message = f"""
+                    Здравствуйте, {passenger.first_name}!
+                    
+                    К сожалению, вы были исключены из поездки {trip.departure_city.name} -> {trip.destination_city.name}, 
+                    запланированной на {trip.departure_date.strftime('%d.%m.%Y')}.
+                    
+                    Если у вас возникли вопросы, вы можете связаться с водителем через сервис.
+                    
+                    С уважением,
+                    Команда сервиса
+                    """
+                    
+                    # Контекст для HTML шаблона
+                    context = {
+                        'recipient_name': passenger.first_name,
+                        'subject': subject,
+                        'header': 'Изменение в поездке',
+                        'message': 'К сожалению, вы были исключены из поездки. Возможно, это произошло из-за изменения маршрута или других обстоятельств.',
+                        'trip_details': True,
+                        'trip_departure': trip.departure_city.name,
+                        'trip_destination': trip.destination_city.name,
+                        'trip_date': trip.departure_date.strftime('%d.%m.%Y'),
+                        'action_url': request.build_absolute_uri('/catalog/'),
+                        'action_text': 'Найти другую поездку'
+                    }
+                    
+                    send_trip_notification_email(passenger.email, subject, text_message, context)
+                    
+                    return JsonResponse({'success': True})
+                else:
+                    return JsonResponse({
+                        'success': False, 
+                        'message': 'Пассажир не найден в этой поездке.'
+                    }, status=404)
+            # Если passenger_id не предоставлен, пассажир сам выходит из поездки
             else:
-                return JsonResponse({'success': False, 'message': 'Passenger not found in this trip'}, status=404)
-        except Trip.DoesNotExist:
-            return JsonResponse({'success': False, 'message': 'Trip not found'}, status=404)
-        except UserProfile.DoesNotExist:
-            return JsonResponse({'success': False, 'message': 'Passenger not found'}, status=404)
+                user_profile = get_object_or_404(UserProfile, user=request.user)
+                if user_profile in trip.passengers.all():
+                    trip.passengers.remove(user_profile)
+                    # Уведомление для водителя в системе
+                    Notification.objects.create(
+                        recipient=trip.user,
+                        sender=user_profile,
+                        trip=trip,
+                        message=f"{user_profile.first_name} {user_profile.last_name} покинул вашу поездку."
+                    )
+                    
+                    # Email уведомление водителю о выходе пассажира
+                    subject = f"Пассажир покинул вашу поездку {trip.departure_city.name} -> {trip.destination_city.name}"
+                    text_message = f"""
+                    Здравствуйте, {trip.user.first_name}!
+                    
+                    Пассажир {user_profile.first_name} {user_profile.last_name} покинул вашу поездку 
+                    {trip.departure_city.name} -> {trip.destination_city.name}, 
+                    запланированную на {trip.departure_date.strftime('%d.%m.%Y')}.
+                    
+                    С уважением,
+                    Команда сервиса
+                    """
+                    
+                    # Контекст для HTML шаблона
+                    context = {
+                        'recipient_name': trip.user.first_name,
+                        'subject': subject,
+                        'header': 'Изменение в поездке',
+                        'message': f'Пассажир <span class="highlight">{user_profile.first_name} {user_profile.last_name}</span> отменил своё участие в поездке.',
+                        'trip_details': True,
+                        'trip_departure': trip.departure_city.name,
+                        'trip_destination': trip.destination_city.name,
+                        'trip_date': trip.departure_date.strftime('%d.%m.%Y')
+                    }
+                    
+                    send_trip_notification_email(trip.user.email, subject, text_message, context)
+                    
+                    return JsonResponse({'success': True})
+                else:
+                    return JsonResponse({
+                        'success': False, 
+                        'message': 'Вы не являетесь пассажиром этой поездки.'
+                    }, status=404)
         except Exception as e:
             return JsonResponse({'success': False, 'message': str(e)}, status=500)
-    else:
-        return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
+    return JsonResponse({'success': False, 'message': 'Неверный метод запроса.'}, status=405)
 
 
 def city_suggestions(request):
@@ -752,15 +1050,49 @@ def add_passenger(request, trip_id):
                     'error': 'Для присоединения к поездке необходимо заполнить профиль. Пожалуйста, перейдите в раздел "Профиль" и заполните все обязательные поля.'
                 })
             
-            if user_profile not in trip.passengers.all() and user_profile not in trip.pending_passengers.all() and trip.user != request.user:
+            if user_profile not in trip.passengers.all() and user_profile not in trip.pending_passengers.all() and trip.user.user != request.user:
                 if not trip.is_full:
                     trip.pending_passengers.add(user_profile)
+                    
+                    # Системное уведомление для водителя
                     Notification.objects.create(
                         recipient=trip.user,
                         sender=user_profile,
                         trip=trip,
-                        message=f"{user_profile.user.username} хочет присоединиться к вашей поездке."
+                        message=f"{user_profile.first_name} {user_profile.last_name} хочет присоединиться к вашей поездке."
                     )
+                    
+                    # Email уведомление водителю о запросе на присоединение к поездке
+                    subject = f"Новый запрос на присоединение к поездке {trip.departure_city.name} -> {trip.destination_city.name}"
+                    text_message = f"""
+                    Здравствуйте, {trip.user.first_name}!
+                    
+                    Пользователь {user_profile.first_name} {user_profile.last_name} хочет присоединиться к вашей поездке 
+                    {trip.departure_city.name} -> {trip.destination_city.name}, 
+                    запланированной на {trip.departure_date.strftime('%d.%m.%Y')}.
+                    
+                    Вы можете принять или отклонить этот запрос в разделе "Уведомления" личного кабинета.
+                    
+                    С уважением,
+                    Команда сервиса
+                    """
+                    
+                    # Контекст для HTML шаблона
+                    context = {
+                        'recipient_name': trip.user.first_name,
+                        'subject': subject,
+                        'header': 'Новый запрос от пассажира',
+                        'message': f'Пользователь <span class="highlight">{user_profile.first_name} {user_profile.last_name}</span> хочет присоединиться к вашей поездке.',
+                        'trip_details': True,
+                        'trip_departure': trip.departure_city.name,
+                        'trip_destination': trip.destination_city.name,
+                        'trip_date': trip.departure_date.strftime('%d.%m.%Y'),
+                        'action_url': request.build_absolute_uri('/profile/'),
+                        'action_text': 'Перейти к уведомлениям'
+                    }
+                    
+                    send_trip_notification_email(trip.user.email, subject, text_message, context)
+                    
                     return JsonResponse({'success': True})
                 else:
                     return JsonResponse({'success': False, 'error': 'Trip is full'})
@@ -768,29 +1100,6 @@ def add_passenger(request, trip_id):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
-
-@csrf_exempt
-def remove_passenger(request, trip_id):
-    if request.method == 'POST':
-        try:
-            trip = get_object_or_404(Trip, id=trip_id)
-            user_profile = get_object_or_404(UserProfile, user=request.user)
-            if user_profile in trip.passengers.all():
-                trip.passengers.remove(user_profile)
-                Notification.objects.create(
-                    recipient=trip.user,
-                    sender=user_profile,
-                    trip=trip,
-                    message=f"{user_profile.user.username} покинул вашу поездку."
-                )
-                return JsonResponse({'success': True})
-            return JsonResponse({'success': False, 'error': 'Cannot remove passenger'})
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
-    return JsonResponse({'success': False, 'error': 'Invalid request method'})
-def logout_view(request):
-    logout(request)
-    return redirect('main:login')
 
 @csrf_exempt
 def handle_passenger_request(request, notification_id, action):
@@ -804,22 +1113,93 @@ def handle_passenger_request(request, notification_id, action):
                 if user_profile not in trip.passengers.all():
                     trip.passengers.add(user_profile)
                     trip.pending_passengers.remove(user_profile)
+                    
+                    # Системное уведомление для пассажира
                     Notification.objects.create(
                         recipient=user_profile,
                         sender=notification.recipient,
                         trip=trip,
                         message=f"Ваш запрос на присоединение к поездке был одобрен."
                     )
+                    
+                    # Email уведомление пассажиру о принятии запроса
+                    subject = f"Ваш запрос на присоединение к поездке {trip.departure_city.name} -> {trip.destination_city.name} одобрен"
+                    text_message = f"""
+                    Здравствуйте, {user_profile.first_name}!
+                    
+                    Ваш запрос на присоединение к поездке {trip.departure_city.name} -> {trip.destination_city.name} был одобрен.
+                    
+                    Дата поездки: {trip.departure_date.strftime('%d.%m.%Y')}
+                    Время отправления: {trip.departure_time.strftime('%H:%M')}
+                    Время прибытия: {trip.arrival_time.strftime('%H:%M')}
+                    
+                    Детали поездки доступны в вашем личном кабинете.
+                    
+                    С уважением,
+                    Команда сервиса
+                    """
+                    
+                    # Контекст для HTML шаблона
+                    context = {
+                        'recipient_name': user_profile.first_name,
+                        'subject': subject,
+                        'header': 'Запрос одобрен',
+                        'message': 'Хорошие новости! Ваш запрос на присоединение к поездке был одобрен водителем.',
+                        'trip_details': True,
+                        'trip_departure': trip.departure_city.name,
+                        'trip_destination': trip.destination_city.name,
+                        'trip_date': trip.departure_date.strftime('%d.%m.%Y'),
+                        'trip_time_departure': trip.departure_time.strftime('%H:%M'),
+                        'trip_time_arrival': trip.arrival_time.strftime('%H:%M'),
+                        'driver_name': f"{trip.user.first_name} {trip.user.last_name}",
+                        'action_url': request.build_absolute_uri('/profile/'),
+                        'action_text': 'Посмотреть детали поездки'
+                    }
+                    
+                    send_trip_notification_email(user_profile.email, subject, text_message, context)
+                    
                 notification.read = True
                 notification.save()
             elif action == 'decline':
                 trip.pending_passengers.remove(user_profile)
+                
+                # Системное уведомление для пассажира
                 Notification.objects.create(
                     recipient=user_profile,
                     sender=notification.recipient,
                     trip=trip,
                     message=f"Ваш запрос на присоединение к поездке был отклонен."
                 )
+                
+                # Email уведомление пассажиру об отклонении запроса
+                subject = f"Ваш запрос на присоединение к поездке {trip.departure_city.name} -> {trip.destination_city.name} отклонен"
+                text_message = f"""
+                Здравствуйте, {user_profile.first_name}!
+                
+                К сожалению, ваш запрос на присоединение к поездке {trip.departure_city.name} -> {trip.destination_city.name} был отклонен.
+                
+                Вы можете найти другие подходящие поездки в каталоге.
+                
+                С уважением,
+                Команда сервиса
+                """
+                
+                # Контекст для HTML шаблона
+                context = {
+                    'recipient_name': user_profile.first_name,
+                    'subject': subject,
+                    'header': 'Запрос отклонен',
+                    'message': 'К сожалению, ваш запрос на присоединение к поездке был отклонен водителем.',
+                    'trip_details': True,
+                    'trip_departure': trip.departure_city.name,
+                    'trip_destination': trip.destination_city.name,
+                    'trip_date': trip.departure_date.strftime('%d.%m.%Y'),
+                    'action_url': request.build_absolute_uri('/catalog/'),
+                    'action_text': 'Найти другую поездку'
+                }
+                
+                send_trip_notification_email(user_profile.email, subject, text_message, context)
+                
                 notification.read = True
                 notification.save()
 
@@ -875,142 +1255,91 @@ def handle_passenger_request(request, notification_id, action):
 
 
 
+@login_required
 def add_trip(request):
-    errors = []
-    user_profile = UserProfile.objects.get(user=request.user)
-    user_trips = Trip.objects.filter(user=user_profile)
-    
-    # Проверяем заполненность профиля
-    profile_complete = True
-    missing_fields = []
-    
-    # Проверяем основные поля
-    if not user_profile.first_name:
-        missing_fields.append('имя')
-    if not user_profile.last_name:
-        missing_fields.append('фамилия')
-    if not user_profile.phone_number:
-        missing_fields.append('номер телефона')
-    if not user_profile.email:
-        missing_fields.append('email')
-        
-    # Проверяем наличие автомобиля
-    try:
-        car = Car.objects.get(owner=user_profile)
-        if not car.brand:
-            missing_fields.append('марка автомобиля')
-    except Car.DoesNotExist:
-        missing_fields.append('автомобиль')
-        
-    if missing_fields:
-        profile_complete = False
-        # Формируем сообщение с перечислением отсутствующих полей
-        fields_text = ', '.join(missing_fields)
-        messages.warning(request, f'Для создания поездки необходимо заполнить следующие поля в профиле: {fields_text}. Пожалуйста, перейдите в раздел "Профиль" и заполните все обязательные поля.')
-
     if request.method == 'POST':
-        if not profile_complete:
-            return redirect('main:profile')
-            
-        form = TripForm(request.POST, request.FILES)
+        form = TripForm(request.POST, user=request.user)
         if form.is_valid():
-            car_image = form.cleaned_data['car_image']
-            car_brand = form.cleaned_data['car_name']
-            departure_city_name = form.cleaned_data['departure_city']
-            arrival_datetime = form.cleaned_data['arrival_time']
-            destination_city_name = form.cleaned_data['destination_city']
-            departure_datetime = form.cleaned_data['departure_time']
-            max_passengers = form.cleaned_data['max_passengers']
-            price = form.cleaned_data['price']
-            comment = form.cleaned_data['comment']
-
-            departure_date = departure_datetime.date()
-            departure_time = departure_datetime.time()
-            arrival_date = arrival_datetime.date()
-            arrival_time = arrival_datetime.time()
-
             try:
-                car = Car.objects.get(brand=car_brand, owner=user_profile)
-                if car_image:
-                    car.image = car_image
-                    car.save()
-            except Car.DoesNotExist:
-                car = Car.objects.create(
-                    image=car_image,
-                    brand=car_brand,
-                    owner=user_profile
+                car_id = form.cleaned_data['car_name']
+                car = Car.objects.get(id=car_id)
+                
+                # Получаем первый найденный город или создаем новый
+                departure_city = City.objects.filter(name=form.cleaned_data['departure_city']).first()
+                if not departure_city:
+                    departure_city = City.objects.create(name=form.cleaned_data['departure_city'])
+                    
+                destination_city = City.objects.filter(name=form.cleaned_data['destination_city']).first()
+                if not destination_city:
+                    destination_city = City.objects.create(name=form.cleaned_data['destination_city'])
+                
+                departure_datetime = form.cleaned_data['departure_time']
+                arrival_datetime = form.cleaned_data['arrival_time']
+                
+                trip = Trip.objects.create(
+                    user=request.user.userprofile,
+                    car=car,
+                    departure_city=departure_city,
+                    destination_city=destination_city,
+                    departure_date=departure_datetime.date(),
+                    departure_time=departure_datetime.time(),
+                    arrival_date=arrival_datetime.date(),
+                    arrival_time=arrival_datetime.time(),
+                    max_passengers=form.cleaned_data['max_passengers'],
+                    price=form.cleaned_data['price'],
+                    comment=form.cleaned_data['comment']
                 )
-
-            user_profile.car = car
-            user_profile.save()
-
-            try:
-                departure_city = City.objects.get(name=departure_city_name)
-            except City.DoesNotExist:
-                form.add_error('departure_city', 'Такого города в списке нет.')
-                errors.append('Такого города в списке нет.')
-
-            try:
-                destination_city = City.objects.get(name=destination_city_name)
-            except City.DoesNotExist:
-                form.add_error('destination_city', 'Такого города в списке нет.')
-                errors.append('Такого города в списке нет.')
-
-            if not errors:
-                try:
-                    Trip.objects.create(
-                        user=user_profile,
-                        departure_city=departure_city,
-                        destination_city=destination_city,
-                        departure_date=departure_date,
-                        departure_time=departure_time,
-                        arrival_date=arrival_date,
-                        arrival_time=arrival_time,
-                        max_passengers=max_passengers,
-                        price=price,
-                        comment=comment,
-                        car=car
-                    )
-                    return redirect('main:profile')
-                except Exception as e:
-                    form.add_error(None, str(e))
-                    errors.append(str(e))
+                
+                messages.success(request, 'Поездка успешно создана!')
+                return redirect('main:profile')
+            except Car.DoesNotExist:
+                form.add_error('car_name', 'Выбранный автомобиль не найден')
     else:
-        form = TripForm()
-
-    current_datetime = timezone.now().isoformat()
+        form = TripForm(user=request.user)
+    
+    # Получаем поездки пользователя
+    user_profile = request.user.userprofile
+    trips = Trip.objects.filter(user=user_profile).order_by('-departure_date', '-departure_time')
+    
     return render(request, 'main/add_travel.html', {
-        'form': form, 
-        'errors': errors, 
-        'trips': user_trips, 
-        'current_datetime': current_datetime,
-        'profile_complete': profile_complete
+        'form': form,
+        'cities': City.objects.all(),
+        'profile_complete': is_profile_complete(request.user),
+        'trips': trips
     })
 
-def is_profile_complete(profile):
+def is_profile_complete(user):
     """
     Проверяет, заполнены ли все обязательные поля профиля
     """
-    required_fields = [
-        profile.first_name,
-        profile.last_name,
-        profile.phone_number,
-        profile.email
-    ]
-    
-    # Проверяем, что все поля заполнены
-    if not all(required_fields):
-        return False
-        
-    # Проверяем наличие автомобиля
     try:
-        car = Car.objects.get(owner=profile)
-        if not car.brand:
-            return False
-    except Car.DoesNotExist:
-        return False
+        profile = UserProfile.objects.get(user=user)
         
-    return True
+        # Проверяем основные поля
+        required_fields = [
+            profile.first_name,
+            profile.last_name,
+            profile.phone_number,
+            profile.email
+        ]
+        
+        # Проверяем, что все поля заполнены
+        if not all(required_fields):
+            return False
+            
+        # Проверяем наличие хотя бы одного полностью заполненного автомобиля
+        cars = Car.objects.filter(owner=profile)
+        if not cars.exists():
+            return False
+            
+        # Проверяем, что хотя бы один автомобиль полностью заполнен
+        for car in cars:
+            if car.brand and car.model and car.color and car.license_plate:
+                return True
+                
+        return False
+    except UserProfile.DoesNotExist:
+        return False
 
 def calculate_route(request):
     if request.method == 'GET':
@@ -1153,3 +1482,180 @@ def calculate_route(request):
             return JsonResponse({'error': 'Route not found'}, status=404)
             
     return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+@login_required
+def delete_car(request, car_id):
+    if request.method == 'POST':
+        car = get_object_or_404(Car, id=car_id, owner__user=request.user)
+        
+        # Проверяем, не используется ли автомобиль в активных поездках
+        active_trips = Trip.objects.filter(car=car).exclude(status='completed')
+        if active_trips.exists():
+            in_progress_trips = active_trips.filter(status='in_progress')
+            if in_progress_trips.exists():
+                messages.error(request, 'Невозможно удалить автомобиль, т.к. он используется в начатой поездке. Сначала завершите поездку.')
+            else:
+                messages.error(request, 'Невозможно удалить автомобиль, т.к. он используется в запланированной поездке. Сначала отмените поездку.')
+            return redirect('main:profile')
+            
+        car.delete()
+        messages.success(request, 'Автомобиль успешно удален')
+        return redirect('main:profile')
+    return redirect('main:profile')
+
+@login_required
+def edit_car(request, car_id):
+    car = get_object_or_404(Car, id=car_id, owner__user=request.user)
+    if request.method == 'POST':
+        form = CarForm(request.POST, request.FILES, instance=car)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Информация об автомобиле обновлена')
+            return redirect('main:profile')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{form.fields[field].label}: {error}')
+            return redirect('main:profile')
+    else:
+        # Если это GET-запрос, просто показываем форму редактирования
+        form = CarForm(instance=car)
+        return render(request, 'main/edit_car.html', {'form': form, 'car': car})
+
+def get_car_models(request):
+    """
+    Возвращает список моделей автомобилей для выбранной марки
+    """
+    brand_id = request.GET.get('brand_id')
+    print(f"Получен запрос на модели для марки с ID: {brand_id}")  # Отладочная информация
+    
+    if brand_id:
+        try:
+            brand_id = int(brand_id)
+            models = CarModel.objects.filter(brand_id=brand_id).values('id', 'name')
+            models_list = list(models)
+            print(f"Найдено моделей: {len(models_list)}")  # Отладочная информация
+            for model in models_list:
+                print(f"Модель: {model['name']}, ID: {model['id']}")  # Отладочная информация
+            
+            return JsonResponse({"models": models_list})
+        except (ValueError, TypeError) as e:
+            print(f"Ошибка при конвертации brand_id: {e}")  # Отладочная информация
+            # Если brand_id не число, возвращаем пустой список
+            return JsonResponse({"models": [], "error": f"Неверный формат ID бренда: {str(e)}"}, status=400)
+    
+    print("brand_id не предоставлен")  # Отладочная информация
+    return JsonResponse({"models": []})
+
+def get_car_details(request, car_id):
+    """
+    Возвращает информацию об автомобиле для редактирования
+    """
+    try:
+        car = Car.objects.get(id=car_id, owner__user=request.user)
+        data = {
+            'id': car.id,
+            'brand_id': car.brand.id,
+            'model_id': car.model.id,
+            'color': car.color or '',
+            'license_plate': car.license_plate or '',
+            'image_url': car.image.url if car.image else None
+        }
+        return JsonResponse(data)
+    except Car.DoesNotExist:
+        return JsonResponse({'error': 'Автомобиль не найден'}, status=404)
+
+@login_required
+def trip_details(request, trip_id):
+    try:
+        trip = Trip.objects.get(id=trip_id, user=request.user.userprofile)
+        passengers = trip.passengers.all()
+        
+        # Создаем datetime из date и time
+        departure_datetime = datetime.combine(trip.departure_date, trip.departure_time)
+        departure_datetime = make_aware(departure_datetime)
+        
+        data = {
+            'passengers_count': passengers.count(),
+            'max_passengers': trip.max_passengers,
+            'price': str(trip.price),  # Преобразуем Decimal в строку
+            'departure_datetime': departure_datetime.isoformat(),
+            'status': trip.status,
+            'departure_address': trip.departure_city.name,
+            'destination_address': trip.destination_city.name,
+            'departure_time': trip.departure_time.strftime('%H:%M'),
+            'arrival_time': trip.arrival_time.strftime('%H:%M'),
+            'passengers': [
+                {
+                    'first_name': passenger.user.first_name or '',
+                    'last_name': passenger.user.last_name or ''
+                }
+                for passenger in passengers
+            ]
+        }
+        return JsonResponse(data)
+    except Trip.DoesNotExist:
+        return JsonResponse({'error': 'Trip not found'}, status=404)
+    except Exception as e:
+        print(f"Error in trip_details: {str(e)}")  # Добавляем логирование
+        return JsonResponse({'error': str(e)}, status=500)
+
+@require_POST
+def get_all_trips_statuses(request):
+    """
+    Получает статусы всех поездок по их ID.
+    Принимает: список ID поездок в JSON.
+    Возвращает: словарь вида {trip_id: status}
+    """
+    try:
+        data = json.loads(request.body)
+        trip_ids = data.get('trip_ids', [])
+        
+        # Получаем все поездки по указанным ID
+        trips = Trip.objects.filter(id__in=trip_ids).values('id', 'status')
+        
+        # Формируем словарь статусов
+        statuses = {str(trip['id']): trip['status'] for trip in trips}
+        
+        return JsonResponse({
+            'success': True,
+            'statuses': statuses
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=400)
+
+@login_required
+def check_car_active_trips(request, car_id):
+    """
+    Проверяет, используется ли автомобиль в активных поездках.
+    Возвращает:
+    - has_active_trips: True если есть активные поездки с этим автомобилем
+    - has_in_progress_trips: True если есть начатые поездки с этим автомобилем
+    """
+    try:
+        car = get_object_or_404(Car, id=car_id, owner__user=request.user)
+        
+        # Ищем все незавершенные поездки с этим автомобилем
+        active_trips = Trip.objects.filter(car=car).exclude(status='completed')
+        in_progress_trips = active_trips.filter(status='in_progress')
+        
+        return JsonResponse({
+            'success': True,
+            'has_active_trips': active_trips.exists(),
+            'has_in_progress_trips': in_progress_trips.exists(),
+            'active_trips_count': active_trips.count(),
+            'in_progress_trips_count': in_progress_trips.count()
+        })
+    except Car.DoesNotExist:
+        return JsonResponse({
+            'success': False, 
+            'message': 'Автомобиль не найден'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=500)

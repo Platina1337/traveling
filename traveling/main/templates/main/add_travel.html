@@ -50,6 +50,227 @@
     opacity: 0.7;
     pointer-events: none;
 }
+
+/* Стили для модального окна */
+.custom-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+}
+
+.custom-modal.show {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.custom-modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.custom-close-btn {
+    position: absolute;
+    right: 1.5rem;
+    top: 1.5rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+    transition: color 0.3s ease;
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    line-height: 1;
+}
+
+.custom-close-btn:hover {
+    color: #333;
+}
+
+.modal-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-title {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+
+.modal-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.modal-section {
+    background: #f8f9fa;
+    padding: 1.25rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.modal-section-title {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 1rem;
+    letter-spacing: -0.01em;
+}
+
+.modal-info-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-info-label {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    color: #6c757d;
+    font-size: 0.9rem;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+}
+
+.modal-info-value {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    color: #212529;
+    font-weight: 500;
+    font-size: 0.95rem;
+    letter-spacing: 0.01em;
+}
+
+.modal-passengers-list {
+    margin-top: 1rem;
+}
+
+.modal-passenger-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.95rem;
+    color: #212529;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+}
+
+.modal-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #e9ecef;
+    border-radius: 12px;
+    margin-top: 1.5rem;
+}
+
+.modal-time-until {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 1.1rem;
+    color: #495057;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+}
+
+.modal-price {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #28a745;
+    letter-spacing: -0.02em;
+}
+
+/* Стили для скроллбара */
+.custom-modal-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-modal-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.custom-modal-content::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.custom-modal-content::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .modal-body {
+        grid-template-columns: 1fr;
+    }
+    
+    .custom-modal-content {
+        width: 95%;
+        padding: 1.5rem;
+    }
+
+    .modal-title {
+        font-size: 1.3rem;
+    }
+    
+    .modal-section-title {
+        font-size: 1rem;
+    }
+    
+    .modal-info-label,
+    .modal-info-value {
+        font-size: 0.9rem;
+    }
+    
+    .modal-time-until {
+        font-size: 1rem;
+    }
+    
+    .modal-price {
+        font-size: 1.15rem;
+    }
+}
 </style>
 {% endblock %}
 
@@ -143,17 +364,6 @@
                     {{ form.comment.errors }}
                     {{ form.comment|add_class:"full-width-textarea" }}
                 </div>
-                <span class="custom-span">Фотография автомобиля</span>
-                <div class="photo-container" id="photoContainer">
-                    <div class="photo-preview-container" id="photoPreviewContainer"></div>
-                    <div class="photo-group" id="photoGroup">
-                        <input type="file" id="id_car_image" name="car_image" style="display: none;">
-                        <label for="id_car_image">
-                            <img src="{% static 'img/add_photo.png' %}" alt="фото машины" class="car-photo" id="carPhotoLabel">
-                        </label>
-                        {{ form.car_image.errors }}
-                    </div>
-                </div>
                 <div id="trip-duration" class="trip-duration" style="display: none;">
                     <h3>Расчетное время в пути:</h3>
                     <p id="duration-text"></p>
@@ -201,14 +411,18 @@
                             <div class="time">{{ trip.arrival_time|time:"H:i" }}</div>
                         </div>
                         <div class="trip-price"></div>
-                        <div class="trip-locations">
-                            <div class="location">{{ trip.departure_city }}</div>
-                            <div class="location" style="text-align: right;">{{ trip.destination_city }}</div>
+                        <div class="trip-locations" style="width: 100%; display: flex; justify-content: space-between;">
+                            <div class="location" style="flex: 1; text-align: left;">{{ trip.departure_city }}</div>
+                            <div class="location" style="flex: 1; text-align: right;">{{ trip.destination_city }}</div>
                         </div>
                     </div>
                     <div class="trip-details">
                         <div class="trip-date">{{ trip.departure_date|date:"d.m.Y" }}</div>
-                        <div class="trip-link"><button style="background-color: #DFE0EC; color: #5B62FF; font-weight: bold; font-size: 18px" href="#" id="openModalBtn">Детали поездки</button></div>
+                        <div class="trip-link">
+                            <button style="background-color: #DFE0EC; color: #5B62FF; font-weight: bold; font-size: 18px" 
+                                    class="openModalBtn" 
+                                    data-trip-id="{{ trip.id }}">Детали поездки</button>
+                        </div>
                     </div>
                 </div>
                 {% endfor %}
@@ -220,31 +434,48 @@
         </div>
         <div id="customModal" class="custom-modal">
             <div class="custom-modal-content">
-                <span class="custom-close-btn">&times;</span>
-                <div class="custom-driver-info">
-                    <h3>О водителе</h3>
-                    <img src="{% static 'img/women-high-fiving-car.png' %}" alt="Driver" class="custom-driver-photo">
-                    <div class="custom-driver-details">
-                        <h2>Имя фамилия <span class="custom-rating">4,9&#9733;</span></h2>
-                        <p>описание водителя описание водителя описание водителя описание водителя</p>
+                <button class="custom-close-btn">&times;</button>
+                <div class="modal-header">
+                    <h2 class="modal-title">Детали поездки</h2>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-section">
+                        <h3 class="modal-section-title">Информация о маршруте</h3>
+                        <div class="modal-info-row">
+                            <span class="modal-info-label">Откуда:</span>
+                            <span class="modal-info-value" id="modal-departure-city"></span>
+                        </div>
+                        <div class="modal-info-row">
+                            <span class="modal-info-label">Время отправления:</span>
+                            <span class="modal-info-value" id="modal-departure-time"></span>
+                        </div>
+                        <div class="modal-info-row">
+                            <span class="modal-info-label">Куда:</span>
+                            <span class="modal-info-value" id="modal-destination-city"></span>
+                        </div>
+                        <div class="modal-info-row">
+                            <span class="modal-info-label">Время прибытия:</span>
+                            <span class="modal-info-value" id="modal-arrival-time"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-section">
+                        <h3 class="modal-section-title">Пассажиры</h3>
+                        <div class="modal-info-row">
+                            <span class="modal-info-label">Занято мест:</span>
+                            <span class="modal-info-value">
+                                <span id="modal-passengers-count">0</span>/<span id="modal-max-passengers">0</span>
+                            </span>
+                        </div>
+                        <div class="modal-passengers-list" id="modal-passengers-list">
+                            <!-- Список пассажиров будет добавлен динамически -->
+                        </div>
                     </div>
                 </div>
-                <div class="custom-trip-details">
-                    <h3>Детали поездки</h3>
-                    <div class="custom-trip-info">
-                        <div class="custom-from">
-                            <p><strong>Откуда</strong></p>
-                            <p>Тверь, ул. Можаского, д. 25</p>
-                            <p>23 апреля, 23:46</p>
-                            <p>2 пассажира</p>
-                        </div>
-                        <div class="custom-to">
-                            <p><strong>Куда</strong></p>
-                            <p>Москва, ул. Можаского, д. 25</p>
-                            <p>23 апреля, 23:46</p>
-                            <p>580 Р</p>
-                        </div>
-                    </div>
+                
+                <div class="modal-status">
+                    <div class="modal-time-until" id="modal-time-until"></div>
+                    <div class="modal-price" id="modal-price"></div>
                 </div>
             </div>
         </div>
@@ -261,13 +492,12 @@
         const departureTimeInput = document.getElementById('id_departure_time');
         const arrivalTimeInput = document.getElementById('id_arrival_time');
         
-        let currentDuration = null; // Сохраняем текущую длительность маршрута
+        let currentDuration = null;
 
         async function calculateDuration() {
             const from = departureCity.value;
             const to = destinationCity.value;
             
-            // Скрываем блок, если не выбраны оба города
             if (!from || !to) {
                 tripDuration.style.display = 'none';
                 currentDuration = null;
@@ -285,65 +515,162 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    const distance = data.distance; // в метрах
-                    const duration = data.duration; // в секундах
-                    currentDuration = duration; // Сохраняем длительность
-
-                    // Форматируем время
+                    const distance = data.distance;
+                    const duration = data.duration;
+                    currentDuration = duration;
+                    
                     const hours = Math.floor(duration / 3600);
                     const minutes = Math.floor((duration % 3600) / 60);
                     
-                    let durationText = '';
-                    if (hours > 0) {
-                        durationText += `${hours} ч. `;
-                    }
-                    if (minutes > 0) {
-                        durationText += `${minutes} мин.`;
-                    }
-
-                    document.getElementById('duration-text').textContent = 
-                        `Примерное время в пути: ${durationText} (${Math.round(distance / 1000)} км)`;
+                    durationText.textContent = `${hours} ч ${minutes} м`;
                     tripDuration.style.display = 'block';
-                    
-                    // Обновляем состояние кнопки
-                    updateFillTimeButton();
-                } else {
-                    tripDuration.style.display = 'none';
-                    currentDuration = null;
+                    fillTimeBtn.disabled = false;
                 }
             } catch (error) {
-                console.error('Error:', error);
-                tripDuration.style.display = 'none';
-                currentDuration = null;
+                console.error('Error calculating duration:', error);
             }
         }
 
         function updateFillTimeButton() {
-            // Кнопка активна только если есть время отправления и рассчитанная длительность
-            fillTimeBtn.disabled = !departureTimeInput.value || !currentDuration;
+            fillTimeBtn.disabled = !currentDuration || !departureTimeInput.value;
         }
 
         function fillArrivalTime() {
-            if (!departureTimeInput.value || !currentDuration) return;
-
-            const departureTime = new Date(departureTimeInput.value);
-            const arrivalTime = new Date(departureTime.getTime() + currentDuration * 1000);
+            if (!currentDuration || !departureTimeInput.value) return;
             
-            // Форматируем дату и время для input[type="datetime-local"]
-            const year = arrivalTime.getFullYear();
-            const month = String(arrivalTime.getMonth() + 1).padStart(2, '0');
-            const day = String(arrivalTime.getDate()).padStart(2, '0');
-            const hours = String(arrivalTime.getHours()).padStart(2, '0');
-            const minutes = String(arrivalTime.getMinutes()).padStart(2, '0');
+            const departureDate = new Date(departureTimeInput.value);
+            const arrivalDate = new Date(departureDate.getTime() + currentDuration * 1000);
             
-            arrivalTimeInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+            arrivalTimeInput.value = arrivalDate.toISOString().slice(0, 16);
         }
 
-        // Добавляем обработчики событий
         departureCity.addEventListener('change', calculateDuration);
         destinationCity.addEventListener('change', calculateDuration);
         departureTimeInput.addEventListener('change', updateFillTimeButton);
         fillTimeBtn.addEventListener('click', fillArrivalTime);
+
+        // Модальное окно
+        const openModalBtns = document.querySelectorAll('.openModalBtn');
+        const modal = document.getElementById('customModal');
+        const closeBtn = modal.querySelector('.custom-close-btn');
+        
+        function openModal(tripId) {
+            // Заполняем основную информацию из карточки поездки
+            const tripCard = document.querySelector(`[data-trip-id="${tripId}"]`).closest('.trip-card');
+            const departureCity = tripCard.querySelector('.location:first-child').textContent;
+            const destinationCity = tripCard.querySelector('.location:last-child').textContent;
+            const departureTime = tripCard.querySelector('.time:first-child').textContent;
+            const arrivalTime = tripCard.querySelector('.time:last-child').textContent;
+            const date = tripCard.querySelector('.trip-date').textContent;
+            
+            // Заполняем основную информацию
+            document.getElementById('modal-departure-city').textContent = departureCity;
+            document.getElementById('modal-destination-city').textContent = destinationCity;
+            document.getElementById('modal-departure-time').textContent = `${date}, ${departureTime}`;
+            document.getElementById('modal-arrival-time').textContent = `${date}, ${arrivalTime}`;
+            
+            // Получаем дополнительную информацию о поездке через AJAX
+            fetch(`/get_trip_details_profile/${tripId}/`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Полученные данные:', data); // Для отладки
+                    
+                    // Заполняем информацию о пассажирах
+                    document.getElementById('modal-passengers-count').textContent = data.passengers_count;
+                    document.getElementById('modal-max-passengers').textContent = data.max_passengers;
+                    document.getElementById('modal-price').textContent = `${data.price} ₽`;
+                    
+                    // Очищаем и заполняем список пассажиров
+                    const passengersList = document.getElementById('modal-passengers-list');
+                    passengersList.innerHTML = '';
+                    
+                    if (data.passengers && data.passengers.length > 0) {
+                        data.passengers.forEach(passenger => {
+                            const li = document.createElement('li');
+                            li.textContent = `${passenger.first_name} ${passenger.last_name}`;
+                            passengersList.appendChild(li);
+                        });
+                    } else {
+                        const li = document.createElement('li');
+                        li.textContent = 'Пока нет пассажиров';
+                        passengersList.appendChild(li);
+                    }
+                    
+                    // Обновляем время до начала поездки
+                    if (data.departure_datetime) {
+                        const timeUntil = document.getElementById('modal-time-until');
+                        timeUntil.setAttribute('data-departure', data.departure_datetime);
+                        updateTimeUntil(data.departure_datetime);
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка при получении данных:', error);
+                    // Показываем сообщение об ошибке пользователю
+                    const passengersList = document.getElementById('modal-passengers-list');
+                    passengersList.innerHTML = '<li>Ошибка при загрузке данных</li>';
+                });
+            
+            modal.classList.add('show');
+        }
+        
+        function updateTimeUntil(departureDatetime) {
+            const departure = new Date(departureDatetime);
+            const now = new Date();
+            const diff = departure - now;
+            
+            const timeUntil = document.getElementById('modal-time-until');
+            
+            if (diff <= 0) {
+                timeUntil.textContent = 'Поездка уже началась';
+                return;
+            }
+            
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            
+            let timeString = '';
+            if (days > 0) timeString += `${days} д. `;
+            if (hours > 0) timeString += `${hours} ч. `;
+            timeString += `${minutes} мин.`;
+            
+            timeUntil.textContent = timeString;
+        }
+        
+        // Обновляем время до начала поездки каждую минуту
+        setInterval(() => {
+            const timeUntil = document.getElementById('modal-time-until');
+            if (timeUntil && timeUntil.textContent !== '-') {
+                const departureTime = timeUntil.getAttribute('data-departure');
+                if (departureTime) {
+                    updateTimeUntil(departureTime);
+                }
+            }
+        }, 60000);
+        
+        function closeModal() {
+            modal.classList.remove('show');
+        }
+        
+        openModalBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tripId = this.getAttribute('data-trip-id');
+                openModal(tripId);
+            });
+        });
+        
+        closeBtn.addEventListener('click', closeModal);
+        
+        window.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
     });
     </script>
 {% endblock content %}

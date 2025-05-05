@@ -1,0 +1,86 @@
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'main/profile.css' %}">
+{% endblock %}
+
+{% block title %}
+Редактирование автомобиля
+{% endblock %}
+
+{% block content %}
+<main>
+    <section class="edit-car-section">
+        <h2>Редактирование автомобиля</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="id_brand">{{ form.brand.label }}</label>
+                {{ form.brand }}
+            </div>
+            
+            <div class="form-group">
+                <label for="id_model">{{ form.model.label }}</label>
+                {{ form.model }}
+            </div>
+            
+            <div class="form-group">
+                <label for="id_color">{{ form.color.label }}</label>
+                {{ form.color }}
+            </div>
+            
+            <div class="form-group">
+                <label for="id_license_plate">{{ form.license_plate.label }}</label>
+                {{ form.license_plate }}
+            </div>
+            
+            <div class="form-group">
+                <label for="id_image">{{ form.image.label }}</label>
+                {{ form.image }}
+                {% if car.image %}
+                <div class="current-image">
+                    <p>Текущее изображение:</p>
+                    <img src="{{ car.image.url }}" alt="Текущее изображение автомобиля" width="200">
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+                <a href="{% url 'main:profile' %}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </section>
+</main>
+
+<script>
+    // Функция для загрузки моделей автомобилей при выборе марки
+    document.getElementById('id_brand').addEventListener('change', function() {
+        var brandId = this.value;
+        var modelSelect = document.getElementById('id_model');
+        
+        // Очищаем текущие модели
+        modelSelect.innerHTML = '';
+        
+        if (!brandId) {
+            return;
+        }
+        
+        // Загружаем модели для выбранной марки через AJAX
+        fetch(`/get_car_models/?brand_id=${brandId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.models) {
+                    data.models.forEach(model => {
+                        var option = document.createElement('option');
+                        option.value = model.id;
+                        option.textContent = model.name;
+                        modelSelect.appendChild(option);
+                    });
+                }
+            });
+    });
+</script>
+{% endblock %} 

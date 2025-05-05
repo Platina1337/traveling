@@ -22,16 +22,29 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
+class CarBrand(models.Model):
+    name = models.CharField(max_length=100)
+    
+    def __str__(self):
+        return self.name
+
+class CarModel(models.Model):
+    brand = models.ForeignKey(CarBrand, on_delete=models.CASCADE, related_name='models')
+    name = models.CharField(max_length=100)
+    
+    def __str__(self):
+        return self.name
+
 class Car(models.Model):
     image = models.ImageField(upload_to='images/', blank=True, null=True)
-    brand = models.CharField(max_length=255)
-    model = models.CharField(max_length=255, blank=True, null=True)
+    brand = models.ForeignKey(CarBrand, on_delete=models.CASCADE, related_name='cars')
+    model = models.ForeignKey(CarModel, on_delete=models.CASCADE, related_name='cars')
     color = models.CharField(max_length=255, blank=True, null=True)
+    license_plate = models.CharField(max_length=20, blank=True, null=True, unique=True)
     owner = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='cars')
 
     def __str__(self):
-        return f"{self.brand} {self.model} ({self.color})"
-
+        return f"{self.brand.name} {self.model.name} ({self.license_plate})"
 
 class City(models.Model):
     name = models.CharField(max_length=255)

@@ -4,6 +4,7 @@
 {% block css %}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'main/profile.css' %}">
+    <link rel="stylesheet" href="{% static 'css/add.css' %}">
 {% endblock %}
 
 {% block title %}
@@ -11,289 +12,1339 @@
 {% endblock %}
 
 {% block content %}
-
     <main>
-<section class="section trips">
-    <div class="trips-header">
-        <h2>Мои поездки</h2>
-        <button class="sort-button"><span></span></button>
-    </div>
+        <section class="section trips">
+            <div class="trips-header">
+                <h2>Мои поездки</h2>
+                <button class="sort-button"><span></span></button>
+            </div>
 
-    {% for trip_info in paginated_trips %}
-    <div class="trip-card {% if trip_info.user_trip %}trip-your{% else %}trip-poputrchik{% endif %}" style="background-color: {% if trip_info.user_trip %}#f0f0f0{% else %}#e0f0ff{% endif %};">
-        <div class="card-div">
-            <div class="card-div-svg">
-                <div class="trip-time">
-            <div class="time">{{ trip_info.trip.departure_time|time:"H:i" }}</div>
-            <div class="svg-container">
-                <svg class="svg-large" width="63" height="14" viewBox="0 0 63 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="50" height="2" transform="translate(13 6)" fill="#444766"/>
-                    <path d="M7 0C3.14008 0 0 3.14008 0 7C0 10.8599 3.14008 14 7 14C10.8599 14 14 10.8599 14 7C14 3.14008 10.8599 0 7 0ZM7 12.8333C3.7835 12.8333 1.16667 10.2165 1.16667 7C1.16667 3.7835 3.7835 1.16667 7 1.16667C10.2165 1.16667 12.8333 3.7835 12.8333 7C12.8333 10.2165 10.2165 12.8333 7 12.8333ZM9.33333 7C9.33333 8.28858 8.28858 9.33333 7 9.33333C5.71142 9.33333 4.66667 8.28858 4.66667 7C4.66667 5.71142 5.71142 4.66667 7 4.66667C8.28858 4.66667 9.33333 5.71142 9.33333 7Z" fill="#444766"/>
-                </svg>
-                <svg class="svg-small" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M7 0C3.14008 0 0 3.14008 0 7C0 10.8599 3.14008 14 7 14C10.8599 14 14 10.8599 14 7C14 3.14008 10.8599 0 7 0ZM7 12.8333C3.7835 12.8333 1.16667 10.2165 1.16667 7C1.16667 3.7835 3.7835 1.16667 7 1.16667C10.2165 1.16667 12.8333 3.7835 12.8333 7C12.8333 10.2165 10.2165 12.8333 7 12.8333ZM9.33333 7C9.33333 8.28858 8.28858 9.33333 7 9.33333C5.71142 9.33333 4.66667 8.28858 4.66667 7C4.66667 5.71142 5.71142 4.66667 7 4.66667C8.28858 4.66667 9.33333 5.71142 9.33333 7Z" fill="#444766"/>
-                </svg>
-                <div class="duration">
-                    <span>{{ trip_info.duration_hours }} ч {{ trip_info.duration_minutes }} м</span>
+            {% for trip_info in paginated_trips %}
+            <div class="trip-card {% if trip_info.user_trip %}trip-your{% else %}trip-poputrchik{% endif %}" style="background-color: {% if trip_info.user_trip %}#f0f0f0{% else %}#e0f0ff{% endif %};">
+                <div class="card-div">
+                    <div class="card-div-svg">
+                        <div class="trip-time">
+                            <div class="time">{{ trip_info.trip.departure_time|time:"H:i" }}</div>
+                            <div class="svg-container">
+                                <svg class="svg-large" width="63" height="14" viewBox="0 0 63 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect width="50" height="2" transform="translate(13 6)" fill="#444766"/>
+                                    <path d="M7 0C3.14008 0 0 3.14008 0 7C0 10.8599 3.14008 14 7 14C10.8599 14 14 10.8599 14 7C14 3.14008 10.8599 0 7 0ZM7 12.8333C3.7835 12.8333 1.16667 10.2165 1.16667 7C1.16667 3.7835 3.7835 1.16667 7 1.16667C10.2165 1.16667 12.8333 3.7835 12.8333 7C12.8333 10.2165 10.2165 12.8333 7 12.8333ZM9.33333 7C9.33333 8.28858 8.28858 9.33333 7 9.33333C5.71142 9.33333 4.66667 8.28858 4.66667 7C4.66667 5.71142 5.71142 4.66667 7 4.66667C8.28858 4.66667 9.33333 5.71142 9.33333 7Z" fill="#444766"/>
+                                </svg>
+                                <svg class="svg-small" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M7 0C3.14008 0 0 3.14008 0 7C0 10.8599 3.14008 14 7 14C10.8599 14 14 10.8599 14 7C14 3.14008 10.8599 0 7 0ZM7 12.8333C3.7835 12.8333 1.16667 10.2165 1.16667 7C1.16667 3.7835 3.7835 1.16667 7 1.16667C10.2165 1.16667 12.8333 3.7835 12.8333 7C12.8333 10.2165 10.2165 12.8333 7 12.8333ZM9.33333 7C9.33333 8.28858 8.28858 9.33333 7 9.33333C5.71142 9.33333 4.66667 8.28858 4.66667 7C4.66667 5.71142 5.71142 4.66667 7 4.66667C8.28858 4.66667 9.33333 5.71142 9.33333 7Z" fill="#444766"/>
+                                </svg>
+                                <div class="duration">
+                                    <span>{{ trip_info.duration_hours }} ч {{ trip_info.duration_minutes }} м</span>
+                                </div>
+                                <svg class="svg-large" width="63" height="14" viewBox="0 0 63 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect width="50" height="2" transform="matrix(-1 0 0 -1 50 8)" fill="#444766"/>
+                                    <path d="M55.998 14C59.858 14 62.998 10.8599 62.998 7C62.998 3.14008 59.858 0 55.998 0C52.1381 0 48.998 3.14008 48.998 7C48.998 10.8599 52.1381 14 55.998 14ZM55.998 1.16667C59.2145 1.16667 61.8314 3.7835 61.8314 7C61.8314 10.2165 59.2145 12.8333 55.998 12.8333C52.7815 12.8333 50.1647 10.2165 50.1647 7C50.1647 3.7835 52.7815 1.16667 55.998 1.16667ZM53.6647 7C53.6647 5.71142 54.7095 4.66667 55.998 4.66667C57.2866 4.66667 58.3314 5.71142 58.3314 7C58.3314 8.28858 57.2866 9.33333 55.998 9.33333C54.7095 9.33333 53.6647 8.28858 53.6647 7Z" fill="#444766"/>
+                                </svg>
+                                <svg class="svg-small" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M7 0C3.14008 0 0 3.14008 0 7C0 10.8599 3.14008 14 7 14C10.8599 14 14 10.8599 14 7C14 3.14008 10.8599 0 7 0ZM7 12.8333C3.7835 12.8333 1.16667 10.2165 1.16667 7C1.16667 3.7835 3.7835 1.16667 7 1.16667C10.2165 1.16667 12.8333 3.7835 12.8333 7C12.8333 10.2165 10.2165 12.8333 7 12.8333ZM9.33333 7C9.33333 8.28858 8.28858 9.33333 7 9.33333C5.71142 9.33333 4.66667 8.28858 4.66667 7C4.66667 5.71142 5.71142 4.66667 7 4.66667C8.28858 4.66667 9.33333 5.71142 9.33333 7Z" fill="#444766"/>
+                                </svg>
+                            </div>
+                            <div class="time">{{ trip_info.trip.arrival_time|time:"H:i" }}</div>
+                        </div>
+                        <div class="trip-locations">
+                            <div class="location">{{ trip_info.trip.departure_city }}</div>
+                            <div class="location" style="text-align: right;">{{ trip_info.trip.destination_city }}</div>
+                        </div>
+                    </div>
+                    {% if trip_info.user_trip %}
+                    <div class="trip-your-text">Ваша поездка</div>
+                    {% else %}
+                    <div class="trip-price">{{ trip_info.trip.price }} р</div>
+                    {% endif %}
                 </div>
-                <svg class="svg-large" width="63" height="14" viewBox="0 0 63 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="50" height="2" transform="matrix(-1 0 0 -1 50 8)" fill="#444766"/>
-                    <path d="M55.998 14C59.858 14 62.998 10.8599 62.998 7C62.998 3.14008 59.858 0 55.998 0C52.1381 0 48.998 3.14008 48.998 7C48.998 10.8599 52.1381 14 55.998 14ZM55.998 1.16667C59.2145 1.16667 61.8314 3.7835 61.8314 7C61.8314 10.2165 59.2145 12.8333 55.998 12.8333C52.7815 12.8333 50.1647 10.2165 50.1647 7C50.1647 3.7835 52.7815 1.16667 55.998 1.16667ZM53.6647 7C53.6647 5.71142 54.7095 4.66667 55.998 4.66667C57.2866 4.66667 58.3314 5.71142 58.3314 7C58.3314 8.28858 57.2866 9.33333 55.998 9.33333C54.7095 9.33333 53.6647 8.28858 53.6647 7Z" fill="#444766"/>
-                </svg>
-                <svg class="svg-small" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M7 0C3.14008 0 0 3.14008 0 7C0 10.8599 3.14008 14 7 14C10.8599 14 14 10.8599 14 7C14 3.14008 10.8599 0 7 0ZM7 12.8333C3.7835 12.8333 1.16667 10.2165 1.16667 7C1.16667 3.7835 3.7835 1.16667 7 1.16667C10.2165 1.16667 12.8333 3.7835 12.8333 7C12.8333 10.2165 10.2165 12.8333 7 12.8333ZM9.33333 7C9.33333 8.28858 8.28858 9.33333 7 9.33333C5.71142 9.33333 4.66667 8.28858 4.66667 7C4.66667 5.71142 5.71142 4.66667 7 4.66667C8.28858 4.66667 9.33333 5.71142 9.33333 7Z" fill="#444766"/>
-                </svg>
-            </div>
-            <div class="time">{{ trip_info.trip.arrival_time|time:"H:i" }}</div>
-        </div>
-        <div class="trip-locations">
-            <div class="location">{{ trip_info.trip.departure_city }}</div>
-            <div class="location" style="text-align: right;">{{ trip_info.trip.destination_city }}</div>
-        </div>
-            </div>
-        {% if trip_info.user_trip %}
-        <div class="trip-your-text">Ваша поездка</div>
-        {% else %}
-        <div class="trip-price">{{ trip_info.trip.price }} р</div>
-        {% endif %}
-        </div>
 
-        <div class="footer-card-info">
-            <div class="trip-actions">
-                {% if trip_info.user_trip %}
-                <button class="delete-button" data-trip-id="{{ trip_info.trip.id }}" data-delete-type="trip">Удалить поездку</button>
-                {% else %}
-                <button class="delete-button" data-trip-id="{{ trip_info.trip.id }}" data-delete-type="passenger">Выйти из поездки</button>
-                {% endif %}
+                <div class="footer-card-info">
+                    <div class="trip-actions">
+                        {% if trip_info.user_trip %}
+                        <button class="delete-button" data-trip-id="{{ trip_info.trip.id }}" data-delete-type="trip">Удалить поездку</button>
+                        {% else %}
+                        <button class="delete-button" data-trip-id="{{ trip_info.trip.id }}" data-delete-type="passenger">Выйти из поездки</button>
+                        {% endif %}
+                    </div>
+                    <div class="trip-details">
+                        <div class="trip-date">{{ trip_info.trip.departure_date|date:"d.m.Y" }}</div>
+                        <!-- Пер кнримопок с установленными атрибутами -->
+                        <a href="#" class="openModalBtn trip-link" data-trip-id="{{ trip_info.trip.id }}" data-user-trip="{{ trip_info.user_trip }}">Детали поездки</a>
+                    </div>
+                </div>
             </div>
-            <div class="trip-details">
-                <div class="trip-date">{{ trip_info.trip.departure_date|date:"d.m.Y" }}</div>
-                                <!-- Пер кнримопок с установленными атрибутами -->
-                    <a href="#" class="openModalBtn trip-link" data-trip-id="{{ trip_info.trip.id }}" data-user-trip="{{ trip_info.user_trip }}">Детали поездки</a>
+            {% endfor %}
+
+            <div class="pagination">
+                <span class="step-links">
+                    {% if paginated_trips.has_previous %}
+                        <a class="step-links-a" href="?page={{ paginated_trips.previous_page_number }}"><img src="{% static 'img/left-arrow.svg' %}"></a>
+                    {% else %}
+                        <span class="disabled"><img src="{% static 'img/left-arrow.svg' %}"></span>
+                    {% endif %}
+
+                    <form action="" method="get" class="page-input-form">
+                        <input type="number" name="page" min="1" max="{{ paginated_trips.paginator.num_pages }}" value="{{ paginated_trips.number }}" onkeydown="if(event.key === 'Enter') { this.form.submit(); return false; }">
+                    </form>
+
+                    {% if paginated_trips.has_next %}
+                        <a class="step-links-a" href="?page={{ paginated_trips.next_page_number }}"><img src="{% static 'img/right-arrow.svg' %}"></a>
+                    {% else %}
+                        <span class="disabled"><img src="{% static 'img/right-arrow.svg' %}"></span>
+                    {% endif %}
+                </span>
             </div>
-        </div>
-    </div>
-{% endfor %}
+        </section>
 
-<div class="pagination">
-    <span class="step-links">
-        {% if paginated_trips.has_previous %}
-            <a class="step-links-a" href="?page={{ paginated_trips.previous_page_number }}"><img src="{% static 'img/left-arrow.svg' %}"></a>
-        {% else %}
-            <span class="disabled"><img src="{% static 'img/left-arrow.svg' %}"></span>
-        {% endif %}
-
-        <form action="" method="get" class="page-input-form">
-            <input type="number" name="page" min="1" max="{{ paginated_trips.paginator.num_pages }}" value="{{ paginated_trips.number }}" onkeydown="if(event.key === 'Enter') { this.form.submit(); return false; }">
-        </form>
-
-        {% if paginated_trips.has_next %}
-            <a class="step-links-a" href="?page={{ paginated_trips.next_page_number }}"><img src="{% static 'img/right-arrow.svg' %}"></a>
-        {% else %}
-            <span class="disabled"><img src="{% static 'img/right-arrow.svg' %}"></span>
-        {% endif %}
-    </span>
-</div>
-
-
-
-    </section>
-<section class="section profile">
-    <div class="profile-header">
-        <div class="profile-title">
-            <h2>Мой профиль</h2>
-            {% if user.is_authenticated %}
-                <form method="post" action="{% url 'main:logout' %}" class="profile-logout-form" id="logoutForm">
-                    {% csrf_token %}
-                    <button type="submit" class="profile-btn profile-logout">
-                        <svg class="logout-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
-                            <g>
-                                <path d="M170.698,448H72.757c-4.814-0.012-8.714-3.911-8.725-8.725V72.725c0.012-4.814,3.911-8.714,8.725-8.725h97.941c17.673,0,32-14.327,32-32s-14.327-32-32-32H72.757C32.611,0.047,0.079,32.58,0.032,72.725v366.549C0.079,479.42,32.611,511.953,72.757,512h97.941c17.673,0,32-14.327,32-32S188.371,448,170.698,448z"/>
-                                <path d="M483.914,188.117l-82.816-82.752c-12.501-12.495-32.764-12.49-45.259,0.011s-12.49,32.764,0.011,45.259l72.789,72.768L138.698,224c-17.673,0-32,14.327-32,32s14.327,32,32,32l0,0l291.115-0.533l-73.963,73.963c-12.042,12.936-11.317,33.184,1.618,45.226c12.295,11.445,31.346,11.436,43.63-0.021l82.752-82.752c37.491-37.49,37.491-98.274,0.001-135.764c0,0-0.001-0.001-0.001-0.001L483.914,188.117z"/>
-                            </g>
-                        </svg>
-                    </button>
-                </form>
-            {% endif %}
-        </div>
-        <div class="profile-icon" id="avatar-icon">
-            {% if profile.avatar %}
-            <img src="{{ profile.avatar.url }}" alt="аватарка" id="avatar-image" width="100">
-            {% else %}
-            <img src="{% static 'img/def_pic.jpg' %}" alt="аватарка" width="200">
-            {% endif %}
-        </div>
-    </div>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="profile-info">
-            <div class="profile-item">
-                <span class="profile-label" id="first_name_display">{{ profile.first_name }}</span>
-                <input type="text" name="first_name" class="profile-input" id="first_name_input" value="{{ profile.first_name }}" style="display: none;">
-                <span class="profile-edit" onclick="editField('first_name')">&#9998;</span>
+        <section class="section profile">
+            <div class="profile-header">
+                <div class="profile-title">
+                    <h2>Мой профиль</h2>
+                    {% if user.is_authenticated %}
+                        <form method="post" action="{% url 'main:logout' %}" class="profile-logout-form" id="logoutForm">
+                            {% csrf_token %}
+                            <button type="submit" class="profile-btn profile-logout">
+                                <svg class="logout-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
+                                    <g>
+                                        <path d="M170.698,448H72.757c-4.814-0.012-8.714-3.911-8.725-8.725V72.725c0.012-4.814,3.911-8.714,8.725-8.725h97.941c17.673,0,32-14.327,32-32s-14.327-32-32-32H72.757C32.611,0.047,0.079,32.58,0.032,72.725v366.549C0.079,479.42,32.611,511.953,72.757,512h97.941c17.673,0,32-14.327,32-32S188.371,448,170.698,448z"/>
+                                        <path d="M483.914,188.117l-82.816-82.752c-12.501-12.495-32.764-12.49-45.259,0.011s-12.49,32.764,0.011,45.259l72.789,72.768L138.698,224c-17.673,0-32,14.327-32,32s14.327,32,32,32l0,0l291.115-0.533l-73.963,73.963c-12.042,12.936-11.317,33.184,1.618,45.226c12.295,11.445,31.346,11.436,43.63-0.021l82.752-82.752c37.491-37.49,37.491-98.274,0.001-135.764c0,0-0.001-0.001-0.001-0.001L483.914,188.117z"/>
+                                    </g>
+                                </svg>
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+                <div class="profile-icon" id="avatar-icon">
+                    {% if profile.avatar %}
+                    <img src="{{ profile.avatar.url }}" alt="аватарка" id="avatar-image" width="100">
+                    {% else %}
+                    <img src="{% static 'img/def_pic.jpg' %}" alt="аватарка" width="200">
+                    {% endif %}
+                </div>
             </div>
-            <div class="profile-item">
-                <span class="profile-label" id="last_name_display">{{ profile.last_name }}</span>
-                <input type="text" name="last_name" class="profile-input" id="last_name_input" value="{{ profile.last_name }}" style="display: none;">
-                <span class="profile-edit" onclick="editField('last_name')">&#9998;</span>
-            </div>
-            <div class="profile-item">
-                <span class="profile-label" id="phone_number_display">{{ profile.phone_number }}</span>
-                <input type="text" name="phone_number" class="profile-input" id="phone_number_input" value="{{ profile.phone_number }}" style="display: none;">
-                <span class="profile-edit" onclick="editField('phone_number')">&#9998;</span>
-            </div>
-            <div class="profile-item">
-                <span class="profile-label" id="email_display">{{ profile.email }}</span>
-                <input type="email" name="email" class="profile-input" id="email_input" value="{{ profile.email }}" style="display: none;">
-                <span class="profile-edit" onclick="editField('email')">&#9998;</span>
-            </div>
-            <div class="profile-item">
-                <span class="profile-label">Обо мне:</span>
-                <span class="profile-label" id="about_me_display">{{ profile.about_me }}</span>
-                <textarea name="about_me" class="profile-input" id="about_me_input" style="display: none;">{{ profile.about_me }}</textarea>
-                <span class="profile-edit" onclick="editField('about_me')">&#9998;</span>
-            </div>
-            <div class="profile-item" style="display: none;">
-                <input type="file" name="avatar" id="avatar-input" class="profile-input" accept="image/*">
-            </div>
-        </div>
-        <div class="profile-actions">
-            <button type="button" class="profile-btn profile-password" onclick="openPasswordModal()">Сменить пароль</button>
-            <button type="submit" class="profile-btn profile-save">Сохранить изменения</button>
-        </div>
-    </form>
-
-
-
-    <!-- Модальное окно для смены пароля -->
-<div id="passwordModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closePasswordModal()">&times;</span>
-            <h2>Смена пароля</h2>
-            <form id="passwordForm" method="post" action="{% url 'main:change_password' %}">
+            <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
-                {{ change_password_form.old_password.label_tag }} {{ change_password_form.old_password }}<br>
-                {{ change_password_form.new_password1.label_tag }} {{ change_password_form.new_password1 }}<br>
-                {{ change_password_form.new_password2.label_tag }} {{ change_password_form.new_password2 }}<br>
-                <button type="submit" class="btn">Сменить пароль</button>
+                <div class="profile-info">
+                    <div class="profile-item">
+                        <span class="profile-label" id="first_name_display">{{ profile.first_name }}</span>
+                        <input type="text" name="first_name" class="profile-input" id="first_name_input" value="{{ profile.first_name }}" style="display: none;">
+                        <span class="profile-edit" onclick="editField('first_name')">&#9998;</span>
+                    </div>
+                    <div class="profile-item">
+                        <span class="profile-label" id="last_name_display">{{ profile.last_name }}</span>
+                        <input type="text" name="last_name" class="profile-input" id="last_name_input" value="{{ profile.last_name }}" style="display: none;">
+                        <span class="profile-edit" onclick="editField('last_name')">&#9998;</span>
+                    </div>
+                    <div class="profile-item">
+                        <span class="profile-label" id="phone_number_display">{{ profile.phone_number }}</span>
+                        <input type="text" name="phone_number" class="profile-input" id="phone_number_input" value="{{ profile.phone_number }}" style="display: none;">
+                        <span class="profile-edit" onclick="editField('phone_number')">&#9998;</span>
+                    </div>
+                    <div class="profile-item">
+                        <span class="profile-label" id="email_display">{{ profile.email }}</span>
+                        <input type="email" name="email" class="profile-input" id="email_input" value="{{ profile.email }}" style="display: none;">
+                        <span class="profile-edit" onclick="editField('email')">&#9998;</span>
+                    </div>
+                    <div class="profile-item">
+                        <span class="profile-label">Обо мне:</span>
+                        <span class="profile-label" id="about_me_display">{{ profile.about_me }}</span>
+                        <textarea name="about_me" class="profile-input" id="about_me_input" style="display: none;">{{ profile.about_me }}</textarea>
+                        <span class="profile-edit" onclick="editField('about_me')">&#9998;</span>
+                    </div>
+                    <div class="profile-item" style="display: none;">
+                        <input type="file" name="avatar" id="avatar-input" class="profile-input" accept="image/*">
+                    </div>
+                    <div class="profile-item car-management">
+                        <button type="button" class="profile-btn add-car-btn" onclick="openAddCarModal()">Добавить автомобиль</button>
+                        <button type="button" class="profile-btn manage-cars-btn" onclick="openManageCarsModal()">Управление автомобилями</button>
+                    </div>
+                </div>
+                <div class="profile-actions">
+                    <button type="button" class="profile-btn profile-password" onclick="openPasswordModal()">Сменить пароль</button>
+                    <button type="submit" class="profile-btn profile-save">Сохранить изменения</button>
+                </div>
+            </form>
+
+            <!-- Модальное окно для смены пароля -->
+            <div id="passwordModal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closePasswordModal()">&times;</span>
+                    <h2>Смена пароля</h2>
+                    <form id="passwordForm" method="post" action="{% url 'main:change_password' %}">
+                        {% csrf_token %}
+                        {{ change_password_form.old_password.label_tag }} {{ change_password_form.old_password }}<br>
+                        {{ change_password_form.new_password1.label_tag }} {{ change_password_form.new_password1 }}<br>
+                        {{ change_password_form.new_password2.label_tag }} {{ change_password_form.new_password2 }}<br>
+                        <button type="submit" class="btn">Сменить пароль</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <section class="section notifications">
+            <h2>Уведомления</h2>
+
+            {% for notification in notifications %}
+            <div class="notification">
+                <div>
+                    <div class="notification-text">
+                        {{ notification.message }}
+                        {% if notification.trip %}
+                            - Поездка: {{ notification.trip.departure_city }} -> {{ notification.trip.destination_city }} на {{ notification.trip.departure_date|date:"d.m.Y" }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="notification-info">
+                    <div class="notification-date">{{ notification.created_at|date:"d.m.Y" }}</div>
+                    {% if not notification.read and "хочет присоединиться к вашей поездке" in notification.message %}
+                        <button class="notification-action" data-notification-id="{{ notification.id }}" data-action="accept">Принять</button>
+                        <button class="notification-action" data-notification-id="{{ notification.id }}" data-action="decline">Отклонить</button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </section>
+    </main>
+
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <p>Вы уверены, что хотите удалить эту поездку?</p>
+            <div class="modal-buttons">
+                <button id="confirmDelete" class="modal-button modal-button-confirm">Да</button>
+                <button class="modal-button modal-button-cancel">Нет</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="customModal" class="custom-modal-content">
+        <span class="custom-close-btn">&times;</span>
+        <div id="driver-info" class="custom-driver-info" style="display: none;">
+            <h3>О водителе</h3>
+            <img src="{% static 'img/women-high-fiving-car.png' %}" alt="Driver" class="custom-driver-photo" id="driver-photo">
+            <div class="custom-driver-details">
+                <span id="driver-name">Имя фамилия</span>
+                <a id="driver-profile-link" href="#">Профиль</a>
+                <p id="driver-description">Описание водителя</p>
+            </div>
+        </div>
+        <div class="custom-trip-details">
+            <h3>Детали поездки</h3>
+            <div id="trip-status-message" class="trip-status-message" style="display: none;">
+                <p>Поездка уже началась. Невозможно удалить пассажиров или отменить поездку.</p>
+            </div>
+            <div class="custom-trip-info">
+                <div class="custom-seats-info">
+                    <p><strong>Места</strong></p>
+                    <p id="trip-seats">Занято / Свободно</p>
+                </div>
+                <div id="passengers-info" style="display: none;">
+                    <p><strong>Пассажиры</strong></p>
+                    <ul id="passengers-list">
+                        <!-- Пассажиры будут добавлены через JS -->
+                    </ul>
+                </div>
+            </div>
+            <div class="custom-trip-info">
+                <div class="custom-from">
+                    <p><strong>Откуда</strong></p>
+                    <p id="trip-from-address">Адрес отправления</p>
+                    <p id="trip-departure-date">Дата и время отправления</p>
+                </div>
+                <div class="custom-to">
+                    <p><strong>Куда</strong></p>
+                    <p id="trip-to-address">Адрес прибытия</p>
+                    <p id="trip-arrival-date">Дата и время прибытия</p>
+                </div>
+            </div>
+            <div id="trip-price-section">
+                <p><strong>Стоимость</strong></p>
+                <p id="trip-price">Стоимость поездки</p>
+            </div>
+            <div id="trip-actions" style="display: none;">
+                <button id="start-trip-btn" class="modal-button modal-button-start" style="display: none;">Начать поездку</button>
+                <button id="end-trip-btn" class="modal-button modal-button-end" style="display: none;">Завершить поездку</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для добавления автомобиля -->
+    <div id="addCarModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddCarModal()">&times;</span>
+            <h2>Добавить автомобиль</h2>
+            <form method="post" enctype="multipart/form-data" action="{% url 'main:profile' %}" id="addCarForm">
+                {% csrf_token %}
+                <input type="hidden" name="add_car" value="1">
+                
+                <div class="form-group">
+                    <label for="id_brand">{{ car_form.brand.label }}</label>
+                    <select name="brand" id="id_brand" class="form-control">
+                        <option value="">Выберите марку</option>
+                        {% for brand in car_brands %}
+                        <option value="{{ brand.id }}">{{ brand.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="validation-message"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_model">{{ car_form.model.label }}</label>
+                    <select name="model" id="id_model" class="form-control">
+                        <option value="">Сначала выберите марку</option>
+                    </select>
+                    <div class="validation-message"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_color">{{ car_form.color.label }}</label>
+                    <input type="text" name="color" id="id_color" class="form-control" placeholder="Введите цвет автомобиля">
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_license_plate">{{ car_form.license_plate.label }}</label>
+                    <input type="text" name="license_plate" id="id_license_plate" class="form-control" placeholder="А000АА000">
+                    <div class="validation-message"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_image">{{ car_form.image.label }}</label>
+                    {{ car_form.image }}
+                </div>
+                
+                <button type="submit" class="btn">Добавить</button>
             </form>
         </div>
     </div>
-</section>
-<section class="section notifications">
-    <h2>Уведомления</h2>
 
-    {% for notification in notifications %}
-    <div class="notification">
-        <div>
-            <div class="notification-text">
-                {{ notification.message }}
-                {% if notification.trip %}
-                    - Поездка: {{ notification.trip.departure_city }} -> {{ notification.trip.destination_city }} на {{ notification.trip.departure_date|date:"d.m.Y" }}
-                {% endif %}
+    <!-- Модальное окно для управления автомобилями -->
+    <div id="manageCarsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeManageCarsModal()">&times;</span>
+            <h2>Мои автомобили</h2>
+            <div class="cars-list">
+                {% for car in cars %}
+                <div class="car-card">
+                    <div class="car-image">
+                        {% if car.image %}
+                            <img src="{{ car.image.url }}" alt="{{ car.brand }} {{ car.model }}">
+                        {% else %}
+                            <img src="{% static 'img/defolt.png' %}" alt="Default car image">
+                        {% endif %}
+                    </div>
+                    <div class="car-info">
+                        <h3>{{ car.brand }} {{ car.model }}</h3>
+                        <p>Цвет: {{ car.color }}</p>
+                        <p>Номер: {{ car.license_plate }}</p>
+                    </div>
+                    <div class="car-actions">
+                        <button class="edit-car-button" onclick="openEditCarModal({{ car.id }})">Редактировать</button>
+                        <form method="post" action="{% url 'main:delete_car' car.id %}" class="delete-car-form">
+                            {% csrf_token %}
+                            <button type="submit" class="delete-car-button">Удалить</button>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="no-cars">
+                    <p>У вас пока нет добавленных автомобилей</p>
+                </div>
+                {% endfor %}
             </div>
         </div>
-        <div class="notification-info">
-            <div class="notification-date">{{ notification.created_at|date:"d.m.Y" }}</div>
-            {% if not notification.read and "хочет присоединиться к вашей поездке" in notification.message %}
-                <button class="notification-action" data-notification-id="{{ notification.id }}" data-action="accept">Принять</button>
-                <button class="notification-action" data-notification-id="{{ notification.id }}" data-action="decline">Отклонить</button>
+    </div>
+
+    <!-- Модальное окно для редактирования автомобиля -->
+    <div id="editCarModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditCarModal()">&times;</span>
+            <h2>Редактировать автомобиль</h2>
+            <form method="post" enctype="multipart/form-data" id="editCarForm">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="edit_brand">Марка автомобиля</label>
+                    <select name="brand" id="edit_brand" class="form-control">
+                        <option value="">Выберите марку</option>
+                        {% for brand in car_brands %}
+                        <option value="{{ brand.id }}">{{ brand.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit_model">Модель автомобиля</label>
+                    <select name="model" id="edit_model" class="form-control">
+                        <option value="">Сначала выберите марку</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit_color">Цвет автомобиля</label>
+                    <input type="text" name="color" id="edit_color" class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit_license_plate">Государственный номер</label>
+                    <input type="text" name="license_plate" id="edit_license_plate" class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit_image">Фото автомобиля</label>
+                    <input type="file" name="image" id="edit_image" class="form-control">
+                    <div id="current_car_image"></div>
+                </div>
+                
+                <button type="submit" class="btn">Сохранить</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="{% static 'js/profile.js' %}"></script>
+    <script src="{% static 'js/car_management.js' %}"></script>
+
+    <script>
+        // Функции для работы с модальными окнами автомобилей
+        function openAddCarModal() {
+            document.getElementById('addCarModal').style.display = 'block';
+        }
+
+        function closeAddCarModal() {
+            document.getElementById('addCarModal').style.display = 'none';
+        }
+
+        function openEditCarModal(carId) {
+            document.getElementById('editCarModal').style.display = 'block';
+            var formElement = document.getElementById('editCarForm');
+            formElement.action = '/edit_car/' + carId + '/';
+            
+            // Загружаем данные автомобиля через AJAX
+            fetch('/get_car_details/' + carId + '/')
+                .then(response => response.json())
+                .then(car => {
+                    document.getElementById('edit_brand').value = car.brand_id;
+                    
+                    // Сохраняем ID модели и загружаем модели для выбранной марки
+                    const modelId = car.model_id;
+                    const modelSelect = document.getElementById('edit_model');
+                    
+                    // Загружаем модели и выбираем нужную
+                    updateModels(car.brand_id, modelSelect);
+                    
+                    // Устанавливаем выбранную модель с задержкой, чтобы дать время на загрузку моделей
+                    setTimeout(() => {
+                        if (modelSelect) {
+                            // Находим опцию с нужным ID модели
+                            const options = modelSelect.querySelectorAll('option');
+                            for (let i = 0; i < options.length; i++) {
+                                if (options[i].value == modelId) {
+                                    options[i].selected = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }, 500);
+                    
+                    document.getElementById('edit_color').value = car.color;
+                    document.getElementById('edit_license_plate').value = car.license_plate;
+                    
+                    if (car.image_url) {
+                        var imgContainer = document.getElementById('current_car_image');
+                        imgContainer.innerHTML = `<p>Текущее изображение:</p><img src="${car.image_url}" alt="Текущее изображение автомобиля" width="100">`;
+                    }
+                });
+        }
+
+        function closeEditCarModal() {
+            document.getElementById('editCarModal').style.display = 'none';
+        }
+
+        // Добавляем отдельную функцию для инициализации событий выбора марки/модели
+        document.addEventListener('DOMContentLoaded', function() {
+            // Получаем элементы select
+            const brandSelect = document.getElementById('id_brand');
+            const modelSelect = document.getElementById('id_model');
+            
+            if (brandSelect) {
+                brandSelect.addEventListener('change', function() {
+                    updateModels(this.value, modelSelect);
+                });
+            } else {
+                console.error('Селектор марки не найден!');
+            }
+            
+            // Обработка выбора марки в модальном окне редактирования
+            const editBrandSelect = document.getElementById('edit_brand');
+            const editModelSelect = document.getElementById('edit_model');
+            
+            if (editBrandSelect) {
+                editBrandSelect.addEventListener('change', function() {
+                    updateModels(this.value, editModelSelect);
+                });
+            }
+        });
+        
+        // Функция для обновления списка моделей
+        function updateModels(brandId, modelSelect) {
+            if (!modelSelect) {
+                return;
+            }
+            
+            // Очищаем текущие модели
+            modelSelect.innerHTML = '<option value="">Выберите модель</option>';
+            
+            if (!brandId) {
+                return;
+            }
+            
+            // Загружаем модели для выбранной марки через AJAX
+            fetch(`/get_car_models/?brand_id=${brandId}`)
+                .then(response => {
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.models && Array.isArray(data.models) && data.models.length > 0) {
+                        // Добавляем модели напрямую в DOM
+                        data.models.forEach(function(model) {
+                            const option = document.createElement('option');
+                            option.value = model.id;
+                            option.textContent = model.name;
+                            modelSelect.appendChild(option);
+                        });
+                    } else {
+                        modelSelect.innerHTML = '<option value="">Нет доступных моделей</option>';
+                    }
+                })
+                .catch(error => {
+                    modelSelect.innerHTML = '<option value="">Ошибка загрузки моделей</option>';
+                });
+        }
+
+        // Закрытие модальных окон при клике вне их содержимого
+        window.addEventListener('click', function(event) {
+            if (event.target.className === 'modal') {
+                event.target.style.display = 'none';
+            }
+        });
+
+        // Закрытие модальных окон при нажатии Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                document.querySelectorAll('.modal').forEach(function(modal) {
+                    modal.style.display = 'none';
+                });
+            }
+        });
+
+        // Добавляем валидацию на стороне клиента
+        document.addEventListener('DOMContentLoaded', function() {
+            // Для формы добавления автомобиля
+            const licensePlateInput = document.getElementById('id_license_plate');
+            const colorInput = document.getElementById('id_color');
+            if (licensePlateInput) {
+                licensePlateInput.addEventListener('input', validateLicensePlate);
+            }
+            
+            if (colorInput) {
+                colorInput.addEventListener('input', function() {
+                    if (!this.value.trim()) {
+                        showValidationError(this, 'Пожалуйста, укажите цвет автомобиля');
+                    } else {
+                        clearValidationError(this);
+                    }
+                });
+            }
+
+            // Для формы редактирования автомобиля
+            const editLicensePlateInput = document.getElementById('edit_license_plate');
+            const editColorInput = document.getElementById('edit_color');
+            if (editLicensePlateInput) {
+                editLicensePlateInput.addEventListener('input', validateLicensePlate);
+            }
+            
+            if (editColorInput) {
+                editColorInput.addEventListener('input', function() {
+                    if (!this.value.trim()) {
+                        showValidationError(this, 'Пожалуйста, укажите цвет автомобиля');
+                    } else {
+                        clearValidationError(this);
+                    }
+                });
+            }
+            
+            // Валидация select полей
+            const brandSelect = document.getElementById('id_brand');
+            const modelSelect = document.getElementById('id_model');
+            const editBrandSelect = document.getElementById('edit_brand');
+            const editModelSelect = document.getElementById('edit_model');
+            
+            // Предотвращаем прямой ввод в select
+            if (brandSelect) makeSelectReadonly(brandSelect);
+            if (modelSelect) makeSelectReadonly(modelSelect);
+            if (editBrandSelect) makeSelectReadonly(editBrandSelect);
+            if (editModelSelect) makeSelectReadonly(editModelSelect);
+            
+            // Предотвращаем отправку формы, если выбраны некорректные значения
+            const addCarForm = document.getElementById('addCarForm');
+            if (addCarForm) {
+                // Валидация всех полей при клике на форму
+                addCarForm.addEventListener('click', function() {
+                    if (brandSelect) validateSelect(brandSelect, 'Выберите марку автомобиля из списка');
+                    if (modelSelect) validateSelect(modelSelect, 'Выберите модель автомобиля из списка');
+                    if (licensePlateInput) validateLicensePlate({target: licensePlateInput});
+                    if (colorInput && !colorInput.value.trim()) {
+                        showValidationError(colorInput, 'Пожалуйста, укажите цвет автомобиля');
+                    }
+                });
+                
+                addCarForm.addEventListener('submit', function(e) {
+                    let isValid = true;
+                    
+                    // Проверка выбора марки
+                    if (brandSelect && (!brandSelect.value || brandSelect.value === '')) {
+                        showValidationError(brandSelect, 'Выберите марку автомобиля из списка');
+                        isValid = false;
+                    }
+                    
+                    // Проверка выбора модели
+                    const modelSelect = document.getElementById('id_model');
+                    if (modelSelect && (!modelSelect.value || modelSelect.value === '')) {
+                        showValidationError(modelSelect, 'Выберите модель автомобиля из списка');
+                        isValid = false;
+                    }
+                    
+                    // Проверка цвета
+                    if (colorInput && !colorInput.value.trim()) {
+                        showValidationError(colorInput, 'Пожалуйста, укажите цвет автомобиля');
+                        isValid = false;
+                    }
+                    
+                    // Проверка номера
+                    if (licensePlateInput) {
+                        const value = licensePlateInput.value.toUpperCase();
+                        const pattern = /^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}$/;
+                        if (!value || !pattern.test(value)) {
+                            showValidationError(licensePlateInput, 'Неверный формат номера. Примеры: А123БВ77, О789МК750');
+                            isValid = false;
+                        }
+                    }
+                    
+                    if (!isValid) {
+                        e.preventDefault(); // Отменяем отправку формы
+                    }
+                });
+            }
+            
+            // Аналогично для формы редактирования
+            const editCarForm = document.getElementById('editCarForm');
+            if (editCarForm) {
+                editCarForm.addEventListener('submit', function(e) {
+                    let isValid = true;
+                    
+                    // Проверка выбора марки
+                    if (editBrandSelect && (!editBrandSelect.value || editBrandSelect.value === '')) {
+                        showValidationError(editBrandSelect, 'Выберите марку автомобиля из списка');
+                        isValid = false;
+                    }
+                    
+                    // Проверка выбора модели
+                    if (editModelSelect && (!editModelSelect.value || editModelSelect.value === '')) {
+                        showValidationError(editModelSelect, 'Выберите модель автомобиля из списка');
+                        isValid = false;
+                    }
+                    
+                    if (!isValid) {
+                        e.preventDefault(); // Отменяем отправку формы
+                    }
+                });
+            }
+            
+            // Мгновенная валидация при изменении select
+            if (brandSelect) {
+                brandSelect.addEventListener('change', function() {
+                    validateSelect(this, 'Выберите марку автомобиля из списка');
+                });
+                // Проверка при загрузке страницы
+                validateSelect(brandSelect, 'Выберите марку автомобиля из списка');
+            }
+            
+            if (modelSelect) {
+                modelSelect.addEventListener('change', function() {
+                    validateSelect(this, 'Выберите модель автомобиля из списка');
+                });
+                // Проверка при загрузке страницы
+                validateSelect(modelSelect, 'Выберите модель автомобиля из списка');
+            }
+            
+            if (editBrandSelect) {
+                editBrandSelect.addEventListener('change', function() {
+                    validateSelect(this, 'Выберите марку автомобиля из списка');
+                });
+            }
+            
+            if (editModelSelect) {
+                editModelSelect.addEventListener('change', function() {
+                    validateSelect(this, 'Выберите модель автомобиля из списка');
+                });
+            }
+        });
+
+        function validateLicensePlate(e) {
+            const input = e.target;
+            const value = input.value.toUpperCase();
+            input.value = value; // Автоматически преобразуем в верхний регистр
+            
+            // Регулярное выражение для проверки российских номеров 
+            const pattern = /^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}$/;
+            
+            if (value && !pattern.test(value)) {
+                showValidationError(input, 'Неверный формат номера. Примеры: А123БВ77, О789МК750');
+            } else {
+                clearValidationError(input);
+            }
+        }
+        
+        function validateSelect(select, errorMessage) {
+            // Для списков моделей не применяем обычную валидацию
+            if (select.id === 'id_model' || select.id === 'edit_model') {
+                // Проверяем, есть ли выбранное значение
+                const selectedValue = select.value;
+                if (!selectedValue || selectedValue === '') {
+                    // Добавляем класс invalid для визуального отображения ошибки
+                    select.classList.add('invalid');
+                    showValidationError(select, errorMessage);
+                    return false;
+                } else {
+                    // Убираем класс invalid при корректном значении
+                    select.classList.remove('invalid');
+                    clearValidationError(select);
+                    return true;
+                }
+            }
+            
+            // Стандартная валидация для других селекторов
+            if (!select.value || select.value === '') {
+                // Добавляем класс invalid для визуального отображения ошибки
+                select.classList.add('invalid');
+                showValidationError(select, errorMessage);
+                return false;
+            } else {
+                // Убираем класс invalid при корректном значении
+                select.classList.remove('invalid');
+                clearValidationError(select);
+                return true;
+            }
+        }
+        
+        function showValidationError(element, message) {
+            // Добавляем стиль ошибки
+            element.style.borderColor = 'red';
+            element.classList.add('invalid');
+            
+            // Устанавливаем сообщение об ошибке
+            element.setCustomValidity(message);
+            
+            // Показываем сообщение об ошибке под полем
+            let errorDiv = element.nextElementSibling;
+            if (!errorDiv || !errorDiv.classList.contains('validation-message')) {
+                errorDiv = document.createElement('div');
+                errorDiv.className = 'validation-message';
+                errorDiv.style.color = 'red';
+                errorDiv.style.fontSize = '12px';
+                errorDiv.style.marginTop = '5px';
+                element.parentNode.insertBefore(errorDiv, element.nextSibling);
+            }
+            errorDiv.textContent = message;
+        }
+        
+        function clearValidationError(element) {
+            // Убираем стиль ошибки
+            element.style.borderColor = '';
+            element.classList.remove('invalid');
+            
+            // Сбрасываем сообщение об ошибке
+            element.setCustomValidity('');
+            
+            // Удаляем сообщение об ошибке под полем
+            const errorDiv = element.nextElementSibling;
+            if (errorDiv && errorDiv.classList.contains('validation-message')) {
+                errorDiv.textContent = '';
+            }
+        }
+
+        // Защита от прямого ввода в поля select
+        document.addEventListener('DOMContentLoaded', function() {
+            const brandSelect = document.getElementById('id_brand');
+            const modelSelect = document.getElementById('id_model');
+            const editBrandSelect = document.getElementById('edit_brand');
+            const editModelSelect = document.getElementById('edit_model');
+            
+            if (brandSelect) brandSelect.addEventListener('change', function() {
+                if (this.value === '') {
+                    // Если не выбрана марка, очищаем модели
+                    modelSelect.innerHTML = '<option value="">Выберите модель</option>';
+                }
+            });
+            
+            if (editBrandSelect) editBrandSelect.addEventListener('change', function() {
+                if (this.value === '') {
+                    // Если не выбрана марка, очищаем модели
+                    editModelSelect.innerHTML = '<option value="">Выберите модель</option>';
+                }
+            });
+        });
+
+        // Функция для предотвращения прямого ввода в select
+        function makeSelectReadonly(selectElement) {
+            // Проверяем, существует ли элемент и его свойства
+            if (!selectElement || !selectElement.options) {
+                return;
+            }
+            
+            // У каждого селекта будет своя оригинальная дата создания для идентификации
+            selectElement.dataset.createdAt = Date.now();
+            
+            // Безопасно создаем массив originalOptions
+            let originalOptions = Array.from(selectElement.options || []);
+            
+            // Сохраняем оригинальные опции в глобальном объекте
+            if (!window.originalSelectOptions) {
+                window.originalSelectOptions = {};
+            }
+            window.originalSelectOptions[selectElement.dataset.createdAt] = originalOptions;
+            
+            // Добавляем обработчики только если элемент существует
+            selectElement.addEventListener('keydown', function(e) {
+                // Разрешаем навигацию стрелками, но блокируем ввод текста
+                if (e.key.length === 1 && !/^[Arrow]/.test(e.key)) {
+                    e.preventDefault();
+                }
+            });
+            
+            // Изменяем поведение при фокусе - теперь не сбрасываем опции, если их много
+            selectElement.addEventListener('focus', function() {
+                // Проверка, нужно ли восстанавливать опции из оригинального списка
+                // Если текущий список опций короче и это не список моделей автомобилей
+                if (this.id !== 'id_model' && this.id !== 'edit_model' && 
+                    originalOptions && originalOptions.length > 0 && 
+                    this.options.length < originalOptions.length) {
+                    
+                    // Восстанавливаем оригинальные опции
+                    this.innerHTML = '';
+                    originalOptions.forEach(option => {
+                        this.add(option.cloneNode(true));
+                    });
+                }
+            });
+            
+            // Добавляем стили, чтобы было понятно, что это выпадающий список
+            selectElement.style.backgroundColor = '#f8f8f8';
+            selectElement.style.appearance = 'menulist';
+            selectElement.style.backgroundImage = 'url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\'%3E%3Cpath fill=\'none\' stroke=\'%23343a40\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M2 5l6 6 6-6\'/%3E%3C/svg%3E")';
+            selectElement.style.backgroundRepeat = 'no-repeat';
+            selectElement.style.backgroundPosition = 'right 0.5rem center';
+            selectElement.style.paddingRight = '2rem';
+        }
+
+        // Функции для работы с модальным окном управления автомобилями
+        function openManageCarsModal() {
+            document.getElementById('manageCarsModal').style.display = 'block';
+        }
+
+        function closeManageCarsModal() {
+            document.getElementById('manageCarsModal').style.display = 'none';
+        }
+    </script>
+
+    <style>
+        /* Стили для элементов с ошибкой валидации */
+        .form-control.invalid,
+        select.form-control.invalid {
+            border-color: red !important;
+            background-color: #fff0f0 !important;
+        }
+        
+        .validation-message {
+            color: red;
+            font-size: 12px;
+            margin-top: 5px;
+            min-height: 18px; /* Чтобы форма не "прыгала" при появлении/исчезновении сообщений */
+        }
+        
+        /* Стили для select элементов */
+        select.form-control {
+            appearance: menulist;
+            -webkit-appearance: menulist;
+            -moz-appearance: menulist;
+            background-color: #f8f8f8;
+            padding-right: 2rem;
+            cursor: pointer;
+        }
+
+        /* Стили для управления автомобилями */
+        .car-management {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .manage-cars-btn {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .manage-cars-btn:hover {
+            background-color: #357abd;
+        }
+
+        #manageCarsModal .cars-list {
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        #manageCarsModal .car-card {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+        }
+
+        #manageCarsModal .car-image {
+            width: 100px;
+            height: 100px;
+            margin-right: 20px;
+        }
+
+        #manageCarsModal .car-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        #manageCarsModal .car-info {
+            flex-grow: 1;
+        }
+
+        #manageCarsModal .car-info h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        #manageCarsModal .car-info p {
+            margin: 5px 0;
+            color: #666;
+        }
+
+        #manageCarsModal .car-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        #manageCarsModal .edit-car-button,
+        #manageCarsModal .delete-car-button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #manageCarsModal .edit-car-button {
+            background-color: #4a90e2;
+            color: white;
+        }
+
+        #manageCarsModal .edit-car-button:hover {
+            background-color: #357abd;
+        }
+
+        #manageCarsModal .delete-car-button {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        #manageCarsModal .delete-car-button:hover {
+            background-color: #c0392b;
+        }
+
+        #manageCarsModal .no-cars {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        /* Стили для модального окна деталей поездки */
+        .custom-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        .custom-modal-content {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fefefe;
+            padding: 30px;
+            border: 1px solid #e0e0e0;
+            width: 80%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border-radius: 10px;
+            animation: modalFade 0.3s ease-in;
+        }
+
+        @keyframes modalFade {
+            from {opacity: 0; transform: translateY(-20px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+
+        .custom-close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+            position: absolute;
+            right: 20px;
+            top: 15px;
+        }
+
+        .custom-close-btn:hover {
+            color: #444766;
+        }
+
+        .custom-trip-details h3 {
+            color: #444766;
+            font-size: 22px;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f2f2f2;
+        }
+
+        .custom-trip-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f2f2f2;
+        }
+
+        .custom-seats-info, .custom-from, .custom-to, #passengers-info {
+            flex: 1;
+            padding: 10px 15px;
+        }
+
+        .custom-seats-info p, .custom-from p, .custom-to p {
+            margin: 8px 0;
+        }
+
+        .custom-seats-info p strong, .custom-from p strong, .custom-to p strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #444766;
+            font-size: 16px;
+        }
+
+        #passengers-info {
+            flex: 1;
+            padding: 10px 15px;
+        }
+
+        #passengers-list {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0;
+        }
+
+        #passengers-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            margin-bottom: 5px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .remove-passenger-btn {
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.2s;
+        }
+
+        .remove-passenger-btn:hover {
+            background-color: #e64a4a;
+        }
+
+        #trip-actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 15px;
+        }
+
+        .modal-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .modal-button-start {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .modal-button-start:hover {
+            background-color: #3e8e41;
+        }
+
+        .modal-button-end {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .modal-button-end:hover {
+            background-color: #d32f2f;
+        }
+
+        #trip-price-section {
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+
+        #trip-price-section p strong {
+            color: #444766;
+            font-size: 16px;
+        }
+
+        #trip-price {
+            font-size: 20px;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        /* Стили для отключенных кнопок */
+        .disabled-button {
+            opacity: 0.5;
+            cursor: not-allowed !important;
+            background-color: #cccccc !important;
+            color: #666666 !important;
+        }
+        
+        /* Информационное сообщение о статусе поездки */
+        .trip-status-message {
+            background-color: #ffe8e0;
+            border-left: 4px solid #ff6b6b;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .trip-status-message p {
+            color: #e64a4a;
+            margin: 0;
+            font-size: 14px;
+        }
+        
+        /* Подсказка при наведении на заблокированную кнопку */
+        .disabled-button:hover::after {
+            content: attr(title);
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 5px 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+        }
+
+        /* Стили для кнопки "Детали поездки" */
+        .trip-link {
+            display: inline-block;
+            padding: 6px 12px;
+            background-color: #4a90e2;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            text-align: center;
+        }
+
+        .trip-link:hover {
+            background-color: #357abd;
+            text-decoration: none;
+            color: white;
+        }
+
+        /* Улучшение стилей для модального окна */
+        .custom-from, .custom-to {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .custom-from:before, .custom-to:before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 15px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .custom-from:before {
+            background-color: #4CAF50;
+        }
+
+        .custom-to:before {
+            background-color: #f44336;
+        }
+
+        .custom-from:after, .custom-to:after {
+            content: '';
+            position: absolute;
+            left: 14px;
+            top: 35px;
+            width: 2px;
+            height: calc(100% - 50px);
+            background-color: #e0e0e0;
+            display: none;
+        }
+
+        .custom-from:after {
+            display: block;
+        }
+
+        /* Стили для информации о водителе */
+        .custom-driver-info {
+            display: flex;
+            background-color: #f5f7fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            align-items: center;
+        }
+
+        .custom-driver-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 20px;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .custom-driver-details {
+            flex: 1;
+        }
+
+        #driver-name {
+            display: block;
+            font-size: 18px;
+            font-weight: bold;
+            color: #444766;
+            margin-bottom: 8px;
+        }
+
+        #driver-profile-link {
+            display: inline-block;
+            color: #4a90e2;
+            text-decoration: none;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        #driver-profile-link:hover {
+            text-decoration: underline;
+        }
+
+        #driver-description {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        /* Адаптивный дизайн для мобильных устройств */
+        @media (max-width: 768px) {
+            .custom-modal-content {
+                width: 95%;
+                padding: 20px;
+                max-height: 85vh;
+            }
+
+            .custom-trip-info {
+                flex-direction: column;
+            }
+
+            .custom-driver-info {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .custom-driver-photo {
+                margin: 0 auto 15px;
+            }
+
+            #trip-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            {% if message.tags == 'success' and 'автомобиль' in message.message.lower or 'информация' in message.message.lower %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
             {% endif %}
-        </div>
+        {% endfor %}
     </div>
-{% endfor %}
-</section>
-    </main>
-<div id="deleteModal" class="modal">
-    <div class="modal-content">
-        <span class="close">&times;</span>
-        <p>Вы уверены, что хотите удалить эту поездку?</p>
-        <div class="modal-buttons">
-            <button id="confirmDelete" class="modal-button modal-button-confirm">Да</button>
-            <button class="modal-button modal-button-cancel">Нет</button>
-        </div>
-    </div>
-</div>
-<div id="customModal" class="custom-modal">
-        <div class="custom-modal-content">
-            <span class="custom-close-btn">&times;</span>
-            <div id="driver-info" class="custom-driver-info" style="display: none;">
-                <h3>О водителе</h3>
-                <img src="{% static 'img/women-high-fiving-car.png' %}" alt="Driver" class="custom-driver-photo" id="driver-photo">
-                <div class="custom-driver-details">
-                    <span id="driver-name">Имя фамилия</span>
-                    <a id="driver-profile-link" href="#">Профиль</a>
-                    <p id="driver-description">Описание водителя</p>
-                </div>
-            </div>
-            <div class="custom-trip-details">
-                <h3>Детали поездки</h3>
-                <div class="custom-trip-info">
-                    <div class="custom-seats-info">
-                        <p><strong>Места</strong></p>
-                        <p id="trip-seats">Занято / Свободно</p>
-                    </div>
-                    <div id="passengers-info" style="display: none;">
-                        <p><strong>Пассажиры</strong></p>
-                        <ul id="passengers-list">
-                            <!-- Пассажиры будут добавлены через JS -->
-                        </ul>
-                    </div>
-                </div>
-                <div class="custom-trip-info">
-                    <div class="custom-from">
-                        <p><strong>Откуда</strong></p>
-                        <p id="trip-from-address">Адрес отправления</p>
-                        <p id="trip-departure-date">Дата и время отправления</p>
-                    </div>
-                    <div class="custom-to">
-                        <p><strong>Куда</strong></p>
-                        <p id="trip-to-address">Адрес прибытия</p>
-                        <p id="trip-arrival-date">Дата и время прибытия</p>
-                    </div>
-                </div>
-                <div id="trip-price-section">
-                    <p><strong>Стоимость</strong></p>
-                    <p id="trip-price">Стоимость поездки</p>
-                </div>
-                <div id="trip-actions" style="display: none;">
-                    <button id="start-trip-btn" class="modal-button modal-button-start" style="display: none;">Начать поездку</button>
-                    <button id="end-trip-btn" class="modal-button modal-button-end" style="display: none;">Завершить поездку</button>
-                </div>
-            </div>
-        </div>
-    </div>
-<!--<div id="customModal" class="custom-modal">-->
-<!--    <div class="custom-modal-content">-->
-<!--        <span class="custom-close-btn">&times;</span>-->
-<!--        <div class="custom-driver-info">-->
-<!--            <h3>О водителе</h3>-->
-<!--            <img src="{% static 'img/women-high-fiving-car.png' %}" alt="Driver" class="custom-driver-photo" id="driver-photo">-->
-<!--            <div class="custom-driver-details">-->
-<!--                <h2 id="driver-name">Имя фамилия <span id="driver-rating" class="custom-rating">4,9&#9733;</span></h2>-->
-<!--                <p id="driver-description">Описание водителя</p>-->
-<!--            </div>-->
-<!--        </div>-->
-<!--        <div class="custom-trip-details">-->
-<!--            <h3>Детали поездки</h3>-->
-<!--            <div class="custom-trip-info">-->
-<!--                <div class="custom-from">-->
-<!--                    <p><strong>Откуда</strong></p>-->
-<!--                    <p id="trip-from-address">Адрес отправления</p>-->
-<!--                    <p id="trip-from-time">Время отправления</p>-->
-<!--                    <p id="trip-passengers">Количество пассажиров</p>-->
-<!--                </div>-->
-<!--                <div class="custom-to">-->
-<!--                    <p><strong>Куда</strong></p>-->
-<!--                    <p id="trip-to-address">Адрес прибытия</p>-->
-<!--                    <p id="trip-to-time">Время прибытия</p>-->
-<!--                    <p id="trip-price">Стоимость поездки</p>-->
-<!--                </div>-->
-<!--            </div>-->
-<!--        </div>-->
-<!--    </div>-->
-<!--</div>-->
-
-<!--<script src="{% static 'js/test.js' %}"></script>-->
-<script src="{% static 'js/profile.js' %}"></script>
+    {% endif %}
 {% endblock content %}
