@@ -192,6 +192,44 @@
     color: #212529;
     font-weight: 400;
     letter-spacing: 0.01em;
+    transition: background-color 0.2s ease;
+}
+
+.modal-passenger-item:hover {
+    background-color: #f8f9fa;
+}
+
+.modal-passenger-item a {
+    flex: 1;
+    text-decoration: none;
+    color: #5B62FF;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.modal-passenger-item a:hover {
+    color: #4a50cc;
+}
+
+.modal-passenger-item button {
+    margin-left: auto;
+    padding: 4px 8px;
+    font-size: 0.9rem;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.modal-passenger-item button:hover {
+    background-color: #5a6268;
+}
+
+.modal-passenger-item button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
 }
 
 .modal-status {
@@ -591,14 +629,60 @@
                     
                     if (data.passengers && data.passengers.length > 0) {
                         data.passengers.forEach(passenger => {
-                            const li = document.createElement('li');
-                            li.textContent = `${passenger.first_name} ${passenger.last_name}`;
-                            passengersList.appendChild(li);
+                            const passengerItem = document.createElement('div');
+                            passengerItem.className = 'modal-passenger-item';
+                            
+                            const passengerLink = document.createElement('a');
+                            passengerLink.href = `/profile_user/?user_id=${passenger.id}`;
+                            passengerLink.textContent = `${passenger.first_name} ${passenger.last_name}`;
+                            passengerLink.style.textDecoration = 'none';
+                            passengerLink.style.color = '#5B62FF';
+                            passengerLink.style.fontWeight = '500';
+                            
+                            const removeButton = document.createElement('button');
+                            removeButton.className = 'btn btn-secondary';
+                            removeButton.textContent = 'Удалить';
+                            removeButton.style.marginLeft = 'auto';
+                            removeButton.style.padding = '4px 8px';
+                            removeButton.style.fontSize = '0.9rem';
+                            removeButton.onclick = function(e) {
+                                e.preventDefault();
+                                if (confirm(`Вы уверены, что хотите удалить пассажира ${passenger.first_name} ${passenger.last_name}?`)) {
+                                    fetch(`/remove_passenger/${tripId}/${passenger.id}/`, {
+                                        method: 'POST',
+                                        headers: {
+                                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                                        }
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            passengerItem.remove();
+                                            const count = document.getElementById('modal-passengers-count');
+                                            count.textContent = parseInt(count.textContent) - 1;
+                                            alert('Пассажир успешно удален');
+                                        } else {
+                                            alert(data.message || 'Ошибка при удалении пассажира');
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error:', error);
+                                        alert('Ошибка при удалении пассажира');
+                                    });
+                                }
+                            };
+                            
+                            passengerItem.appendChild(passengerLink);
+                            passengerItem.appendChild(removeButton);
+                            passengersList.appendChild(passengerItem);
                         });
                     } else {
-                        const li = document.createElement('li');
-                        li.textContent = 'Пока нет пассажиров';
-                        passengersList.appendChild(li);
+                        const emptyMessage = document.createElement('div');
+                        emptyMessage.className = 'modal-passenger-item';
+                        emptyMessage.textContent = 'Пока нет пассажиров';
+                        emptyMessage.style.textAlign = 'center';
+                        emptyMessage.style.color = '#6c757d';
+                        passengersList.appendChild(emptyMessage);
                     }
                     
                     // Обновляем время до начала поездки

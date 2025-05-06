@@ -309,8 +309,9 @@ class ProfileView(LoginRequiredMixin, TemplateView):
             try:
                 change_password_form = CustomPasswordChangeForm(user=user)
                 profile = get_object_or_404(UserProfile, user=user)
-                trips = Trip.objects.filter(user=profile).exclude(status='completed').order_by('-status')
-                joined_trips = Trip.objects.filter(passengers=profile).exclude(user=profile).exclude(status='completed').order_by('-status')
+                # Убираем фильтрацию по статусу, чтобы получить все поездки
+                trips = Trip.objects.filter(user=profile).order_by('-status')
+                joined_trips = Trip.objects.filter(passengers=profile).exclude(user=profile).order_by('-status')
                 cars = Car.objects.filter(owner=profile)
                 car_form = CarForm()
                 car_brands = CarBrand.objects.all()
@@ -447,6 +448,12 @@ def send_trip_notification_email(recipients, subject, message, context=None):
         from django.conf import settings
         from django.template.loader import render_to_string
         
+        print(f"\n=== Email Debug ===")
+        print(f"Recipients: {recipients}")
+        print(f"Subject: {subject}")
+        print(f"From: {settings.DEFAULT_FROM_EMAIL}")
+        print(f"Backend: {settings.EMAIL_BACKEND}")
+        
         # Если recipients - один email, преобразуем в список
         if isinstance(recipients, str):
             recipients = [recipients]
@@ -455,6 +462,7 @@ def send_trip_notification_email(recipients, subject, message, context=None):
         recipients = [email for email in recipients if email]
         
         if not recipients:
+            print("No valid recipients found")
             return False
             
         # Если контекст не передан, создаем пустой словарь
@@ -475,17 +483,25 @@ def send_trip_notification_email(recipients, subject, message, context=None):
             
         # Рендерим HTML шаблон
         html_message = render_to_string('main/email/trip_notification.html', context)
+        print(f"HTML message rendered successfully")
             
+        # Определяем fail_silently в зависимости от бэкенда
+        is_console_backend = settings.EMAIL_BACKEND == 'django.core.mail.backends.console.EmailBackend'
+        
         send_mail(
             subject,
             message,  # Текстовая версия для клиентов, не поддерживающих HTML
             settings.DEFAULT_FROM_EMAIL,
             recipients,
-            fail_silently=True,
+            fail_silently=False,  # Всегда False для отображения писем в консоли
             html_message=html_message  # HTML версия письма
         )
+        print("Email sent successfully")
+        print("===================\n")
         return True
     except Exception as e:
+        print(f"Error sending email: {str(e)}")
+        print("===================\n")
         logger.error(f"Ошибка отправки email: {str(e)}")
         return False
 
@@ -756,14 +772,10 @@ def get_trip_details_profile(request, trip_id):
     try:
         trip = get_object_or_404(Trip, id=trip_id)
         driver = trip.user
-        
-        # Создаем datetime из date и time
         departure_datetime = datetime.combine(trip.departure_date, trip.departure_time)
         departure_datetime = make_aware(departure_datetime)
-        
-        # Получаем всех пассажиров
         passengers = trip.passengers.all()
-
+        is_driver = request.user.is_authenticated and hasattr(request.user, 'userprofile') and trip.user == request.user.userprofile
         trip_data = {
             'driver_id': driver.id,
             'driver_name': driver.first_name,
@@ -780,9 +792,9 @@ def get_trip_details_profile(request, trip_id):
             'comment': trip.comment,
             'seats_taken': passengers.count(),
             'total_seats': trip.max_passengers,
-            'passengers_count': passengers.count(),  # Добавляем количество пассажиров
-            'max_passengers': trip.max_passengers,   # Добавляем максимальное количество пассажиров
-            'departure_datetime': departure_datetime.isoformat(),  # Добавляем дату и время отправления
+            'passengers_count': passengers.count(),
+            'max_passengers': trip.max_passengers,
+            'departure_datetime': departure_datetime.isoformat(),
             'passengers': [
                 {
                     'id': p.id,
@@ -790,7 +802,11 @@ def get_trip_details_profile(request, trip_id):
                     'last_name': p.last_name
                 } for p in passengers
             ],
-            'status': trip.status
+            'status': trip.status,
+            'is_driver': is_driver,
+            'trip_started': trip.status == 'in_progress',
+            'trip_ended': trip.status == 'completed',
+            'trip_id': trip.id,
         }
         return JsonResponse(trip_data)
     except Trip.DoesNotExist:
@@ -1297,9 +1313,9 @@ def add_trip(request):
     else:
         form = TripForm(user=request.user)
     
-    # Получаем поездки пользователя
+    # Получаем только актуальные поездки пользователя (не завершённые)
     user_profile = request.user.userprofile
-    trips = Trip.objects.filter(user=user_profile).order_by('-departure_date', '-departure_time')
+    trips = Trip.objects.filter(user=user_profile).exclude(status='completed').order_by('-departure_date', '-departure_time')
     
     return render(request, 'main/add_travel.html', {
         'form': form,

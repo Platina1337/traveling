@@ -139,4 +139,4 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 SMSRU_API_KEY = 'FB2C417A-5441-4108-F6E8-48AC3189A0FB'
 SMSRU_FROM = 'your_sender_name'  # необязательно, можно оставить пустым
 
-
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
