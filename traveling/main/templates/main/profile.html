@@ -13,25 +13,98 @@
 
 {% block content %}
     <main>
+    {% if user.is_authenticated %}
+        {% for trip_info in all_trips %}
+            {% if trip_info.trip.status == 'in_progress' %}
+                <section class="active-trip-section">
+                    <div class="active-trip-container">
+                        <div class="active-trip-header">
+                            <img src="{% static 'img/car.svg' %}" alt="car" class="active-trip-icon">
+                            <h2>Активная поездка</h2>
+                        </div>
+                        <div class="active-trip-details">
+                            <div class="route-info">
+                                <div class="city departure">
+                                    <span class="city-name">{{ trip_info.trip.departure_city.name }}</span>
+                                    <span class="time">{{ trip_info.trip.departure_time|time:"H:i" }}</span>
+                                </div>
+                                <div class="route-line">
+                                    <div class="line"></div>
+                                    <img src="{% static 'img/arrow-right.svg' %}" alt="arrow" class="route-arrow">
+                                </div>
+                                <div class="city arrival">
+                                    <span class="city-name">{{ trip_info.trip.destination_city.name }}</span>
+                                    <span class="time">{{ trip_info.trip.arrival_time|time:"H:i" }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="trip-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Цена</span>
+                                    <span class="stat-value">{{ trip_info.trip.price }} ₽</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Пассажиры</span>
+                                    <span class="stat-value">{{ trip_info.passengers_count }}/{{ trip_info.max_passengers }}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Время в пути</span>
+                                    <span class="stat-value" id="trip-duration">{{ trip_info.trip.actual_duration_string }}</span>
+                                </div>
+                            </div>
+
+                            <div class="trip-status">
+                                <span class="status-dot"></span>
+                                <span class="status-text">В пути</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <script>
+                    function updateTripDuration() {
+                        const durationElement = document.getElementById('trip-duration');
+                        if (durationElement) {
+                            fetch(`/get_trip_duration/{{ trip_info.trip.id }}/`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.duration) {
+                                        durationElement.textContent = data.duration;
+                                    }
+                                })
+                                .catch(error => console.error('Error:', error));
+                        }
+                    }
+
+                    // Обновляем время каждую секунду
+                    setInterval(updateTripDuration, 1000);
+                    updateTripDuration(); // Первое обновление
+                </script>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+        <div class="page-sections">
+            
+
         <section class="section trips">
             <div class="trips-header">
                 <h2>Мои поездки</h2>
                 <div class="trips-filters">
-                    <button class="trips-filter-chip active" data-filter="all">
+                    <div class="filter-section active" data-filter="all">
                         <span class="chip-icon">🌐</span> Все
-                    </button>
-                    <button class="trips-filter-chip" data-filter="active">
+            </div>
+                    <div class="filter-section" data-filter="active">
                         <span class="chip-icon">🚗</span> Активные
-                    </button>
-                    <button class="trips-filter-chip" data-filter="past">
+                    </div>
+                    <div class="filter-section" data-filter="past">
                         <span class="chip-icon">✅</span> Прошедшие
-                    </button>
+                    </div>
                 </div>
             </div>
-
-            {% for trip_info in paginated_trips %}
-            <div class="trip-card {% if trip_info.user_trip %}trip-your{% else %}trip-poputrchik{% endif %}"
-                 data-trip-status="{{ trip_info.trip.status }}">
+            <div class="trips-container">
+                {% for trip_info in all_trips %}
+                <div class="trip-card {% if trip_info.user_trip %}trip-your{% else %}trip-poputrchik{% endif %}"
+                     data-trip-status="{{ trip_info.trip.status }}">
                 <div class="card-div">
                     <div class="card-div-svg">
                         <div class="trip-time">
@@ -85,29 +158,9 @@
                 </div>
             </div>
             {% endfor %}
-
-            <div class="pagination">
-                <span class="step-links">
-                    {% if paginated_trips.has_previous %}
-                        <a class="step-links-a" href="?page={{ paginated_trips.previous_page_number }}"><img src="{% static 'img/left-arrow.svg' %}"></a>
-                    {% else %}
-                        <span class="disabled"><img src="{% static 'img/left-arrow.svg' %}"></span>
-                    {% endif %}
-
-                    <form action="" method="get" class="page-input-form">
-                        <input type="number" name="page" min="1" max="{{ paginated_trips.paginator.num_pages }}" value="{{ paginated_trips.number }}" onkeydown="if(event.key === 'Enter') { this.form.submit(); return false; }">
-                    </form>
-
-                    {% if paginated_trips.has_next %}
-                        <a class="step-links-a" href="?page={{ paginated_trips.next_page_number }}"><img src="{% static 'img/right-arrow.svg' %}"></a>
-                    {% else %}
-                        <span class="disabled"><img src="{% static 'img/right-arrow.svg' %}"></span>
-                    {% endif %}
-                </span>
-            </div>
         </section>
 
-        <section class="section profile">
+            <section class="section profile-section">
             <div class="profile-header">
                 <div class="profile-title">
                     <h2>Мой профиль</h2>
@@ -192,7 +245,7 @@
             </div>
         </section>
 
-        <section class="section notifications">
+            <section class="section notifications-section">
             <h2>Уведомления</h2>
 
             {% for notification in notifications %}
@@ -215,6 +268,7 @@
             </div>
             {% endfor %}
         </section>
+        </div>
     </main>
 
     <div id="deleteModal" class="modal">
@@ -255,6 +309,7 @@
                         <span class="modal-info-value" id="modal-arrival-time"></span>
                     </div>
                 </div>
+               
                 <div class="modal-section">
                     <h3 class="modal-section-title">Пассажиры</h3>
                     <div class="modal-info-row">
@@ -266,6 +321,12 @@
                     <div class="modal-passengers-list" id="modal-passengers-list">
                         <!-- Список пассажиров будет добавлен динамически -->
                     </div>
+                    
+                        <h3 class="modal-section-title">Водитель</h3>
+                        <div class="modal-driver-list" id="modal-driver-list">
+                            <!-- Информация о водителе будет добавлена динамически -->
+                        </div>
+                    
                 </div>
             </div>
             <div class="modal-status">
@@ -277,6 +338,7 @@
                 <button id="end-trip-btn" class="modal-action-btn" style="background-color: #f44336; display: none;">Завершить поездку</button>
             </div>
         </div>
+    </div>
     </div>
     <!-- Модальное окно для добавления автомобиля -->
     <div id="addCarModal" class="modal">
@@ -423,7 +485,58 @@ const openModalBtns = document.querySelectorAll('.openModalBtn');
 const modal = document.getElementById('customTripModal');
 const closeBtn = modal.querySelector('.custom-trip-close-btn');
 
+function updateTimeUntil(departureDatetime, tripStatus, endTime, tripEnded) {
+    const timeUntil = document.getElementById('modal-time-until');
+    console.log('Trip Status:', tripStatus);
+    console.log('Trip Ended:', tripEnded);
+    console.log('End Time:', endTime);
+    console.log('Departure Time:', departureDatetime);
+    
+    // Проверяем завершение поездки
+    if (tripStatus === 'completed' || tripEnded) {
+        if (endTime) {
+            const endDate = new Date(endTime);
+            const formattedDate = endDate.toLocaleDateString('ru-RU');
+            const formattedTime = endDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            
+            // Получаем длительность из данных поездки
+            const durationHours = document.getElementById('modal-time-until').getAttribute('data-duration-hours');
+            const durationMinutes = document.getElementById('modal-time-until').getAttribute('data-duration-minutes');
+            
+            if (durationHours !== null && durationMinutes !== null) {
+                timeUntil.innerHTML = `Поездка завершена ${formattedDate} в ${formattedTime}<br>Длительность: ${durationHours} ч. ${durationMinutes} мин.`;
+            } else {
+                timeUntil.textContent = `Поездка завершена ${formattedDate} в ${formattedTime}`;
+            }
+        } else {
+            timeUntil.textContent = 'Поездка завершена';
+        }
+        return;
+    }
+
+    // Проверяем начало поездки
+    if (tripStatus === 'in_progress') {
+        // Получаем длительность из данных поездки
+        const durationHours = document.getElementById('modal-time-until').getAttribute('data-duration-hours');
+        const durationMinutes = document.getElementById('modal-time-until').getAttribute('data-duration-minutes');
+        
+        if (durationHours !== null && durationMinutes !== null) {
+            timeUntil.innerHTML = `Поездка в процессе<br>Длительность: ${durationHours} ч. ${durationMinutes} мин.`;
+        } else {
+            timeUntil.textContent = 'Поездка в процессе';
+        }
+        return;
+    }
+    
+    // Если поездка еще не началась
+    timeUntil.textContent = 'Поездка еще не началась';
+}
+
 function openModal(tripId) {
+    // Сохраняем tripId в модальном окне
+    const modal = document.getElementById('customTripModal');
+    modal.setAttribute('data-trip-id', tripId);
+    
     // Заполняем основную информацию из карточки поездки
     const tripCard = document.querySelector(`[data-trip-id="${tripId}"]`).closest('.trip-card');
     const departureCity = tripCard.querySelector('.location:first-child').textContent;
@@ -447,16 +560,50 @@ function openModal(tripId) {
             return response.json();
         })
         .then(data => {
-            console.log('Полученные данные:', data); // Для отладки
+            console.log('Полученные данные:', data);
             
             // Заполняем информацию о пассажирах
             document.getElementById('modal-passengers-count').textContent = data.passengers_count;
             document.getElementById('modal-max-passengers').textContent = data.max_passengers;
             document.getElementById('modal-price').textContent = `${data.price} ₽`;
             
+            // Сохраняем данные о длительности
+            const timeUntil = document.getElementById('modal-time-until');
+            timeUntil.setAttribute('data-departure', data.departure_datetime);
+            timeUntil.setAttribute('data-duration-hours', data.duration_hours);
+            timeUntil.setAttribute('data-duration-minutes', data.duration_minutes);
+            
+            // Обновляем время до начала поездки или время завершения
+            updateTimeUntil(data.departure_datetime, data.status, data.end_time, data.trip_ended);
+            
             // Очищаем и заполняем список пассажиров
             const passengersList = document.getElementById('modal-passengers-list');
+            const driverList = document.getElementById('modal-driver-list');
             passengersList.innerHTML = '';
+            driverList.innerHTML = '';
+            
+            // Добавляем информацию о водителе или "Ваша поездка"
+            if (data.is_driver) {
+                const driverItem = document.createElement('div');
+                driverItem.className = 'modal-passenger-item';
+                driverItem.textContent = 'Ваша поездка';
+                driverItem.style.fontWeight = '500';
+                driverItem.style.color = '#5B62FF';
+                driverList.appendChild(driverItem);
+            } else {
+                const driverItem = document.createElement('div');
+                driverItem.className = 'modal-passenger-item';
+                
+                const driverLink = document.createElement('a');
+                driverLink.href = `/profile_user/?user_id=${data.driver_id}`;
+                driverLink.textContent = `${data.driver_name} ${data.driver_surname}`;
+                driverLink.style.textDecoration = 'none';
+                driverLink.style.color = '#5B62FF';
+                driverLink.style.fontWeight = '500';
+                
+                driverItem.appendChild(driverLink);
+                driverList.appendChild(driverItem);
+            }
             
             if (data.passengers && data.passengers.length > 0) {
                 data.passengers.forEach(passenger => {
@@ -470,41 +617,45 @@ function openModal(tripId) {
                     passengerLink.style.color = '#5B62FF';
                     passengerLink.style.fontWeight = '500';
                     
-                    const removeButton = document.createElement('button');
-                    removeButton.className = 'btn btn-secondary';
-                    removeButton.textContent = 'Удалить';
-                    removeButton.style.marginLeft = 'auto';
-                    removeButton.style.padding = '4px 8px';
-                    removeButton.style.fontSize = '0.9rem';
-                    removeButton.onclick = function(e) {
-                        e.preventDefault();
-                        if (confirm(`Вы уверены, что хотите удалить пассажира ${passenger.first_name} ${passenger.last_name}?`)) {
-                            fetch(`/remove_passenger/${tripId}/${passenger.id}/`, {
-                                method: 'POST',
-                                headers: {
-                                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                                }
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    passengerItem.remove();
-                                    const count = document.getElementById('modal-passengers-count');
-                                    count.textContent = parseInt(count.textContent) - 1;
-                                    alert('Пассажир успешно удален');
-                                } else {
-                                    alert(data.message || 'Ошибка при удалении пассажира');
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error:', error);
-                                alert('Ошибка при удалении пассажира');
-                            });
-                        }
-                    };
-                    
                     passengerItem.appendChild(passengerLink);
-                    passengerItem.appendChild(removeButton);
+                    
+                    // Добавляем кнопку удаления только если поездка не начата и не завершена
+                    if (!data.trip_started && !data.trip_ended) {
+                        const removeButton = document.createElement('button');
+                        removeButton.className = 'btn btn-secondary';
+                        removeButton.textContent = 'Удалить';
+                        removeButton.style.marginLeft = 'auto';
+                        removeButton.style.padding = '4px 8px';
+                        removeButton.style.fontSize = '0.9rem';
+                        removeButton.onclick = function(e) {
+                            e.preventDefault();
+                            if (confirm(`Вы уверены, что хотите удалить пассажира ${passenger.first_name} ${passenger.last_name}?`)) {
+                                fetch(`/remove_passenger/${tripId}/${passenger.id}/`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                                    }
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        passengerItem.remove();
+                                        const count = document.getElementById('modal-passengers-count');
+                                        count.textContent = parseInt(count.textContent) - 1;
+                                        alert('Пассажир успешно удален');
+                                    } else {
+                                        alert(data.message || 'Ошибка при удалении пассажира');
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    alert('Ошибка при удалении пассажира');
+                                });
+                            }
+                        };
+                        passengerItem.appendChild(removeButton);
+                    }
+                    
                     passengersList.appendChild(passengerItem);
                 });
             } else {
@@ -514,13 +665,6 @@ function openModal(tripId) {
                 emptyMessage.style.textAlign = 'center';
                 emptyMessage.style.color = '#6c757d';
                 passengersList.appendChild(emptyMessage);
-            }
-            
-            // Обновляем время до начала поездки
-            if (data.departure_datetime) {
-                const timeUntil = document.getElementById('modal-time-until');
-                timeUntil.setAttribute('data-departure', data.departure_datetime);
-                updateTimeUntil(data.departure_datetime);
             }
 
             if (data.is_driver) {
@@ -541,48 +685,12 @@ function openModal(tripId) {
         })
         .catch(error => {
             console.error('Ошибка при получении данных:', error);
-            // Показываем сообщение об ошибке пользователю
             const passengersList = document.getElementById('modal-passengers-list');
             passengersList.innerHTML = '<li>Ошибка при загрузке данных</li>';
         });
     
     modal.classList.add('show');
 }
-
-function updateTimeUntil(departureDatetime) {
-    const departure = new Date(departureDatetime);
-    const now = new Date();
-    const diff = departure - now;
-    
-    const timeUntil = document.getElementById('modal-time-until');
-    
-    if (diff <= 0) {
-        timeUntil.textContent = 'Поездка уже началась';
-        return;
-    }
-    
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
-    let timeString = '';
-    if (days > 0) timeString += `${days} д. `;
-    if (hours > 0) timeString += `${hours} ч. `;
-    timeString += `${minutes} мин.`;
-    
-    timeUntil.textContent = timeString;
-}
-
-// Обновляем время до начала поездки каждую минуту
-setInterval(() => {
-    const timeUntil = document.getElementById('modal-time-until');
-    if (timeUntil && timeUntil.textContent !== '-') {
-        const departureTime = timeUntil.getAttribute('data-departure');
-        if (departureTime) {
-            updateTimeUntil(departureTime);
-        }
-    }
-}, 60000);
 
 function closeModal() {
     modal.classList.remove('show');
@@ -1050,7 +1158,8 @@ window.addEventListener('click', function(event) {
 
         // Обработчики кнопок:
         document.getElementById('start-trip-btn').onclick = function() {
-            fetch(`/start_trip/${data.trip_id}/`, {
+            const tripId = document.getElementById('customTripModal').getAttribute('data-trip-id');
+            fetch(`/start_trip/${tripId}/`, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
@@ -1062,6 +1171,13 @@ window.addEventListener('click', function(event) {
                     alert('Поездка начата!');
                     document.getElementById('start-trip-btn').style.display = 'none';
                     document.getElementById('end-trip-btn').style.display = 'inline-block';
+                    // Обновляем статус поездки
+                    updateTimeUntil(
+                        document.getElementById('modal-time-until').getAttribute('data-departure'),
+                        'in_progress',
+                        null,
+                        false
+                    );
                 } else {
                     alert(result.message || 'Ошибка при запуске поездки');
                 }
@@ -1069,7 +1185,8 @@ window.addEventListener('click', function(event) {
         };
 
         document.getElementById('end-trip-btn').onclick = function() {
-            fetch(`/end_trip/${data.trip_id}/`, {
+            const tripId = document.getElementById('customTripModal').getAttribute('data-trip-id');
+            fetch(`/end_trip/${tripId}/`, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
@@ -1080,6 +1197,13 @@ window.addEventListener('click', function(event) {
                 if (result.success) {
                     alert('Поездка завершена!');
                     document.getElementById('end-trip-btn').style.display = 'none';
+                    // Обновляем статус поездки
+                    updateTimeUntil(
+                        document.getElementById('modal-time-until').getAttribute('data-departure'),
+                        'completed',
+                        result.end_time,
+                        true
+                    );
                 } else {
                     alert(result.message || 'Ошибка при завершении поездки');
                 }
@@ -1087,24 +1211,39 @@ window.addEventListener('click', function(event) {
         };
 
         document.addEventListener('DOMContentLoaded', function() {
-            const filterButtons = document.querySelectorAll('.trips-filter-chip');
+            const filterSections = document.querySelectorAll('.filter-section');
             const tripCards = document.querySelectorAll('.trip-card');
 
-            filterButtons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    filterButtons.forEach(b => b.classList.remove('active'));
+            filterSections.forEach(section => {
+                section.addEventListener('click', function() {
+                    // Убираем активный класс у всех фильтров
+                    filterSections.forEach(s => s.classList.remove('active'));
+                    // Добавляем активный класс выбранному фильтру
                     this.classList.add('active');
+
                     const filter = this.getAttribute('data-filter');
+                    
+                    // Плавно скрываем все карточки
                     tripCards.forEach(card => {
-                        const status = card.getAttribute('data-trip-status');
-                        if (filter === 'all') {
-                            card.style.display = '';
-                        } else if (filter === 'active') {
-                            card.style.display = (status === 'in_progress') ? '' : 'none';
-                        } else if (filter === 'past') {
-                            card.style.display = (status === 'completed') ? '' : 'none';
-                        }
+                        card.classList.add('hidden');
+                        card.classList.remove('visible');
                     });
+
+                    // После небольшой задержки показываем нужные карточки
+                    setTimeout(() => {
+                        tripCards.forEach(card => {
+                            const status = card.getAttribute('data-trip-status');
+                            if (filter === 'all' || 
+                                (filter === 'active' && status === 'in_progress') || 
+                                (filter === 'past' && status === 'completed')) {
+                                card.classList.remove('hidden');
+                                // Добавляем небольшую задержку для каждой карточки
+                                setTimeout(() => {
+                                    card.classList.add('visible');
+                                }, 50);
+                            }
+                        });
+                    }, 300);
                 });
             });
         });
@@ -1240,18 +1379,18 @@ window.addEventListener('click', function(event) {
         /* Стили для модального окна деталей поездки */
        /* Стили для модального окна */
 .custom-trip-modal {
-    display: none;
-    position: fixed;
-    top: 0;
+            display: none;
+            position: fixed;
+            top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+            width: 100%;
+            height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 1000;
     justify-content: center;
     align-items: center;
     backdrop-filter: blur(5px);
-}
+        }
 
 .custom-trip-modal.show {
     display: flex;
@@ -1265,12 +1404,12 @@ window.addEventListener('click', function(event) {
     border-radius: 16px;
     width: 90%;
     max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
+            max-height: 90vh;
+            overflow-y: auto;
     position: relative;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     animation: modalFadeIn 0.3s ease;
-}
+        }
 
 @keyframes modalFadeIn {
     from {
@@ -1281,10 +1420,10 @@ window.addEventListener('click', function(event) {
         opacity: 1;
         transform: translate(-50%, -50%);
     }
-}
+        }
 
 .custom-trip-close-btn {
-    position: absolute;
+            position: absolute;
     right: 1.5rem;
     top: 1.5rem;
     font-size: 1.5rem;
@@ -1295,7 +1434,7 @@ window.addEventListener('click', function(event) {
     border: none;
     padding: 0.5rem;
     line-height: 1;
-}
+        }
 
 .custom-trip-close-btn:hover {
     color: #333;
@@ -1305,7 +1444,7 @@ window.addEventListener('click', function(event) {
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid #eee;
-}
+        }
 
 .modal-title {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -1344,7 +1483,7 @@ window.addEventListener('click', function(event) {
     margin-bottom: 0.75rem;
     padding: 0.5rem 0;
     border-bottom: 1px solid #eee;
-}
+        }
 
 .modal-info-label {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -1352,7 +1491,7 @@ window.addEventListener('click', function(event) {
     font-size: 0.9rem;
     font-weight: 400;
     letter-spacing: 0.01em;
-}
+        }
 
 .modal-info-value {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -1360,9 +1499,10 @@ window.addEventListener('click', function(event) {
     font-weight: 500;
     font-size: 0.95rem;
     letter-spacing: 0.01em;
-}
+        }
 
-.modal-passengers-list {
+.modal-passengers-list,
+.modal-driver-list {
     margin-top: 1rem;
 }
 
@@ -1403,16 +1543,16 @@ window.addEventListener('click', function(event) {
     padding: 4px 8px;
     font-size: 0.9rem;
     background-color: #6c757d;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
     transition: background-color 0.2s ease;
-}
+        }
 
 .modal-passenger-item button:hover {
     background-color: #5a6268;
-}
+        }
 
 .modal-passenger-item button:disabled {
     background-color: #cccccc;
@@ -1420,7 +1560,7 @@ window.addEventListener('click', function(event) {
 }
 
 .modal-status {
-    display: flex;
+            display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 1rem;
@@ -1433,9 +1573,9 @@ window.addEventListener('click', function(event) {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 1.1rem;
     color: #495057;
-    font-weight: 500;
+            font-weight: 500;
     letter-spacing: 0.01em;
-}
+        }
 
 .modal-price {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -1443,42 +1583,42 @@ window.addEventListener('click', function(event) {
     font-weight: 600;
     color: #28a745;
     letter-spacing: -0.02em;
-}
+        }
 
 /* Стили для скроллбара */
 .custom-trip-modal-content::-webkit-scrollbar {
     width: 8px;
-}
+        }
 
 .custom-trip-modal-content::-webkit-scrollbar-track {
     background: #f1f1f1;
     border-radius: 4px;
-}
+        }
 
 .custom-trip-modal-content::-webkit-scrollbar-thumb {
     background: #888;
     border-radius: 4px;
-}
+        }
 
 .custom-trip-modal-content::-webkit-scrollbar-thumb:hover {
     background: #555;
-}
+        }
 
 /* Адаптивность */
 @media (max-width: 768px) {
     .modal-body {
         grid-template-columns: 1fr;
-    }
-    
+        }
+        
     .custom-trip-modal-content {
         width: 95%;
         padding: 1.5rem;
-    }
-
+        }
+        
     .modal-title {
         font-size: 1.3rem;
-    }
-    
+        }
+        
     .modal-section-title {
         font-size: 1rem;
     }
@@ -1495,7 +1635,7 @@ window.addEventListener('click', function(event) {
     .modal-price {
         font-size: 1.15rem;
     }
-}
+        }
 
         /* Стили для кнопки "Детали поездки" */
         .trip-link {
@@ -1587,7 +1727,7 @@ window.addEventListener('click', function(event) {
         }
 
         #driver-profile-link {
-            display: inline-block;
+            
             color: #4a90e2;
             text-decoration: none;
             margin-bottom: 10px;
@@ -1652,12 +1792,7 @@ window.addEventListener('click', function(event) {
             background-color: #b71c1c;
         }
 
-        .trips-filters {
-            display: flex;
-            gap: 12px;
-            margin-left: 20px;
-            align-items: center;
-        }
+        
         .trips-filter-chip {
             display: flex;
             align-items: center;
@@ -1682,6 +1817,55 @@ window.addEventListener('click', function(event) {
             background: linear-gradient(90deg, #5B62FF 0%, #4a90e2 100%);
             color: #fff;
             box-shadow: 0 4px 16px rgba(90,100,255,0.10);
+        }
+
+        .modal-driver-info {
+            
+        }
+
+        .modal-driver-link {
+            
+        }
+
+        .modal-driver-link:hover {
+            color: #4a50cc;
+            text-decoration: underline;
+        }
+
+        #driver-name {
+            
+        }
+
+        /* Обновляем стили для модального окна */
+        .modal-section {
+            background: #f8f9fa;
+            padding: 1.25rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-section-title {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 1rem;
+            letter-spacing: -0.01em;
+        }
+
+        /* Адаптивность для мобильных устройств */
+        @media (max-width: 768px) {
+            .modal-driver-info {
+                padding: 0.75rem;
+            }
+            
+            .modal-driver-link {
+                font-size: 1rem;
+            }
+            
+            #driver-name {
+                font-size: 1rem;
+            }
         }
     </style>
 
@@ -1730,4 +1914,43 @@ window.addEventListener('click', function(event) {
         });
     });
     </script>
+
+    <style>
+        .section.trips {
+            background: #fff;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .trips-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .trips-container {
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        /* Стили для скроллбара в trips-container */
+        .trips-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .trips-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .trips-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .trips-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
 {% endblock content %}

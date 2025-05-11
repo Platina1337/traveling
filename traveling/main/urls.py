@@ -8,7 +8,7 @@ from .views import (
     leave_trip, start_trip, end_trip, change_password,
     resend_verification, delete_car, edit_car, get_car_models,
     get_car_details, trip_details, get_all_trips_statuses,
-    check_car_active_trips
+    check_car_active_trips, get_trip_duration
 )
 from django.conf import settings
 from django.conf.urls.static import static
@@ -45,6 +45,7 @@ urlpatterns = [
     path('trip_details/<int:trip_id>/', trip_details, name='trip_details'),
     path('get_all_trips_statuses/', get_all_trips_statuses, name='get_all_trips_statuses'),
     path('check_car_active_trips/<int:car_id>/', check_car_active_trips, name='check_car_active_trips'),
+    path('get_trip_duration/<int:trip_id>/', get_trip_duration, name='get_trip_duration'),
 ]
 
 if settings.DEBUG:

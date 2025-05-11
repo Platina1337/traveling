@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.db.models import Min, Max
+from django.db.models import Min, Max, Case, When
 from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
 from django.utils.decorators import method_decorator
@@ -48,6 +48,10 @@ class ProfileUserView(View):
     def get(self, request, *args, **kwargs):
         user_id = request.GET.get('user_id')
         user_profile = get_object_or_404(UserProfile, id=user_id)
+
+        # Если пользователь пытается посмотреть свой профиль, перенаправляем на обычный профиль
+        if request.user.is_authenticated and user_profile.user == request.user:
+            return redirect('main:profile')
 
         current_user = request.user
         current_user_profile = get_object_or_404(UserProfile, user=current_user)
@@ -298,6 +302,7 @@ def change_password(request):
             errors = form.errors.as_json()
             return JsonResponse({'success': False, 'errors': errors})
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
 class ProfileView(LoginRequiredMixin, TemplateView):
     template_name = 'main/profile.html'
 
@@ -309,9 +314,27 @@ class ProfileView(LoginRequiredMixin, TemplateView):
             try:
                 change_password_form = CustomPasswordChangeForm(user=user)
                 profile = get_object_or_404(UserProfile, user=user)
-                # Убираем фильтрацию по статусу, чтобы получить все поездки
-                trips = Trip.objects.filter(user=profile).order_by('-status')
-                joined_trips = Trip.objects.filter(passengers=profile).exclude(user=profile).order_by('-status')
+                # Сортируем поездки: сначала активные, затем по дате
+                trips = Trip.objects.filter(user=profile).order_by(
+                    Case(
+                        When(status='in_progress', then=0),
+                        When(status='planned', then=1),
+                        When(status='completed', then=2),
+                        default=3,
+                    ),
+                    '-departure_date',
+                    '-departure_time'
+                )
+                joined_trips = Trip.objects.filter(passengers=profile).exclude(user=profile).order_by(
+                    Case(
+                        When(status='in_progress', then=0),
+                        When(status='planned', then=1),
+                        When(status='completed', then=2),
+                        default=3,
+                    ),
+                    '-departure_date',
+                    '-departure_time'
+                )
                 cars = Car.objects.filter(owner=profile)
                 car_form = CarForm()
                 car_brands = CarBrand.objects.all()
@@ -359,16 +382,6 @@ class ProfileView(LoginRequiredMixin, TemplateView):
                         }
                         all_trips.append(trip_info)
 
-                paginator = Paginator(all_trips, 3)
-                page = self.request.GET.get('page', 1)
-
-                try:
-                    paginated_trips = paginator.page(page)
-                except PageNotAnInteger:
-                    paginated_trips = paginator.page(1)
-                except EmptyPage:
-                    paginated_trips = paginator.page(paginator.num_pages)
-
                 form = UserProfileForm(initial={
                     'first_name': profile.first_name,
                     'last_name': profile.last_name,
@@ -378,7 +391,7 @@ class ProfileView(LoginRequiredMixin, TemplateView):
                 })
                 notifications = Notification.objects.filter(recipient=profile)
                 context['profile'] = profile
-                context['paginated_trips'] = paginated_trips
+                context['all_trips'] = all_trips
                 context['form'] = form
                 context['change_password_form'] = change_password_form
                 context['notifications'] = notifications
@@ -389,7 +402,7 @@ class ProfileView(LoginRequiredMixin, TemplateView):
             except ValueError as e:
                 logging.error(f"Error in ProfileView: {e}")
                 context['profile'] = None
-                context['paginated_trips'] = []
+                context['all_trips'] = []
                 context['notifications'] = []
                 context['cars'] = []
                 context['car_form'] = CarForm()
@@ -505,71 +518,61 @@ def send_trip_notification_email(recipients, subject, message, context=None):
         logger.error(f"Ошибка отправки email: {str(e)}")
         return False
 
+@require_POST
 def start_trip(request, trip_id):
-    if request.method == 'POST':
-        trip = get_object_or_404(Trip, id=trip_id)
-        if request.user == trip.user.user:
-            active_trip = Trip.objects.filter(user=trip.user, status='in_progress').exists()
-            if active_trip:
-                logger.warning(f"User {request.user.id} attempted to start trip {trip_id} but already has an active trip.")
-                return JsonResponse({'success': False, 'message': 'У вас уже есть активная поездка'})
-
-            trip.started_at = timezone.now()
-            trip.status = 'in_progress'
-            trip.save()
-            logger.info(f"Trip {trip_id} started by user {request.user.id}.")
-
-            # Получаем список пассажиров для уведомления
-            passengers = trip.passengers.all()
-            
-            for passenger in passengers:
-                # Создаем уведомление в системе
-                Notification.objects.create(
-                    recipient=passenger,
-                    sender=request.user.userprofile,
-                    trip=trip,
-                    message=f"Поездка {trip.departure_city.name} -> {trip.destination_city.name} началась"
-                )
-                
-                # Отправляем email уведомление с использованием HTML шаблона
-                subject = f"Поездка {trip.departure_city.name} -> {trip.destination_city.name} началась"
-                text_message = f"""
-                Здравствуйте, {passenger.first_name}!
-                
-                Ваша поездка из {trip.departure_city.name} в {trip.destination_city.name} началась.
-                
-                Дата: {trip.departure_date.strftime('%d.%m.%Y')}
-                Время отправления: {trip.departure_time.strftime('%H:%M')}
-                Время прибытия: {trip.arrival_time.strftime('%H:%M')}
-                
-                Водитель: {trip.user.first_name} {trip.user.last_name}
-                
-                С уважением,
-                Команда сервиса
-                """
-                
-                # Контекст для HTML шаблона
-                context = {
-                    'recipient_name': passenger.first_name,
-                    'subject': subject,
-                    'header': 'Поездка началась',
-                    'message': 'Ваша поездка началась! Пожалуйста, убедитесь, что вы прибыли к месту отправления вовремя.',
-                    'trip_details': True,
-                    'trip_departure': trip.departure_city.name,
-                    'trip_destination': trip.destination_city.name,
-                    'trip_date': trip.departure_date.strftime('%d.%m.%Y'),
-                    'trip_time_departure': trip.departure_time.strftime('%H:%M'),
-                    'trip_time_arrival': trip.arrival_time.strftime('%H:%M'),
-                    'driver_name': f"{trip.user.first_name} {trip.user.last_name}"
-                }
-                
-                send_trip_notification_email(passenger.email, subject, text_message, context)
-                
-            return JsonResponse({'success': True})
-        else:
-            logger.warning(f"User {request.user.id} attempted to start trip {trip_id} but is not the driver.")
-            return JsonResponse({'success': False, 'message': 'Вы не являетесь водителем этой поездки'})
-    return JsonResponse({'success': False, 'message': 'Неверный метод'})
+    try:
+        trip = Trip.objects.get(id=trip_id)
+        
+        # Проверяем, что пользователь является владельцем поездки
+        if trip.user != request.user.userprofile:
+            return JsonResponse({
+                'success': False,
+                'message': 'У вас нет прав для начала этой поездки'
+            }, status=403)
+        
+        # Проверяем, что поездка еще не начата
+        if trip.status == 'in_progress':
+            return JsonResponse({
+                'success': False,
+                'message': 'Поездка уже начата'
+            }, status=400)
+        
+        # Проверяем, что поездка не завершена
+        if trip.status == 'completed':
+            return JsonResponse({
+                'success': False,
+                'message': 'Поездка уже завершена'
+            }, status=400)
+        
+        # Начинаем поездку
+        trip.start_trip()
+        
+        # Отправляем уведомления пассажирам
+        message = f"Поездка из {trip.departure_city} в {trip.destination_city} началась!"
+        for passenger in trip.passengers.all():
+            Notification.objects.create(
+                recipient=passenger,
+                sender=request.user.userprofile,
+                trip=trip,
+                message=message
+            )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Поездка успешно начата',
+            'start_time': trip.start_time.isoformat() if trip.start_time else None
+        })
+        
+    except Trip.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Поездка не найдена'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=500)
 
 def end_trip(request, trip_id):
     if request.method == 'POST':
@@ -579,8 +582,8 @@ def end_trip(request, trip_id):
                 logger.warning(f"User {request.user.id} attempted to end trip {trip_id} which is not in progress.")
                 return JsonResponse({'success': False, 'message': 'Поездка еще не началась'})
 
-            trip.status = 'completed'
-            trip.save()
+            # Используем метод end_trip() из модели
+            trip.end_trip()
             logger.info(f"Trip {trip_id} completed by user {request.user.id}.")
 
             # Получаем список пассажиров для уведомления
@@ -776,6 +779,20 @@ def get_trip_details_profile(request, trip_id):
         departure_datetime = make_aware(departure_datetime)
         passengers = trip.passengers.all()
         is_driver = request.user.is_authenticated and hasattr(request.user, 'userprofile') and trip.user == request.user.userprofile
+        
+        # Рассчитываем длительность
+        duration = None
+        if trip.status == 'completed' and trip.end_time:
+            duration = trip.end_time - trip.start_time
+        elif trip.status == 'in_progress' and trip.start_time:
+            duration = timezone.now() - trip.start_time
+        
+        duration_hours = None
+        duration_minutes = None
+        if duration:
+            duration_hours = duration.days * 24 + duration.seconds // 3600
+            duration_minutes = (duration.seconds % 3600) // 60
+        
         trip_data = {
             'driver_id': driver.id,
             'driver_name': driver.first_name,
@@ -795,6 +812,10 @@ def get_trip_details_profile(request, trip_id):
             'passengers_count': passengers.count(),
             'max_passengers': trip.max_passengers,
             'departure_datetime': departure_datetime.isoformat(),
+            'start_time': trip.start_time.isoformat() if trip.start_time else None,
+            'end_time': trip.end_time.isoformat() if trip.end_time else None,
+            'duration_hours': duration_hours,
+            'duration_minutes': duration_minutes,
             'passengers': [
                 {
                     'id': p.id,
@@ -806,13 +827,13 @@ def get_trip_details_profile(request, trip_id):
             'is_driver': is_driver,
             'trip_started': trip.status == 'in_progress',
             'trip_ended': trip.status == 'completed',
-            'trip_id': trip.id,
+            'trip_id': trip.id
         }
         return JsonResponse(trip_data)
     except Trip.DoesNotExist:
         return JsonResponse({'error': 'Trip not found'}, status=404)
     except Exception as e:
-        return JsonResponse({'error': 'Internal server error'}, status=500)
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 @csrf_exempt
@@ -1675,3 +1696,18 @@ def check_car_active_trips(request, car_id):
             'success': False,
             'message': str(e)
         }, status=500)
+
+def get_trip_duration(request, trip_id):
+    try:
+        trip = Trip.objects.get(id=trip_id)
+        if trip.status == 'in_progress':
+            return JsonResponse({
+                'duration': trip.actual_duration_string
+            })
+        return JsonResponse({
+            'duration': None
+        })
+    except Trip.DoesNotExist:
+        return JsonResponse({
+            'error': 'Trip not found'
+        }, status=404)

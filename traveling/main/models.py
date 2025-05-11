@@ -2,6 +2,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from django.db import models
 from datetime import datetime, timedelta
+from django.utils import timezone
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -80,17 +81,24 @@ class Trip(models.Model):
     comment = models.TextField(blank=True, null=True)
     pending_passengers = models.ManyToManyField(UserProfile, related_name='pending_trips', blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='planned')
-
+    start_time = models.DateTimeField(null=True, blank=True)
+    end_time = models.DateTimeField(null=True, blank=True)
 
     def has_active_trip(self):
         return Trip.objects.filter(user=self, status__in=['planned', 'in_progress']).exists()
+
     def start_trip(self):
+        """Начать поездку и сохранить время начала в UTC"""
         self.status = 'in_progress'
-        self.save()
+        self.start_time = timezone.now()
+        self.save(update_fields=['status', 'start_time'])
 
     def end_trip(self):
+        """Завершить поездку и сохранить время завершения в UTC"""
         self.status = 'completed'
-        self.save()
+        self.end_time = timezone.now()
+        self.save(update_fields=['status', 'end_time'])
+
     @property
     def duration(self):
         if self.arrival_date and self.arrival_time:
@@ -100,25 +108,43 @@ class Trip(models.Model):
         return None
 
     @property
-    def duration_hours(self):
-        duration = self.duration
+    def actual_duration(self):
+        """Возвращает фактическую продолжительность поездки"""
+        if self.start_time:
+            if self.end_time:
+                return self.end_time - self.start_time
+            elif self.status == 'in_progress':
+                return timezone.now() - self.start_time
+        return None
+
+    @property
+    def actual_duration_hours(self):
+        duration = self.actual_duration
         if duration:
             return duration.days * 24 + duration.seconds // 3600
         return None
 
     @property
-    def duration_minutes(self):
-        duration = self.duration
+    def actual_duration_minutes(self):
+        duration = self.actual_duration
         if duration:
             return (duration.seconds // 60) % 60
         return None
 
     @property
-    def duration_string(self):
-        hours = self.duration_hours
-        minutes = self.duration_minutes
-        if hours is not None and minutes is not None:
-            return f"{hours} ч {minutes} м"
+    def actual_duration_seconds(self):
+        duration = self.actual_duration
+        if duration:
+            return duration.seconds % 60
+        return None
+
+    @property
+    def actual_duration_string(self):
+        hours = self.actual_duration_hours
+        minutes = self.actual_duration_minutes
+        seconds = self.actual_duration_seconds
+        if hours is not None and minutes is not None and seconds is not None:
+            return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
         return None
 
     @property
