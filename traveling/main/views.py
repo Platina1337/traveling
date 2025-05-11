@@ -10,7 +10,7 @@ from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 from django.urls import reverse
 
 from .tasks import send_sms_task
@@ -365,7 +365,9 @@ class ProfileView(LoginRequiredMixin, TemplateView):
                             'trip': trip,
                             'duration_hours': duration_hours,
                             'duration_minutes': duration_minutes,
-                            'user_trip': True
+                            'user_trip': True,
+                            'passengers_count': trip.passengers.count(),
+                            'max_passengers': trip.max_passengers
                         }
                         all_trips.append(trip_info)
 
@@ -378,7 +380,9 @@ class ProfileView(LoginRequiredMixin, TemplateView):
                             'trip': trip,
                             'duration_hours': duration_hours,
                             'duration_minutes': duration_minutes,
-                            'user_trip': False
+                            'user_trip': False,
+                            'passengers_count': trip.passengers.count(),
+                            'max_passengers': trip.max_passengers
                         }
                         all_trips.append(trip_info)
 
@@ -428,18 +432,27 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         else:
             # Существующая логика обновления профиля
             form = UserProfileForm(request.POST, request.FILES)
-        if form.is_valid():
-            profile.first_name = form.cleaned_data['first_name']
-            profile.last_name = form.cleaned_data['last_name']
-            profile.phone_number = form.cleaned_data['phone_number']
-            profile.email = form.cleaned_data['email']
-            profile.about_me = form.cleaned_data['about_me']
-            if 'avatar' in request.FILES:
-                profile.avatar = request.FILES['avatar']
-            profile.save()
-            messages.success(request, 'Ваш профиль был обновлен.')
-        else:
-            messages.error(request, 'Произошла ошибка при обновлении вашего профиля.')
+            if form.is_valid():
+                # Проверяем, изменился ли email
+                new_email = form.cleaned_data['email']
+                if new_email != profile.email:
+                    # Отправляем письмо для подтверждения
+                    if send_email_change_confirmation(request.user, new_email, request):
+                        messages.info(request, 'На ваш новый email отправлено письмо для подтверждения. Пожалуйста, проверьте почту.')
+                    else:
+                        messages.error(request, 'Не удалось отправить письмо для подтверждения смены email.')
+                
+                # Обновляем остальные поля независимо от email
+                profile.first_name = form.cleaned_data['first_name']
+                profile.last_name = form.cleaned_data['last_name']
+                profile.phone_number = form.cleaned_data['phone_number']
+                profile.about_me = form.cleaned_data['about_me']
+                if 'avatar' in request.FILES:
+                    profile.avatar = request.FILES['avatar']
+                profile.save()
+                messages.success(request, 'Ваш профиль был обновлен.')
+            else:
+                messages.error(request, 'Произошла ошибка при обновлении вашего профиля.')
 
         return redirect('main:profile')
 
@@ -1711,3 +1724,114 @@ def get_trip_duration(request, trip_id):
         return JsonResponse({
             'error': 'Trip not found'
         }, status=404)
+
+def send_email_change_confirmation(user, new_email, request):
+    """Отправляет письмо для подтверждения смены email"""
+    token = default_token_generator.make_token(user)
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    
+    # Сохраняем новый email в сессии
+    request.session['new_email'] = new_email
+    
+    # Формируем URL для подтверждения
+    confirmation_url = request.build_absolute_uri(
+        reverse('main:confirm_email_change', kwargs={'uidb64': uid, 'token': token})
+    )
+    
+    # Отправляем письмо
+    subject = 'Подтверждение смены email'
+    message = f'Для подтверждения смены email на {new_email}, перейдите по ссылке: {confirmation_url}'
+    
+    try:
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [new_email],
+            fail_silently=False,
+        )
+        return True
+    except Exception as e:
+        logger.error(f"Ошибка отправки email: {str(e)}")
+        return False
+
+def confirm_email_change(request, uidb64, token):
+    """Обработчик подтверждения смены email"""
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+        profile = UserProfile.objects.get(user=user)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist, UserProfile.DoesNotExist):
+        user = None
+        profile = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        new_email = request.session.get('new_email')
+        if new_email:
+            # Обновляем email в профиле и пользователе
+            user.email = new_email
+            user.username = new_email  # Обновляем username, так как он совпадает с email
+            user.save()
+            
+            profile.email = new_email
+            profile.save()
+            
+            # Очищаем сессию
+            del request.session['new_email']
+            
+            messages.success(request, 'Ваш email успешно обновлен!')
+        else:
+            messages.error(request, 'Не удалось найти новый email в сессии.')
+    else:
+        messages.error(request, 'Недействительная ссылка для подтверждения смены email.')
+    
+    return redirect('main:profile')
+
+@login_required
+@require_http_methods(["POST"])
+def send_trip_start_emails(request, trip_id):
+    try:
+        trip = Trip.objects.get(id=trip_id)
+        
+        # Проверяем, что пользователь является владельцем поездки
+        if trip.user != request.user.userprofile:
+            return JsonResponse({'success': False, 'message': 'У вас нет прав для этого действия'})
+        
+        # Получаем всех участников поездки
+        participants = [trip.user] + list(trip.passengers.all())
+        
+        # Отправляем письма всем участникам
+        for participant in participants:
+            if participant.email:
+                subject = f'Поездка из {trip.departure_city.name} в {trip.destination_city.name} началась!'
+                message = f'''
+                Здравствуйте, {participant.first_name}!
+                
+                Поездка из {trip.departure_city.name} в {trip.destination_city.name} только что началась.
+                
+                Детали поездки:
+                - Откуда: {trip.departure_city.name}
+                - Куда: {trip.destination_city.name}
+                - Дата: {trip.departure_date.strftime('%d.%m.%Y')}
+                - Время: {trip.departure_time.strftime('%H:%M')}
+                
+                Приятной поездки!
+                
+                С уважением,
+                Команда Traveling
+                '''
+                
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [participant.email],
+                    fail_silently=False,
+                )
+        
+        return JsonResponse({'success': True})
+        
+    except Trip.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Поездка не найдена'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})

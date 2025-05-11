@@ -8,7 +8,8 @@ from .views import (
     leave_trip, start_trip, end_trip, change_password,
     resend_verification, delete_car, edit_car, get_car_models,
     get_car_details, trip_details, get_all_trips_statuses,
-    check_car_active_trips, get_trip_duration
+    check_car_active_trips, get_trip_duration, confirm_email_change,
+    send_trip_start_emails
 )
 from django.conf import settings
 from django.conf.urls.static import static
@@ -20,6 +21,7 @@ urlpatterns = [
     path('get_trip_details_profile/<int:trip_id>/', get_trip_details_profile, name='get_trip_details_profile'),
     path('register/', register, name='register'),
     path('activate/<str:uidb64>/<str:token>/', activate_account, name='activate_account'),
+    path('confirm-email-change/<str:uidb64>/<str:token>/', confirm_email_change, name='confirm_email_change'),
     path('profile_user/', ProfileUserView.as_view(), name='profile_user'),
     path('add_comment/', add_comment, name='add_comment'),
     path('profile/', ProfileView.as_view(), name='profile'),
@@ -35,6 +37,7 @@ urlpatterns = [
     path('delete_trip/<int:trip_id>/', delete_trip, name='delete_trip'),
     path('leave_trip/<int:trip_id>/', leave_trip, name='leave_trip'),
     path('start_trip/<int:trip_id>/', start_trip, name='start_trip'),
+    path('send_trip_start_emails/<int:trip_id>/', send_trip_start_emails, name='send_trip_start_emails'),
     path('end_trip/<int:trip_id>/', end_trip, name='end_trip'),
     path('change_password/', change_password, name='change_password'),
     path('resend_verification/', resend_verification, name='resend_verification'),

@@ -346,6 +346,9 @@ main {
     margin-bottom: 10px;
     margin: 0 30px;
 }
+.profile-item_mrg {
+    margin-top: 30px;
+}
 
 .profile-label {
     font-size: 24px;
@@ -355,6 +358,7 @@ main {
 }
 
 .profile-btn {
+    max-width: 200px;
     width: 100%;
     height: 46px;
     border-radius: 8px;
@@ -362,11 +366,25 @@ main {
     font-weight: bold;
     font-size: 16px;
     cursor: pointer;
-    margin: 10px 0;
+    margin: 10px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    white-space: normal;
+    padding: 0 10px;
+    word-wrap: break-word;
 }
 
-.profile-btn-container {
-    display: flex;
+.profile-btn-secondary {
+    background-color: transparent;
+    color: var(--color-lightblue);
+    border: 2px solid var(--color-lightblue);
+}
+
+.profile-btn-secondary:hover {
+    background-color: var(--color-lightblue2);
+    color: var(--color-lightblue);
 }
 
 .profile-edit {
@@ -391,8 +409,8 @@ main {
 }
 
 .profile-logout {
-    background-color: fff !important;
-    color: var(--color-darkblue) !important;
+    background-color: var(--color-darkblue);
+    color: var(--color-white);
 }
 
 .profile-logout .logout-icon {
@@ -422,11 +440,6 @@ main {
 .profile-password:hover {
     color: var(--color-purple) !important;
     background-color: transparent;
-}
-
-.profile-logout {
-    background-color: var(--color-darkblue);
-    color: var(--color-white);
 }
 
 .profile-logout-form {
@@ -555,7 +568,8 @@ button:focus {
     font-size: 16px;
     border: 2px solid #ccc;
     border-radius: 5px;
-    margin-left: 10px;
+    margin-bottom: 10px;
+
 }
 
 .profile-input:focus {
@@ -728,23 +742,6 @@ button:focus {
 }
 .profile-logout-form {
     margin: 0;
-}
-
-.profile-btn {
-    max-width: 200px;
-    width: 100%;
-    height: 46px;
-    border-radius: 8px;
-    border: none;
-    font-weight: bold;
-    font-size: 16px;
-    cursor: pointer;
-    margin: 10px auto;
-}
-
-.profile-logout {
-    background-color: var(--color-darkblue);
-    color: var(--color-white);
 }
 
 .openModalBtn {
@@ -1067,70 +1064,9 @@ button:focus {
 
 .cars-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1rem;
-}
-
-.car-card {
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-}
-
-.car-image {
-    width: 100%;
-    height: 150px;
-    overflow: hidden;
-}
-
-.car-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.car-info {
-    padding: 1rem;
-}
-
-.car-info h3 {
-    margin: 0;
-    font-size: 1.1rem;
-    color: #333;
-}
-
-.car-actions {
-    padding: 1rem;
-    display: flex;
-    gap: 0.5rem;
-}
-
-.edit-car-button,
-.delete-car-button {
-    flex: 1;
-    padding: 0.5rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.edit-car-button {
-    background-color: #2196F3;
-    color: white;
-}
-
-.edit-car-button:hover {
-    background-color: #1976D2;
-}
-
-.delete-car-button {
-    background-color: #f44336;
-    color: white;
-}
-
-.delete-car-button:hover {
-    background-color: #d32f2f;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 20px;
 }
 
 .no-cars {
@@ -1285,7 +1221,13 @@ button:focus {
     align-items: center;
     gap: 10px;
     padding-top: 15px;
+    justify-content: space-between;
     border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+.trip-status_wrapper {
+    display: flex;
+    gap: 10px;
+    align-items: center;
 }
 
 .status-dot {
@@ -1464,4 +1406,118 @@ button:focus {
 
 .section.trips::-webkit-scrollbar-thumb:hover {
     background-color: var(--color-lightbluehover);
+}
+
+.car-card {
+    background: var(--color-white);
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.car-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.car-image {
+    width: 100%;
+    height: 180px;
+    position: relative;
+    overflow: hidden;
+}
+
+.car-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.car-card:hover .car-image img {
+    transform: scale(1.05);
+}
+
+.car-info {
+    padding: 20px;
+    background: var(--color-white);
+}
+
+.car-info h3 {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-darkblue);
+    margin: 0 0 10px 0;
+}
+
+.car-info p {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 14px;
+    color: var(--color-purple);
+    margin: 5px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.car-actions {
+    padding: 15px 20px;
+    display: flex;
+    gap: 12px;
+    background: var(--color-lightestgray);
+    border-top: 1px solid var(--color-lightergray);
+}
+
+.car-actions .profile-btn {
+    flex: 1;
+    margin: 0;
+    height: 40px;
+    font-size: 14px;
+    padding: 0 15px;
+}
+
+.car-actions .profile-btn-edit {
+    background-color: var(--color-lightblue);
+    color: var(--color-white);
+}
+
+.car-actions .profile-btn-edit:hover {
+    background-color: var(--color-lightbluehover);
+}
+
+.car-actions .profile-btn-delete {
+    background-color: transparent;
+    color: var(--color-purple);
+    border: 2px solid var(--color-purple);
+}
+
+.car-actions .profile-btn-delete:hover {
+    background-color: var(--color-purple);
+    color: var(--color-white);
+}
+
+@media (max-width: 768px) {
+    .cars-list {
+        grid-template-columns: 1fr;
+        padding: 15px;
+    }
+    
+    .car-image {
+        height: 160px;
+    }
+    
+    .car-info {
+        padding: 15px;
+    }
+    
+    .car-actions {
+        padding: 12px 15px;
+    }
+    
+    .car-actions .profile-btn {
+        height: 36px;
+        font-size: 13px;
+    }
 }

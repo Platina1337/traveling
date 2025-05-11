@@ -13,6 +13,20 @@
 
 {% block content %}
     <main>
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            {% if message.tags == 'success' and 'автомобиль' in message.message.lower or 'информация' in message.message.lower %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
     {% if user.is_authenticated %}
         {% for trip_info in all_trips %}
             {% if trip_info.trip.status == 'in_progress' %}
@@ -54,8 +68,16 @@
                             </div>
 
                             <div class="trip-status">
-                                <span class="status-dot"></span>
-                                <span class="status-text">В пути</span>
+                                <div class="trip-status_wrapper">
+                                    <span class="status-dot"></span>
+                                    <span class="status-text">В пути</span>
+                                </div>
+                                
+                                {% if trip_info.user_trip and trip_info.trip.status == 'in_progress' %}
+                                <div class="end-trip-block" data-trip-id="{{ trip_info.trip.id }}">
+                                    <span class="end-trip-text">Завершить поездку</span>
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -83,6 +105,7 @@
             {% endif %}
         {% endfor %}
     {% endif %}
+    
         <div class="page-sections">
             
 
@@ -218,14 +241,15 @@
                     <div class="profile-item" style="display: none;">
                         <input type="file" name="avatar" id="avatar-input" class="profile-input" accept="image/*">
                     </div>
-                    <div class="profile-item car-management">
-                        <button type="button" class="profile-btn add-car-btn" onclick="openAddCarModal()">Добавить автомобиль</button>
-                        <button type="button" class="profile-btn manage-cars-btn" onclick="openManageCarsModal()">Управление автомобилями</button>
+                    <div class="profile-item profile-item_mrg">
+                        <button type="button" class="profile-btn" onclick="openAddCarModal()">Добавить автомобиль</button>
+                        <button type="button" class="profile-btn profile-btn-secondary" onclick="openManageCarsModal()">Управление автомобилями</button>
+                        
                     </div>
+                    <div class="profile-item">
+                        <button type="button" class="profile-btn profile-btn-secondary" onclick="openPasswordModal()">Сменить пароль</button>
+                        <button type="submit" class="profile-btn">Сохранить изменения</button>
                 </div>
-                <div class="profile-actions">
-                    <button type="button" class="profile-btn profile-password" onclick="openPasswordModal()">Сменить пароль</button>
-                    <button type="submit" class="profile-btn profile-save">Сохранить изменения</button>
                 </div>
             </form>
 
@@ -295,20 +319,20 @@
                     <div class="modal-info-row">
                         <span class="modal-info-label">Откуда:</span>
                         <span class="modal-info-value" id="modal-departure-city"></span>
-                    </div>
+        </div>
                     <div class="modal-info-row">
                         <span class="modal-info-label">Время отправления:</span>
                         <span class="modal-info-value" id="modal-departure-time"></span>
-                    </div>
+            </div>
                     <div class="modal-info-row">
                         <span class="modal-info-label">Куда:</span>
                         <span class="modal-info-value" id="modal-destination-city"></span>
-                    </div>
+                </div>
                     <div class="modal-info-row">
                         <span class="modal-info-label">Время прибытия:</span>
                         <span class="modal-info-value" id="modal-arrival-time"></span>
-                    </div>
                 </div>
+            </div>
                
                 <div class="modal-section">
                     <h3 class="modal-section-title">Пассажиры</h3>
@@ -317,26 +341,26 @@
                         <span class="modal-info-value">
                             <span id="modal-passengers-count">0</span>/<span id="modal-max-passengers">0</span>
                         </span>
-                    </div>
+                </div>
                     <div class="modal-passengers-list" id="modal-passengers-list">
                         <!-- Список пассажиров будет добавлен динамически -->
-                    </div>
+                </div>
                     
                         <h3 class="modal-section-title">Водитель</h3>
                         <div class="modal-driver-list" id="modal-driver-list">
                             <!-- Информация о водителе будет добавлена динамически -->
-                        </div>
+            </div>
                     
-                </div>
+            </div>
             </div>
             <div class="modal-status">
                 <div class="modal-time-until" id="modal-time-until"></div>
                 <div class="modal-price" id="modal-price"></div>
-            </div>
+        </div>
             <div class="modal-actions" id="modal-actions" style="display: none; gap: 1rem; margin-top: 1.5rem;">
                 <button id="start-trip-btn" class="modal-action-btn" style="display: none;">Начать поездку</button>
                 <button id="end-trip-btn" class="modal-action-btn" style="background-color: #f44336; display: none;">Завершить поездку</button>
-            </div>
+    </div>
         </div>
     </div>
     </div>
@@ -410,10 +434,10 @@
                         <p>Номер: {{ car.license_plate }}</p>
                     </div>
                     <div class="car-actions">
-                        <button class="edit-car-button" onclick="openEditCarModal({{ car.id }})">Редактировать</button>
+                        <button class="profile-btn profile-btn-edit" onclick="openEditCarModal({{ car.id }})">Редактировать</button>
                         <form method="post" action="{% url 'main:delete_car' car.id %}" class="delete-car-form">
                             {% csrf_token %}
-                            <button type="submit" class="delete-car-button">Удалить</button>
+                            <button type="submit" class="profile-btn profile-btn-delete">Удалить</button>
                         </form>
                     </div>
                 </div>
@@ -537,21 +561,7 @@ function openModal(tripId) {
     const modal = document.getElementById('customTripModal');
     modal.setAttribute('data-trip-id', tripId);
     
-    // Заполняем основную информацию из карточки поездки
-    const tripCard = document.querySelector(`[data-trip-id="${tripId}"]`).closest('.trip-card');
-    const departureCity = tripCard.querySelector('.location:first-child').textContent;
-    const destinationCity = tripCard.querySelector('.location:last-child').textContent;
-    const departureTime = tripCard.querySelector('.time:first-child').textContent;
-    const arrivalTime = tripCard.querySelector('.time:last-child').textContent;
-    const date = tripCard.querySelector('.trip-date').textContent;
-    
-    // Заполняем основную информацию
-    document.getElementById('modal-departure-city').textContent = departureCity;
-    document.getElementById('modal-destination-city').textContent = destinationCity;
-    document.getElementById('modal-departure-time').textContent = `${date}, ${departureTime}`;
-    document.getElementById('modal-arrival-time').textContent = `${date}, ${arrivalTime}`;
-    
-    // Получаем дополнительную информацию о поездке через AJAX
+    // Получаем основную информацию о поездке через AJAX
     fetch(`/get_trip_details_profile/${tripId}/`)
         .then(response => {
             if (!response.ok) {
@@ -561,6 +571,12 @@ function openModal(tripId) {
         })
         .then(data => {
             console.log('Полученные данные:', data);
+            
+            // Заполняем основную информацию
+            document.getElementById('modal-departure-city').textContent = data.departure_city;
+            document.getElementById('modal-destination-city').textContent = data.destination_city;
+            document.getElementById('modal-departure-time').textContent = `${data.departure_date}, ${data.departure_time}`;
+            document.getElementById('modal-arrival-time').textContent = `${data.departure_date}, ${data.arrival_time}`;
             
             // Заполняем информацию о пассажирах
             document.getElementById('modal-passengers-count').textContent = data.passengers_count;
@@ -682,14 +698,14 @@ function openModal(tripId) {
             } else {
                 document.getElementById('modal-actions').style.display = 'none';
             }
+            
+            modal.classList.add('show');
         })
         .catch(error => {
             console.error('Ошибка при получении данных:', error);
             const passengersList = document.getElementById('modal-passengers-list');
             passengersList.innerHTML = '<li>Ошибка при загрузке данных</li>';
         });
-    
-    modal.classList.add('show');
 }
 
 function closeModal() {
@@ -1168,7 +1184,26 @@ window.addEventListener('click', function(event) {
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
-                    alert('Поездка начата!');
+                    // Отправляем письма всем участникам
+                    fetch(`/send_trip_start_emails/${tripId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(emailResult => {
+                        if (emailResult.success) {
+                            alert('Поездка начата! Уведомления отправлены всем участникам.');
+                        } else {
+                            alert('Поездка начата, но возникли проблемы с отправкой уведомлений.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error sending emails:', error);
+                        alert('Поездка начата, но возникли проблемы с отправкой уведомлений.');
+                    });
+
                     document.getElementById('start-trip-btn').style.display = 'none';
                     document.getElementById('end-trip-btn').style.display = 'inline-block';
                     // Обновляем статус поездки
@@ -1181,6 +1216,10 @@ window.addEventListener('click', function(event) {
                 } else {
                     alert(result.message || 'Ошибка при запуске поездки');
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ошибка при запуске поездки');
             });
         };
 
@@ -1301,75 +1340,6 @@ window.addEventListener('click', function(event) {
             padding: 20px;
         }
 
-        #manageCarsModal .car-card {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #fff;
-        }
-
-        #manageCarsModal .car-image {
-            width: 100px;
-            height: 100px;
-            margin-right: 20px;
-        }
-
-        #manageCarsModal .car-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 4px;
-        }
-
-        #manageCarsModal .car-info {
-            flex-grow: 1;
-        }
-
-        #manageCarsModal .car-info h3 {
-            margin: 0 0 10px 0;
-            color: #333;
-        }
-
-        #manageCarsModal .car-info p {
-            margin: 5px 0;
-            color: #666;
-        }
-
-        #manageCarsModal .car-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        #manageCarsModal .edit-car-button,
-        #manageCarsModal .delete-car-button {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        #manageCarsModal .edit-car-button {
-            background-color: #4a90e2;
-            color: white;
-        }
-
-        #manageCarsModal .edit-car-button:hover {
-            background-color: #357abd;
-        }
-
-        #manageCarsModal .delete-car-button {
-            background-color: #e74c3c;
-            color: white;
-        }
-
-        #manageCarsModal .delete-car-button:hover {
-            background-color: #c0392b;
-        }
-
         #manageCarsModal .no-cars {
             text-align: center;
             padding: 20px;
@@ -1377,264 +1347,264 @@ window.addEventListener('click', function(event) {
         }
 
         /* Стили для модального окна деталей поездки */
-       /* Стили для модального окна */
-.custom-trip-modal {
+        /* Стили для модального окна */
+        .custom-trip-modal {
             display: none;
             position: fixed;
             top: 0;
-    left: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-    backdrop-filter: blur(5px);
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
         }
 
-.custom-trip-modal.show {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+        .custom-trip-modal.show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-.custom-trip-modal-content {
-    background: white;
-    padding: 2rem;
-    border-radius: 16px;
-    width: 90%;
-    max-width: 600px;
+        .custom-trip-modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
             max-height: 90vh;
             overflow-y: auto;
-    position: relative;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    animation: modalFadeIn 0.3s ease;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            animation: modalFadeIn 0.3s ease;
         }
 
-@keyframes modalFadeIn {
-    from {
-        opacity: 0;
-        transform: translate(-50%, -52%);
-    }
-    to {
-        opacity: 1;
-        transform: translate(-50%, -50%);
-    }
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -52%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
         }
 
-.custom-trip-close-btn {
+        .custom-trip-close-btn {
             position: absolute;
-    right: 1.5rem;
-    top: 1.5rem;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #666;
-    transition: color 0.3s ease;
-    background: none;
-    border: none;
-    padding: 0.5rem;
-    line-height: 1;
+            right: 1.5rem;
+            top: 1.5rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.3s ease;
+            background: none;
+            border: none;
+            padding: 0.5rem;
+            line-height: 1;
         }
 
-.custom-trip-close-btn:hover {
-    color: #333;
-}
-
-.modal-header {
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #eee;
+        .custom-trip-close-btn:hover {
+            color: #333;
         }
 
-.modal-title {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #333;
-    margin: 0;
-    letter-spacing: -0.02em;
-}
-
-.modal-body {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-}
-
-.modal-section {
-    background: #f8f9fa;
-    padding: 1.25rem;
-    border-radius: 12px;
-    margin-bottom: 1.5rem;
-}
-
-.modal-section-title {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: #495057;
-    margin-bottom: 1rem;
-    letter-spacing: -0.01em;
-}
-
-.modal-info-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.75rem;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid #eee;
+        .modal-header {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
         }
 
-.modal-info-label {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    color: #6c757d;
-    font-size: 0.9rem;
-    font-weight: 400;
-    letter-spacing: 0.01em;
+        .modal-title {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+            letter-spacing: -0.02em;
         }
 
-.modal-info-value {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    color: #212529;
-    font-weight: 500;
-    font-size: 0.95rem;
-    letter-spacing: 0.01em;
+        .modal-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
         }
 
-.modal-passengers-list,
-.modal-driver-list {
-    margin-top: 1rem;
-}
+        .modal-section {
+            background: #f8f9fa;
+            padding: 1.25rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
 
-.modal-passenger-item {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem;
-    background: white;
-    border-radius: 8px;
-    margin-bottom: 0.5rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    font-size: 0.95rem;
-    color: #212529;
-    font-weight: 400;
-    letter-spacing: 0.01em;
-    transition: background-color 0.2s ease;
-}
+        .modal-section-title {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 1rem;
+            letter-spacing: -0.01em;
+        }
 
-.modal-passenger-item:hover {
-    background-color: #f8f9fa;
-}
+        .modal-info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
 
-.modal-passenger-item a {
-    flex: 1;
-    text-decoration: none;
-    color: #5B62FF;
-    font-weight: 500;
-    transition: color 0.2s ease;
-}
+        .modal-info-label {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: #6c757d;
+            font-size: 0.9rem;
+            font-weight: 400;
+            letter-spacing: 0.01em;
+        }
 
-.modal-passenger-item a:hover {
-    color: #4a50cc;
-}
+        .modal-info-value {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: #212529;
+            font-weight: 500;
+            font-size: 0.95rem;
+            letter-spacing: 0.01em;
+        }
 
-.modal-passenger-item button {
-    margin-left: auto;
-    padding: 4px 8px;
-    font-size: 0.9rem;
-    background-color: #6c757d;
+        .modal-passengers-list,
+        .modal-driver-list {
+            margin-top: 1rem;
+        }
+
+        .modal-passenger-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 0.95rem;
+            color: #212529;
+            font-weight: 400;
+            letter-spacing: 0.01em;
+            transition: background-color 0.2s ease;
+        }
+
+        .modal-passenger-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .modal-passenger-item a {
+            flex: 1;
+            text-decoration: none;
+            color: #5B62FF;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .modal-passenger-item a:hover {
+            color: #4a50cc;
+        }
+
+        .modal-passenger-item button {
+            margin-left: auto;
+            padding: 4px 8px;
+            font-size: 0.9rem;
+            background-color: #6c757d;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-    transition: background-color 0.2s ease;
+            transition: background-color 0.2s ease;
         }
 
-.modal-passenger-item button:hover {
-    background-color: #5a6268;
+        .modal-passenger-item button:hover {
+            background-color: #5a6268;
         }
 
-.modal-passenger-item button:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-}
+        .modal-passenger-item button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
 
-.modal-status {
+        .modal-status {
             display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    background: #e9ecef;
-    border-radius: 12px;
-    margin-top: 1.5rem;
-}
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #e9ecef;
+            border-radius: 12px;
+            margin-top: 1.5rem;
+        }
 
-.modal-time-until {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    font-size: 1.1rem;
-    color: #495057;
+        .modal-time-until {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 1.1rem;
+            color: #495057;
             font-weight: 500;
-    letter-spacing: 0.01em;
+            letter-spacing: 0.01em;
         }
 
-.modal-price {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #28a745;
-    letter-spacing: -0.02em;
+        .modal-price {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #28a745;
+            letter-spacing: -0.02em;
         }
 
-/* Стили для скроллбара */
-.custom-trip-modal-content::-webkit-scrollbar {
-    width: 8px;
+        /* Стили для скроллбара */
+        .custom-trip-modal-content::-webkit-scrollbar {
+            width: 8px;
         }
 
-.custom-trip-modal-content::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
+        .custom-trip-modal-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
         }
 
-.custom-trip-modal-content::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
+        .custom-trip-modal-content::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
         }
 
-.custom-trip-modal-content::-webkit-scrollbar-thumb:hover {
-    background: #555;
+        .custom-trip-modal-content::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
 
-/* Адаптивность */
-@media (max-width: 768px) {
-    .modal-body {
-        grid-template-columns: 1fr;
-        }
-        
-    .custom-trip-modal-content {
-        width: 95%;
-        padding: 1.5rem;
-        }
-        
-    .modal-title {
-        font-size: 1.3rem;
-        }
-        
-    .modal-section-title {
-        font-size: 1rem;
-    }
-    
-    .modal-info-label,
-    .modal-info-value {
-        font-size: 0.9rem;
-    }
-    
-    .modal-time-until {
-        font-size: 1rem;
-    }
-    
-    .modal-price {
-        font-size: 1.15rem;
-    }
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .modal-body {
+                grid-template-columns: 1fr;
+            }
+            
+            .custom-trip-modal-content {
+                width: 95%;
+                padding: 1.5rem;
+            }
+            
+            .modal-title {
+                font-size: 1.3rem;
+            }
+            
+            .modal-section-title {
+                font-size: 1rem;
+            }
+            
+            .modal-info-label,
+            .modal-info-value {
+                font-size: 0.9rem;
+            }
+            
+            .modal-time-until {
+                font-size: 1rem;
+            }
+            
+            .modal-price {
+                font-size: 1.15rem;
+            }
         }
 
         /* Стили для кнопки "Детали поездки" */
@@ -1869,20 +1839,7 @@ window.addEventListener('click', function(event) {
         }
     </style>
 
-    {% if messages %}
-    <div class="messages">
-        {% for message in messages %}
-            {% if message.tags == 'success' and 'автомобиль' in message.message.lower or 'информация' in message.message.lower %}
-                <div class="alert alert-{{ message.tags }}">
-                    {{ message }}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            {% endif %}
-        {% endfor %}
-    </div>
-    {% endif %}
+    
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -1953,4 +1910,78 @@ window.addEventListener('click', function(event) {
             background: #555;
         }
     </style>
+
+    <style>
+.end-trip-block {
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s ease;
+    margin-right: 10px;
+}
+
+.end-trip-block:hover {
+    color: #e0e0e0;
+    transform: scale(1.02);
+    text-decoration: underline;
+}
+
+.end-trip-text {
+    font-size: 14px;
+    font-weight: 500;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const endTripBlocks = document.querySelectorAll('.end-trip-block');
+    endTripBlocks.forEach(block => {
+        block.addEventListener('click', function() {
+            const tripId = this.dataset.tripId;
+            if (confirm('Вы уверены, что хотите завершить поездку?')) {
+                fetch(`/end_trip/${tripId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert(data.message || 'Ошибка при завершении поездки');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ошибка при завершении поездки');
+                });
+            }
+        });
+    });
+});
+</script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const emailInput = document.getElementById('email_input');
+        const originalEmail = emailInput.value;
+
+        emailInput.addEventListener('change', function() {
+            if (this.value !== originalEmail) {
+                alert('Для изменения email необходимо подтвердить действие на почте. Пожалуйста, проверьте вашу почту и перейдите по ссылке для подтверждения.');
+            }
+        });
+    });
+    </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.trip-card').forEach(function(card) {
+            // ... existing code ...
+        });
+    });
+    </script>
 {% endblock content %}
