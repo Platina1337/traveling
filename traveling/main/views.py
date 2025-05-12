@@ -272,6 +272,14 @@ def leave_trip(request, trip_id):
                 'message': 'Нельзя выйти из начатой поездки.'
             }, status=400)
             
+        # Проверяем, является ли пользователь пассажиром
+        if profile not in trip.passengers.all():
+            return JsonResponse({
+                'success': False,
+                'message': 'Вы не являетесь пассажиром этой поездки.'
+            }, status=403)
+            
+        # Удаляем пассажира из поездки
         trip.passengers.remove(profile)
         
         # Создаем уведомление для водителя
@@ -282,6 +290,72 @@ def leave_trip(request, trip_id):
             message=f"{profile.first_name} {profile.last_name} вышел из поездки.",
             notification_type='removed'
         )
+        
+        # Создаем уведомление для пассажира
+        Notification.objects.create(
+            recipient=profile,
+            sender=profile,
+            trip=trip,
+            message=f"Вы покинули поездку.",
+            notification_type='removed'
+        )
+        
+        # Email уведомление водителю о выходе пассажира
+        driver_subject = f"Пассажир покинул вашу поездку {trip.departure_city.name} -> {trip.destination_city.name}"
+        driver_text_message = f"""
+        Здравствуйте, {trip.user.first_name}!
+        
+        Пассажир {profile.first_name} {profile.last_name} покинул вашу поездку 
+        {trip.departure_city.name} -> {trip.destination_city.name}, 
+        запланированную на {trip.departure_date.strftime('%d.%m.%Y')}.
+        
+        С уважением,
+        Команда сервиса
+        """
+        
+        # Контекст для HTML шаблона водителя
+        driver_context = {
+            'recipient_name': trip.user.first_name,
+            'subject': driver_subject,
+            'header': 'Изменение в поездке',
+            'message': f'Пассажир <span class="highlight">{profile.first_name} {profile.last_name}</span> отменил своё участие в поездке.',
+            'trip_details': True,
+            'trip_departure': trip.departure_city.name,
+            'trip_destination': trip.destination_city.name,
+            'trip_date': trip.departure_date.strftime('%d.%m.%Y')
+        }
+        
+        # Email уведомление пассажиру о выходе из поездки
+        passenger_subject = f"Вы покинули поездку {trip.departure_city.name} -> {trip.destination_city.name}"
+        passenger_text_message = f"""
+        Здравствуйте, {profile.first_name}!
+        
+        Вы успешно вышли из поездки {trip.departure_city.name} -> {trip.destination_city.name}, 
+        запланированной на {trip.departure_date.strftime('%d.%m.%Y')}.
+        
+        Вы можете найти другие подходящие поездки в каталоге.
+        
+        С уважением,
+        Команда сервиса
+        """
+        
+        # Контекст для HTML шаблона пассажира
+        passenger_context = {
+            'recipient_name': profile.first_name,
+            'subject': passenger_subject,
+            'header': 'Выход из поездки',
+            'message': 'Вы успешно вышли из поездки.',
+            'trip_details': True,
+            'trip_departure': trip.departure_city.name,
+            'trip_destination': trip.destination_city.name,
+            'trip_date': trip.departure_date.strftime('%d.%m.%Y'),
+            'action_url': request.build_absolute_uri('/catalog/'),
+            'action_text': 'Найти другую поездку'
+        }
+        
+        # Отправляем письма обоим пользователям
+        send_trip_notification_email(trip.user.email, driver_subject, driver_text_message, driver_context)
+        send_trip_notification_email(profile.email, passenger_subject, passenger_text_message, passenger_context)
         
         return JsonResponse({'success': True})
     except Exception as e:
@@ -568,7 +642,8 @@ def start_trip(request, trip_id):
                 recipient=passenger,
                 sender=request.user.userprofile,
                 trip=trip,
-                message=message
+                message=message,
+                notification_type='start'
             )
         
         return JsonResponse({
@@ -576,7 +651,6 @@ def start_trip(request, trip_id):
             'message': 'Поездка успешно начата',
             'start_time': trip.start_time.isoformat() if trip.start_time else None
         })
-        
     except Trip.DoesNotExist:
         return JsonResponse({
             'success': False,
@@ -609,7 +683,8 @@ def end_trip(request, trip_id):
                     recipient=passenger,
                     sender=request.user.userprofile,
                     trip=trip,
-                    message=f"Поездка {trip.departure_city.name} -> {trip.destination_city.name} завершена"
+                    message=f"Поездка {trip.departure_city.name} -> {trip.destination_city.name} завершена",
+                    notification_type='end'
                 )
                 
                 # Отправляем email уведомление с использованием HTML шаблона
@@ -841,7 +916,11 @@ def get_trip_details_profile(request, trip_id):
             'is_driver': is_driver,
             'trip_started': trip.status == 'in_progress',
             'trip_ended': trip.status == 'completed',
-            'trip_id': trip.id
+            'trip_id': trip.id,
+            # Добавляем информацию о текущем пользователе
+            'current_user_id': request.user.id if request.user.is_authenticated else None,
+            'current_user_name': request.user.first_name if request.user.is_authenticated else '',
+            'current_user_surname': request.user.last_name if request.user.is_authenticated else ''
         }
         return JsonResponse(trip_data)
     except Trip.DoesNotExist:

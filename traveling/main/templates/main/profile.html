@@ -270,9 +270,25 @@
         </section>
 
             <section class="section notifications-section">
+            <div class="notifications-header">
             <h2>Уведомления</h2>
+                <div class="notifications-filter-chips">
+                    <div class="notification-chip active" data-notification-filter="all">
+                        <span class="notification-icon">🌐</span> Все
+                    </div>
+                    <div class="notification-chip" data-notification-filter="request">
+                        <span class="notification-icon">📝</span> Запросы
+                    </div>
+                    <div class="notification-chip" data-notification-filter="trip">
+                        <span class="notification-icon">🚗</span> Поездки
+                    </div>
+                    <div class="notification-chip" data-notification-filter="system">
+                        <span class="notification-icon">🔔</span> Системные
+                    </div>
+                </div>
+            </div>
             <div class="notification-wrapper">
-                {% for notification in notifications %}
+            {% for notification in notifications %}
                     <div class="notification notification-{{ notification.notification_type }}">
                     <div class="notification-text">
                             {% if notification.is_request %}
@@ -284,24 +300,30 @@
                             {% elif notification.notification_type == 'removed' %}
                                 {% if notification.sender.id == notification.recipient.id %}
                                     Вы покинули <a href="#" class="notification-trip-link openModalBtn" data-trip-id="{{ notification.trip.id }}">поездку</a>.
-                                {% else %}
+                                {% elif notification.sender == notification.trip.user %}
                                     <a href="{% url 'main:profile_user' %}?user_id={{ notification.sender.id }}" class="notification-user-link">{{ notification.sender.first_name }} {{ notification.sender.last_name }}</a> удалил вас из <a href="#" class="notification-trip-link openModalBtn" data-trip-id="{{ notification.trip.id }}">поездки</a>.
+                                {% else %}
+                                    <a href="{% url 'main:profile_user' %}?user_id={{ notification.sender.id }}" class="notification-user-link">{{ notification.sender.first_name }} {{ notification.sender.last_name }}</a> покинул <a href="#" class="notification-trip-link openModalBtn" data-trip-id="{{ notification.trip.id }}">вашу поездку</a>.
                                 {% endif %}
+                            {% elif notification.notification_type == 'start' %}
+                                <a href="{% url 'main:profile_user' %}?user_id={{ notification.sender.id }}" class="notification-user-link">{{ notification.sender.first_name }} {{ notification.sender.last_name }}</a> начал <a href="#" class="notification-trip-link openModalBtn" data-trip-id="{{ notification.trip.id }}">поездку</a>.
+                            {% elif notification.notification_type == 'end' %}
+                                <a href="{% url 'main:profile_user' %}?user_id={{ notification.sender.id }}" class="notification-user-link">{{ notification.sender.first_name }} {{ notification.sender.last_name }}</a> завершил <a href="#" class="notification-trip-link openModalBtn" data-trip-id="{{ notification.trip.id }}">поездку</a>.
                             {% else %}
-                                {{ notification.message }}
-                            {% endif %}
+                        {{ notification.message }}
+                        {% endif %}
                 </div>
-                        <div class="notification-info">
+                <div class="notification-info">
                             <span class="notification-date">{{ notification.created_at|date:"d.m.Y H:i" }}</span>
-                        </div>
+                </div>
                         {% if not notification.read and notification.is_request %}
                             <div class="notification-actions">
                                 <button class="notification-action" data-action="accept" data-notification-id="{{ notification.id }}">Принять</button>
                                 <button class="notification-action" data-action="decline" data-notification-id="{{ notification.id }}">Отклонить</button>
                             </div>
                         {% endif %}
-                    </div>
-                {% endfor %}
+            </div>
+            {% endfor %}
             </div>
 
         </section>
@@ -586,10 +608,10 @@ function openModal(tripId) {
             console.log('Полученные данные:', data);
             
             // Заполняем основную информацию
-            document.getElementById('modal-departure-city').textContent = data.departure_city;
-            document.getElementById('modal-destination-city').textContent = data.destination_city;
+            document.getElementById('modal-departure-city').textContent = data.departure_address;
+            document.getElementById('modal-destination-city').textContent = data.destination_address;
             document.getElementById('modal-departure-time').textContent = `${data.departure_date}, ${data.departure_time}`;
-            document.getElementById('modal-arrival-time').textContent = `${data.departure_date}, ${data.arrival_time}`;
+            document.getElementById('modal-arrival-time').textContent = `${data.arrival_date}, ${data.arrival_time}`;
             
             // Заполняем информацию о пассажирах
             document.getElementById('modal-passengers-count').textContent = data.passengers_count;
@@ -648,41 +670,77 @@ function openModal(tripId) {
                     
                     passengerItem.appendChild(passengerLink);
                     
-                    // Добавляем кнопку удаления только если поездка не начата и не завершена
+                    // Добавляем кнопку только если поездка не начата и не завершена
                     if (!data.trip_started && !data.trip_ended) {
-                        const removeButton = document.createElement('button');
-                        removeButton.className = 'btn btn-secondary';
-                        removeButton.textContent = 'Удалить';
-                        removeButton.style.marginLeft = 'auto';
-                        removeButton.style.padding = '4px 8px';
-                        removeButton.style.fontSize = '0.9rem';
-                        removeButton.onclick = function(e) {
-                            e.preventDefault();
-                            if (confirm(`Вы уверены, что хотите удалить пассажира ${passenger.first_name} ${passenger.last_name}?`)) {
-                                fetch(`/remove_passenger/${tripId}/${passenger.id}/`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                                    }
-                                })
-                                .then(response => response.json())
-                                .then(data => {
-                                    if (data.success) {
-                                        passengerItem.remove();
-                                        const count = document.getElementById('modal-passengers-count');
-                                        count.textContent = parseInt(count.textContent) - 1;
-                                        alert('Пассажир успешно удален');
-                                    } else {
-                                        alert(data.message || 'Ошибка при удалении пассажира');
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Error:', error);
-                                    alert('Ошибка при удалении пассажира');
-                                });
-                            }
-                        };
-                        passengerItem.appendChild(removeButton);
+                        // Если пользователь - водитель, показываем кнопку удаления для всех пассажиров
+                        if (data.is_driver) {
+                            const removeButton = document.createElement('button');
+                            removeButton.className = 'btn btn-secondary';
+                            removeButton.textContent = 'Удалить';
+                            removeButton.style.marginLeft = 'auto';
+                            removeButton.style.padding = '4px 8px';
+                            removeButton.style.fontSize = '0.9rem';
+                            removeButton.onclick = function(e) {
+                                e.preventDefault();
+                                if (confirm(`Вы уверены, что хотите удалить пассажира ${passenger.first_name} ${passenger.last_name}?`)) {
+                                    fetch(`/remove_passenger/${tripId}/${passenger.id}/`, {
+                                        method: 'POST',
+                                        headers: {
+                                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                                        }
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            passengerItem.remove();
+                                            const count = document.getElementById('modal-passengers-count');
+                                            count.textContent = parseInt(count.textContent) - 1;
+                                            alert('Пассажир успешно удален');
+                                        } else {
+                                            alert(data.message || 'Ошибка при удалении пассажира');
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error:', error);
+                                        alert('Ошибка при удалении пассажира');
+                                    });
+                                }
+                            };
+                            passengerItem.appendChild(removeButton);
+                        }
+                        // Если пользователь - пассажир и это его запись, показываем кнопку выхода
+                        else if (passenger.id === data.current_user_id) {
+                            const leaveButton = document.createElement('button');
+                            leaveButton.className = 'btn btn-secondary';
+                            leaveButton.textContent = 'Выйти';
+                            leaveButton.style.marginLeft = 'auto';
+                            leaveButton.style.padding = '4px 8px';
+                            leaveButton.style.fontSize = '0.9rem';
+                            leaveButton.onclick = function(e) {
+                                e.preventDefault();
+                                if (confirm('Вы уверены, что хотите выйти из поездки?')) {
+                                    fetch(`/leave_trip/${tripId}/`, {
+                                        method: 'POST',
+                                        headers: {
+                                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                                        }
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            location.reload();
+                                        } else {
+                                            alert(data.message || 'Ошибка при выходе из поездки');
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error:', error);
+                                        alert('Ошибка при выходе из поездки');
+                                    });
+                                }
+                            };
+                            passengerItem.appendChild(leaveButton);
+                        }
                     }
                     
                     passengersList.appendChild(passengerItem);
@@ -1187,6 +1245,9 @@ window.addEventListener('click', function(event) {
 
         // Обработчики кнопок:
         document.getElementById('start-trip-btn').onclick = function() {
+            if (isStartTripRequestInProgress) return;
+            
+            isStartTripRequestInProgress = true;
             const tripId = document.getElementById('customTripModal').getAttribute('data-trip-id');
             fetch(`/start_trip/${tripId}/`, {
                 method: 'POST',
@@ -1197,7 +1258,7 @@ window.addEventListener('click', function(event) {
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
-                    // Отправляем письма всем участникам
+                    // Send emails after successful trip start
                     fetch(`/send_trip_start_emails/${tripId}/`, {
                         method: 'POST',
                         headers: {
@@ -1233,10 +1294,16 @@ window.addEventListener('click', function(event) {
             .catch(error => {
                 console.error('Error:', error);
                 alert('Ошибка при запуске поездки');
+            })
+            .finally(() => {
+                isStartTripRequestInProgress = false;
             });
         };
 
         document.getElementById('end-trip-btn').onclick = function() {
+            if (isEndTripRequestInProgress) return;
+            
+            isEndTripRequestInProgress = true;
             const tripId = document.getElementById('customTripModal').getAttribute('data-trip-id');
             fetch(`/end_trip/${tripId}/`, {
                 method: 'POST',
@@ -1259,8 +1326,51 @@ window.addEventListener('click', function(event) {
                 } else {
                     alert(result.message || 'Ошибка при завершении поездки');
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ошибка при завершении поездки');
+            })
+            .finally(() => {
+                isEndTripRequestInProgress = false;
             });
         };
+
+        // Single event listener for end trip blocks
+        document.addEventListener('DOMContentLoaded', function() {
+            const endTripBlocks = document.querySelectorAll('.end-trip-block');
+            endTripBlocks.forEach(block => {
+                block.onclick = function() {
+                    if (isEndTripRequestInProgress) return;
+                    
+                    const tripId = this.dataset.tripId;
+                    if (confirm('Вы уверены, что хотите завершить поездку?')) {
+                        isEndTripRequestInProgress = true;
+                        fetch(`/end_trip/${tripId}/`, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                location.reload();
+                            } else {
+                                alert(data.message || 'Ошибка при завершении поездки');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Ошибка при завершении поездки');
+                        })
+                        .finally(() => {
+                            isEndTripRequestInProgress = false;
+                        });
+                    }
+                };
+            });
+        });
 
         document.addEventListener('DOMContentLoaded', function() {
             const filterSections = document.querySelectorAll('.filter-section');
@@ -1852,11 +1962,107 @@ window.addEventListener('click', function(event) {
         }
     </style>
 
-    
+    <style>
+        .notifications-header {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 1.5rem;
+        }
 
+        .notifications-filter-chips {
+            display: flex;
+            gap: 0;
+            flex-wrap: nowrap;
+            width: 100%;
+            justify-content: space-between;
+            margin-bottom: 35px;
+            border-bottom: 2px solid var(--color-lightergray);
+        }
+
+        .notification-chip {
+            padding: 15px 20px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--color-purple);
+            position: relative;
+            transition: all 0.3s ease;
+            text-align: center;
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            background: transparent;
+        }
+
+
+        .notification-chip.active,
+        .notification-chip:hover {
+            color: var(--color-lightblue);
+            background: var(--color-lightblue2);
+            box-shadow: 0 4px 12px rgba(91, 98, 255, 0.1);
+        }
+        .notification-chip.active::before {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--color-lightblue);
+            transform: scaleX(1);
+            transition: transform 0.3s ease;
+        }
+        .notification {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .notification.hidden {
+            opacity: 0;
+            transform: translateY(-10px);
+            pointer-events: none;
+        }
+
+        .notification.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .notification-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        /* Стили для скроллбара в notification-wrapper */
+        .notification-wrapper::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .notification-wrapper::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .notification-wrapper::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .notification-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.trip-card').forEach(function(card) {
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.trip-card').forEach(function(card) {
             const status = card.getAttribute('data-trip-status');
             // Сбросить стили
             card.style.backgroundColor = '';
@@ -1870,7 +2076,6 @@ window.addEventListener('click', function(event) {
             } else if (card.classList.contains('trip-poputrchik')) {
                 card.style.backgroundColor = '#e0f0ff';
             }
-
             if (status === 'in_progress') {
                 card.style.border = '2px solid #5B62FF';
                 card.style.boxShadow = '0 0 10px #5B62FF33';
@@ -1884,6 +2089,46 @@ window.addEventListener('click', function(event) {
         });
     });
     </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Обработчик фильтров уведомлений
+        const notificationChips = document.querySelectorAll('.notifications-filter-chips .notification-chip');
+        const notificationWrapper = document.querySelector('.notification-wrapper');
+
+        notificationChips.forEach(chip => {
+            chip.addEventListener('click', function() {
+                // Убираем активный класс у всех чипов
+                notificationChips.forEach(c => c.classList.remove('active'));
+                // Добавляем активный класс выбранному чипу
+                this.classList.add('active');
+
+                const filterType = this.getAttribute('data-notification-filter');
+                
+                // Получаем все уведомления
+                const notifications = notificationWrapper.querySelectorAll('.notification');
+                
+                // Сначала скрываем все уведомления
+                notifications.forEach(notification => {
+                    notification.style.display = 'none';
+                });
+
+                // Затем показываем только подходящие
+                notifications.forEach(notification => {
+                    const notificationType = notification.classList.contains('notification-request') ? 'request' :
+                                          notification.classList.contains('notification-start') || 
+                                          notification.classList.contains('notification-end') ? 'trip' :
+                                          notification.classList.contains('notification-success') || 
+                                          notification.classList.contains('notification-decline') || 
+                                          notification.classList.contains('notification-removed') ? 'system' : 'other';
+
+                    if (filterType === 'all' || notificationType === filterType) {
+                        notification.style.display = 'block';
+                    }
+                });
+            });
+        });
+    });
+    </script>
 
     <style>
         .section.trips {
@@ -1892,6 +2137,10 @@ window.addEventListener('click', function(event) {
             padding: 1.5rem;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             margin-bottom: 1.5rem;
+            height: auto; /* Убираем фиксированную высоту */
+            overflow: visible; /* Убираем скролл */
+            display: flex;
+            flex-direction: column;
         }
 
         .trips-header {
@@ -2056,6 +2305,50 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Включаем кнопку обратно в случае ошибки
                     this.disabled = false;
                 });
+            });
+        });
+    });
+    </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const notificationChips = document.querySelectorAll('.notification-chip');
+        const notifications = document.querySelectorAll('.notification');
+
+        notificationChips.forEach(chip => {
+            chip.addEventListener('click', function() {
+                // Убираем активный класс у всех фильтров
+                notificationChips.forEach(c => c.classList.remove('active'));
+                // Добавляем активный класс выбранному фильтру
+                this.classList.add('active');
+
+                const filterType = this.getAttribute('data-notification-filter');
+
+                // Плавно скрываем все уведомления
+                notifications.forEach(notification => {
+                    notification.classList.add('hidden');
+                    notification.classList.remove('visible');
+                });
+
+                // После небольшой задержки показываем нужные уведомления
+                setTimeout(() => {
+                    notifications.forEach(notification => {
+                        const notificationType = notification.classList.contains('notification-request') ? 'request' :
+                                              notification.classList.contains('notification-start') || 
+                                              notification.classList.contains('notification-end') ? 'trip' :
+                                              notification.classList.contains('notification-success') || 
+                                              notification.classList.contains('notification-decline') || 
+                                              notification.classList.contains('notification-removed') ? 'system' : 'other';
+
+                        if (filterType === 'all' || notificationType === filterType) {
+                            notification.classList.remove('hidden');
+                            // Добавляем небольшую задержку для каждого уведомления
+                            setTimeout(() => {
+                                notification.classList.add('visible');
+                            }, 50);
+                        }
+                    });
+                }, 300);
             });
         });
     });

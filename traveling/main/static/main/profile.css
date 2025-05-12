@@ -481,6 +481,8 @@ main {
 }
 .notifications-section {
     max-height: 780px;
+    display: flex;
+    flex-direction: column;
 }
 .notifications h2 {
     font-size: 24px;
@@ -562,6 +564,13 @@ main {
 }
 .notification-removed::before {
     background: linear-gradient(to bottom, #5e0606, #4e0505);
+}
+.notification-start::before {
+    background: linear-gradient(to bottom, #4CAF50, #388e3c); /* Зеленый градиент для начала поездки */
+}
+
+.notification-end::before {
+    background: linear-gradient(to bottom, #f44336, #d32f2f); /* Красный градиент для завершения поездки */
 }
 
 .notification:hover {
@@ -652,6 +661,9 @@ main {
     .notification-action {
         margin-top: 0.5rem;
         margin-left: 0;
+    }
+    .notifications-filter-chips {
+        flex-direction: column;
     }
 }
 
