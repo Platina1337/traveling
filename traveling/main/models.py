@@ -156,15 +156,28 @@ class Trip(models.Model):
 
 
 class Notification(models.Model):
+    NOTIFICATION_TYPES = [
+        ('request', 'Запрос на присоединение'),
+        ('accept', 'Запрос принят'),
+        ('decline', 'Запрос отклонен'),
+        ('success', 'Успешное действие'),
+        ('warning', 'Предупреждение'),
+        ('info', 'Информационное сообщение'),
+        ('start', 'Поездка началась'),
+        ('end', 'Поездка завершена'),
+        ('removed', 'Удаление из поездки'),
+    ]
+
     recipient = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='notifications')
-    sender = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='sent_notifications')
-    trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name='notifications')
+    sender = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='sent_notifications', null=True, blank=True)
+    trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     read = models.BooleanField(default=False)
+    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES, default='info')
 
     def __str__(self):
-        return f"Notification for {self.recipient.user.username}"
+        return f"Notification for {self.recipient}: {self.message}"
 
-    def is_request_notification(self):
-        return "хочет присоединиться к вашей поездке" in self.message
+    def is_request(self):
+        return self.notification_type == 'request'

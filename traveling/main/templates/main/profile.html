@@ -271,26 +271,39 @@
 
             <section class="section notifications-section">
             <h2>Уведомления</h2>
-
-            {% for notification in notifications %}
-            <div class="notification">
-                <div>
+            <div class="notification-wrapper">
+                {% for notification in notifications %}
+                    <div class="notification notification-{{ notification.notification_type }}">
                     <div class="notification-text">
-                        {{ notification.message }}
-                        {% if notification.trip %}
-                            - Поездка: {{ notification.trip.departure_city }} -> {{ notification.trip.destination_city }} на {{ notification.trip.departure_date|date:"d.m.Y" }}
+                            {% if notification.is_request %}
+                                <a href="{% url 'main:profile_user' %}?user_id={{ notification.sender.id }}" class="notification-user-link">{{ notification.sender.first_name }} {{ notification.sender.last_name }}</a> хочет присоединиться к <a href="#" class="notification-trip-link openModalBtn" data-trip-id="{{ notification.trip.id }}">вашей поездке</a>.
+                            {% elif notification.notification_type == 'success' %}
+                                <a href="{% url 'main:profile_user' %}?user_id={{ notification.sender.id }}" class="notification-user-link">{{ notification.sender.first_name }} {{ notification.sender.last_name }}</a> принял ваш запрос на присоединение к <a href="#" class="notification-trip-link openModalBtn" data-trip-id="{{ notification.trip.id }}">поездке</a>.
+                            {% elif notification.notification_type == 'decline' %}
+                                <a href="{% url 'main:profile_user' %}?user_id={{ notification.sender.id }}" class="notification-user-link">{{ notification.sender.first_name }} {{ notification.sender.last_name }}</a> отклонил ваш запрос на присоединение к <a href="#" class="notification-trip-link openModalBtn" data-trip-id="{{ notification.trip.id }}">поездке</a>.
+                            {% elif notification.notification_type == 'removed' %}
+                                {% if notification.sender.id == notification.recipient.id %}
+                                    Вы покинули <a href="#" class="notification-trip-link openModalBtn" data-trip-id="{{ notification.trip.id }}">поездку</a>.
+                                {% else %}
+                                    <a href="{% url 'main:profile_user' %}?user_id={{ notification.sender.id }}" class="notification-user-link">{{ notification.sender.first_name }} {{ notification.sender.last_name }}</a> удалил вас из <a href="#" class="notification-trip-link openModalBtn" data-trip-id="{{ notification.trip.id }}">поездки</a>.
+                                {% endif %}
+                            {% else %}
+                                {{ notification.message }}
+                            {% endif %}
+                </div>
+                        <div class="notification-info">
+                            <span class="notification-date">{{ notification.created_at|date:"d.m.Y H:i" }}</span>
+                        </div>
+                        {% if not notification.read and notification.is_request %}
+                            <div class="notification-actions">
+                                <button class="notification-action" data-action="accept" data-notification-id="{{ notification.id }}">Принять</button>
+                                <button class="notification-action" data-action="decline" data-notification-id="{{ notification.id }}">Отклонить</button>
+                            </div>
                         {% endif %}
                     </div>
-                </div>
-                <div class="notification-info">
-                    <div class="notification-date">{{ notification.created_at|date:"d.m.Y" }}</div>
-                    {% if not notification.read and "хочет присоединиться к вашей поездке" in notification.message %}
-                        <button class="notification-action" data-notification-id="{{ notification.id }}" data-action="accept">Принять</button>
-                        <button class="notification-action" data-notification-id="{{ notification.id }}" data-action="decline">Отклонить</button>
-                    {% endif %}
-                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
+
         </section>
         </div>
     </main>
@@ -1981,6 +1994,69 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.trip-card').forEach(function(card) {
             // ... existing code ...
+        });
+    });
+    </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Обработка кнопок принятия/отклонения запросов
+        const notificationButtons = document.querySelectorAll('.notification-action');
+        notificationButtons.forEach(button => {
+            // Удаляем все существующие обработчики событий
+            button.replaceWith(button.cloneNode(true));
+        });
+        
+        // Добавляем обработчики заново
+        document.querySelectorAll('.notification-action').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault(); // Предотвращаем стандартное поведение
+                const action = this.dataset.action;
+                const notificationId = this.dataset.notificationId;
+                const notificationElement = this.closest('.notification');
+                
+                // Отключаем кнопку после клика
+                this.disabled = true;
+                
+                fetch(`/handle_passenger_request/${notificationId}/${action}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Удаляем кнопки действий
+                        const actionsDiv = notificationElement.querySelector('.notification-actions');
+                        if (actionsDiv) {
+                            actionsDiv.remove();
+                        }
+                        
+                        // Обновляем стиль уведомления в зависимости от действия
+                        notificationElement.classList.remove('notification-request');
+                        notificationElement.classList.add(action === 'accept' ? 'notification-accept' : 'notification-decline');
+                        
+                        // Обновляем текст уведомления
+                        const notificationText = notificationElement.querySelector('.notification-text');
+                        if (notificationText) {
+                            notificationText.textContent = action === 'accept' ? 
+                                'Запрос на присоединение к поездке был принят.' : 
+                                'Запрос на присоединение к поездке был отклонен.';
+                        }
+                    } else {
+                        alert(data.error || 'Произошла ошибка при обработке запроса');
+                        // Включаем кнопку обратно в случае ошибки
+                        this.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Произошла ошибка при обработке запроса');
+                    // Включаем кнопку обратно в случае ошибки
+                    this.disabled = false;
+                });
+            });
         });
     });
     </script>

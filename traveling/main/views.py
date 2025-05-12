@@ -279,7 +279,8 @@ def leave_trip(request, trip_id):
             recipient=trip.user,
             sender=profile,
             trip=trip,
-            message=f"{profile.first_name} {profile.last_name} вышел из поездки."
+            message=f"{profile.first_name} {profile.last_name} вышел из поездки.",
+            notification_type='removed'
         )
         
         return JsonResponse({'success': True})
@@ -393,7 +394,7 @@ class ProfileView(LoginRequiredMixin, TemplateView):
                     'email': profile.email,
                     'about_me': profile.about_me,
                 })
-                notifications = Notification.objects.filter(recipient=profile)
+                notifications = Notification.objects.filter(recipient=profile).order_by('-created_at')
                 context['profile'] = profile
                 context['all_trips'] = all_trips
                 context['form'] = form
@@ -879,7 +880,8 @@ def remove_passenger(request, trip_id, passenger_id=None):
                         recipient=passenger,
                         sender=trip.user,
                         trip=trip,
-                        message=f"Вы были удалены из поездки {trip.departure_city.name} -> {trip.destination_city.name}."
+                        message=f"Вы были удалены из поездки {trip.departure_city.name} -> {trip.destination_city.name}.",
+                        notification_type='removed'
                     )
                     
                     # Email уведомление пассажиру об исключении из поездки
@@ -928,7 +930,8 @@ def remove_passenger(request, trip_id, passenger_id=None):
                         recipient=trip.user,
                         sender=user_profile,
                         trip=trip,
-                        message=f"{user_profile.first_name} {user_profile.last_name} покинул вашу поездку."
+                        message=f"{user_profile.first_name} {user_profile.last_name} покинул вашу поездку.",
+                        notification_type='removed'
                     )
                     
                     # Email уведомление водителю о выходе пассажира
@@ -1109,7 +1112,8 @@ def add_passenger(request, trip_id):
                         recipient=trip.user,
                         sender=user_profile,
                         trip=trip,
-                        message=f"{user_profile.first_name} {user_profile.last_name} хочет присоединиться к вашей поездке."
+                        message=f"{user_profile.first_name} {user_profile.last_name} хочет присоединиться к вашей поездке.",
+                        notification_type='request'
                     )
                     
                     # Email уведомление водителю о запросе на присоединение к поездке
@@ -1169,7 +1173,8 @@ def handle_passenger_request(request, notification_id, action):
                         recipient=user_profile,
                         sender=notification.recipient,
                         trip=trip,
-                        message=f"Ваш запрос на присоединение к поездке был одобрен."
+                        message=f"Ваш запрос на присоединение к поездке был одобрен.",
+                        notification_type='success'
                     )
                     
                     # Email уведомление пассажиру о принятии запроса
@@ -1218,7 +1223,8 @@ def handle_passenger_request(request, notification_id, action):
                     recipient=user_profile,
                     sender=notification.recipient,
                     trip=trip,
-                    message=f"Ваш запрос на присоединение к поездке был отклонен."
+                    message=f"Ваш запрос на присоединение к поездке был отклонен.",
+                    notification_type='decline'
                 )
                 
                 # Email уведомление пассажиру об отклонении запроса
