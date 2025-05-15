@@ -27,6 +27,7 @@ db.sqlite3
 db.sqlite3-journal
 media/
 static/
+traveling/traveling/settings.py  # Исключаем файл с реальными настройками
 
 # Virtual Environment
 venv/
@@ -41,3 +42,9 @@ ENV/
 
 # Project specific
 traveling_new/
+ngrok.exe
+
+# Secrets and API keys
+*_api_key
+*_secret
+*_token

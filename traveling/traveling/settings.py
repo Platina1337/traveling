@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-b&apzb$&%)04br5gy$4!llb@68#+9y-m$l1_%vxu8kg26krgi4
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.ngrok.io', '.ngrok-free.app']
 
 
 # Application definition
@@ -140,3 +140,7 @@ SMSRU_API_KEY = 'FB2C417A-5441-4108-F6E8-48AC3189A0FB'
 SMSRU_FROM = 'your_sender_name'  # необязательно, можно оставить пустым
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# API ключи для карт
+YANDEX_MAPS_API_KEY = '3eebf8cf-5f09-4a52-a48c-8eb308fc3297'  # Ключ для геокодирования
+GOOGLE_MAPS_API_KEY = 'AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg'  # Ключ Google Maps API

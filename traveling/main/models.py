@@ -60,6 +60,21 @@ class Comment(models.Model):
     text = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
 
+class RoutePoint(models.Model):
+    trip = models.ForeignKey('Trip', on_delete=models.CASCADE, related_name='route_points')
+    address = models.CharField(max_length=255)  # Полный адрес
+    latitude = models.FloatField()  # Широта
+    longitude = models.FloatField()  # Долгота
+    order = models.IntegerField()  # Порядок точки в маршруте
+    is_departure = models.BooleanField(default=False)  # Точка отправления
+    is_destination = models.BooleanField(default=False)  # Точка прибытия
+    
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"{self.address} ({self.latitude}, {self.longitude})"
+
 class Trip(models.Model):
     STATUS_CHOICES = [
         ('planned', 'Planned'),
@@ -83,6 +98,11 @@ class Trip(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='planned')
     start_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
+    
+    # Новые поля для хранения данных от Яндекс API
+    route_distance = models.FloatField(null=True, blank=True)  # Расстояние в метрах
+    route_duration = models.IntegerField(null=True, blank=True)  # Длительность в секундах
+    route_polyline = models.TextField(null=True, blank=True)  # Полилиния маршрута для отображения на карте
 
     def has_active_trip(self):
         return Trip.objects.filter(user=self, status__in=['planned', 'in_progress']).exists()
@@ -151,9 +171,16 @@ class Trip(models.Model):
     def is_full(self):
         return self.passengers.count() >= self.max_passengers
 
+    def get_departure_point(self):
+        """Получить точку отправления"""
+        return self.route_points.filter(is_departure=True).first()
+
+    def get_destination_point(self):
+        """Получить точку прибытия"""
+        return self.route_points.filter(is_destination=True).first()
+
     def __str__(self):
         return f"Trip from {self.departure_city} to {self.destination_city} on {self.departure_date}"
-
 
 class Notification(models.Model):
     NOTIFICATION_TYPES = [

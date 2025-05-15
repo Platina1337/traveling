@@ -1477,146 +1477,140 @@ def is_profile_complete(user):
         return False
 
 def calculate_route(request):
-    if request.method == 'GET':
-        start = request.GET.get('start')
-        end = request.GET.get('end')
-        
-        if not start or not end:
-            return JsonResponse({'error': 'Missing coordinates'}, status=400)
-            
-        # Словарь с расстояниями между основными городами (в километрах)
-        DISTANCES = {
-            # Центральный федеральный округ
-            ('Москва', 'Тверь'): 167,
-            ('Москва', 'Ярославль'): 265,
-            ('Москва', 'Воронеж'): 515,
-            ('Москва', 'Тула'): 183,
-            ('Москва', 'Рязань'): 196,
-            ('Москва', 'Калуга'): 188,
-            ('Москва', 'Смоленск'): 419,
-            ('Москва', 'Брянск'): 379,
-            ('Москва', 'Владимир'): 190,
-            ('Москва', 'Иваново'): 275,
-            ('Москва', 'Кострома'): 340,
-            ('Москва', 'Липецк'): 450,
-            ('Москва', 'Орел'): 368,
-            ('Москва', 'Курск'): 530,
-            ('Москва', 'Белгород'): 680,
-            
-            # Северо-Западный федеральный округ
-            ('Москва', 'Санкт-Петербург'): 705,
-            ('Санкт-Петербург', 'Тверь'): 480,
-            ('Санкт-Петербург', 'Ярославль'): 440,
-            ('Санкт-Петербург', 'Великий Новгород'): 180,
-            ('Санкт-Петербург', 'Псков'): 290,
-            ('Санкт-Петербург', 'Петрозаводск'): 430,
-            ('Санкт-Петербург', 'Мурманск'): 1350,
-            ('Санкт-Петербург', 'Архангельск'): 1140,
-            ('Санкт-Петербург', 'Вологда'): 700,
-            
-            # Приволжский федеральный округ
-            ('Москва', 'Нижний Новгород'): 400,
-            ('Москва', 'Казань'): 815,
-            ('Москва', 'Самара'): 1050,
-            ('Москва', 'Саратов'): 850,
-            ('Москва', 'Ульяновск'): 890,
-            ('Москва', 'Пенза'): 625,
-            ('Москва', 'Ижевск'): 1120,
-            ('Москва', 'Пермь'): 1380,
-            ('Москва', 'Уфа'): 1350,
-            ('Москва', 'Оренбург'): 1450,
-            ('Москва', 'Йошкар-Ола'): 860,
-            ('Москва', 'Чебоксары'): 650,
-            
-            # Южный федеральный округ
-            ('Москва', 'Ростов-на-Дону'): 1070,
-            ('Москва', 'Краснодар'): 1350,
-            ('Москва', 'Сочи'): 1620,
-            ('Москва', 'Волгоград'): 970,
-            ('Москва', 'Астрахань'): 1410,
-            ('Москва', 'Ставрополь'): 1450,
-            ('Москва', 'Махачкала'): 1850,
-            ('Москва', 'Грозный'): 2000,
-            ('Москва', 'Владикавказ'): 1950,
-            
-            # Уральский федеральный округ
-            ('Москва', 'Екатеринбург'): 1420,
-            ('Москва', 'Челябинск'): 1820,
-            ('Москва', 'Тюмень'): 2140,
-            ('Москва', 'Курган'): 2000,
-            ('Москва', 'Ханты-Мансийск'): 2800,
-            
-            # Сибирский федеральный округ
-            ('Москва', 'Новосибирск'): 3350,
-            ('Москва', 'Омск'): 2700,
-            ('Москва', 'Томск'): 3600,
-            ('Москва', 'Красноярск'): 4200,
-            ('Москва', 'Иркутск'): 5200,
-            ('Москва', 'Кемерово'): 3600,
-            ('Москва', 'Барнаул'): 3400,
-            
-            # Дальневосточный федеральный округ
-            ('Москва', 'Владивосток'): 9100,
-            ('Москва', 'Хабаровск'): 8500,
-            ('Москва', 'Благовещенск'): 8000,
-            ('Москва', 'Петропавловск-Камчатский'): 12000,
-            ('Москва', 'Магадан'): 11000,
-            ('Москва', 'Южно-Сахалинск'): 10500,
-            
-            # Дополнительные маршруты между крупными городами
-            ('Санкт-Петербург', 'Нижний Новгород'): 1100,
-            ('Санкт-Петербург', 'Казань'): 1500,
-            ('Санкт-Петербург', 'Воронеж'): 1200,
-            ('Санкт-Петербург', 'Ростов-на-Дону'): 1750,
-            ('Санкт-Петербург', 'Краснодар'): 2000,
-            ('Санкт-Петербург', 'Сочи'): 2300,
-            ('Санкт-Петербург', 'Волгоград'): 1650,
-            ('Санкт-Петербург', 'Самара'): 1700,
-            ('Санкт-Петербург', 'Екатеринбург'): 2100,
-            ('Санкт-Петербург', 'Новосибирск'): 3800,
-            ('Санкт-Петербург', 'Калининград'): 1200,
-            
-            # Популярные маршруты между соседними городами
-            ('Тверь', 'Ярославль'): 260,
-            ('Тверь', 'Великий Новгород'): 320,
-            ('Тверь', 'Ржев'): 120,
-            ('Тверь', 'Вышний Волочек'): 120,
-            ('Ярославль', 'Кострома'): 85,
-            ('Ярославль', 'Рыбинск'): 80,
-            ('Воронеж', 'Липецк'): 120,
-            ('Воронеж', 'Курск'): 220,
-            ('Тула', 'Калуга'): 120,
-            ('Тула', 'Орел'): 180,
-            ('Рязань', 'Тамбов'): 300,
-            ('Рязань', 'Пенза'): 450,
-            ('Калуга', 'Брянск'): 200,
-            ('Смоленск', 'Брянск'): 250,
-            ('Владимир', 'Иваново'): 120,
-            ('Владимир', 'Муром'): 130,
-            ('Иваново', 'Кострома'): 100,
-            ('Иваново', 'Шуя'): 30,
-            ('Кострома', 'Галич'): 120,
-            ('Кострома', 'Буй'): 100,
+    start = request.GET.get('start')
+    end = request.GET.get('end')
+    
+    logger.info(f"Received request for route calculation: start={start}, end={end}")
+    
+    if not start or not end:
+        logger.error("Missing start or end parameters")
+        return JsonResponse({
+            'error': 'Необходимо указать начальный и конечный пункты'
+        }, status=400)
+    
+    # Проверяем наличие API ключа для геокодирования
+    if not settings.YANDEX_MAPS_API_KEY:
+        logger.error("YANDEX_MAPS_API_KEY is not set in settings")
+        return JsonResponse({
+            'error': 'Ошибка конфигурации сервера'
+        }, status=500)
+    
+    try:
+        # Получаем координаты начального города
+        start_geocode_url = f'https://geocode-maps.yandex.ru/1.x/'
+        start_geocode_params = {
+            'apikey': settings.YANDEX_MAPS_API_KEY,
+            'format': 'json',
+            'geocode': start,
+            'lang': 'ru_RU'
         }
+        logger.info(f"Requesting geocode for start city: {start_geocode_url} with params {start_geocode_params}")
         
-        # Проверяем оба варианта порядка городов
-        distance = None
-        if (start, end) in DISTANCES:
-            distance = DISTANCES[(start, end)]
-        elif (end, start) in DISTANCES:
-            distance = DISTANCES[(end, start)]
-            
-        if distance is not None:
-            # Предполагаем среднюю скорость 60 км/ч
-            duration = distance * 60  # время в минутах
+        start_geocode_response = requests.get(start_geocode_url, params=start_geocode_params)
+        logger.info(f"Start city geocode response status: {start_geocode_response.status_code}")
+        logger.info(f"Start city geocode response content: {start_geocode_response.text}")
+        
+        if start_geocode_response.status_code != 200:
+            logger.error(f"Error in start city geocoding: {start_geocode_response.text}")
             return JsonResponse({
-                'distance': distance * 1000,  # переводим в метры
-                'duration': duration * 60     # переводим в секунды
-            })
-        else:
-            return JsonResponse({'error': 'Route not found'}, status=404)
-            
-    return JsonResponse({'error': 'Method not allowed'}, status=405)
+                'error': 'Ошибка при определении координат города отправления'
+            }, status=400)
+        
+        start_geocode = start_geocode_response.json()
+        
+        # Проверяем результат геокодирования для начального города
+        if not start_geocode.get('response', {}).get('GeoObjectCollection', {}).get('featureMember'):
+            logger.error(f"Could not find start city: {start}")
+            return JsonResponse({
+                'error': f'Не удалось найти город отправления: {start}'
+            }, status=400)
+        
+        # Получаем координаты конечного города
+        end_geocode_url = f'https://geocode-maps.yandex.ru/1.x/'
+        end_geocode_params = {
+            'apikey': settings.YANDEX_MAPS_API_KEY,
+            'format': 'json',
+            'geocode': end,
+            'lang': 'ru_RU'
+        }
+        logger.info(f"Requesting geocode for end city: {end_geocode_url} with params {end_geocode_params}")
+        
+        end_geocode_response = requests.get(end_geocode_url, params=end_geocode_params)
+        logger.info(f"End city geocode response status: {end_geocode_response.status_code}")
+        logger.info(f"End city geocode response content: {end_geocode_response.text}")
+        
+        if end_geocode_response.status_code != 200:
+            logger.error(f"Error in end city geocoding: {end_geocode_response.text}")
+            return JsonResponse({
+                'error': 'Ошибка при определении координат города прибытия'
+            }, status=400)
+        
+        end_geocode = end_geocode_response.json()
+        
+        # Проверяем результат геокодирования для конечного города
+        if not end_geocode.get('response', {}).get('GeoObjectCollection', {}).get('featureMember'):
+            logger.error(f"Could not find end city: {end}")
+            return JsonResponse({
+                'error': f'Не удалось найти город прибытия: {end}'
+            }, status=400)
+        
+        # Извлекаем координаты из ответа
+        start_coords = start_geocode['response']['GeoObjectCollection']['featureMember'][0]['GeoObject']['Point']['pos']
+        end_coords = end_geocode['response']['GeoObjectCollection']['featureMember'][0]['GeoObject']['Point']['pos']
+        
+        # Меняем порядок координат (OSRM использует формат долгота,широта)
+        start_lon, start_lat = start_coords.split()
+        end_lon, end_lat = end_coords.split()
+        
+        logger.info(f"Coordinates - Start: {start_lon},{start_lat}, End: {end_lon},{end_lat}")
+        
+        # Получаем маршрут между точками через OSRM
+        route_url = f'https://router.project-osrm.org/route/v1/driving/{start_lon},{start_lat};{end_lon},{end_lat}'
+        route_params = {
+            'overview': 'false'
+        }
+        logger.info(f"Requesting route: {route_url} with params {route_params}")
+        
+        route_response = requests.get(route_url, params=route_params)
+        logger.info(f"Route response status: {route_response.status_code}")
+        logger.info(f"Route response content: {route_response.text}")
+        
+        if route_response.status_code != 200:
+            logger.error(f"Error in route calculation: {route_response.text}")
+            return JsonResponse({
+                'error': 'Ошибка при расчете маршрута'
+            }, status=400)
+        
+        route = route_response.json()
+        
+        # Проверяем результат расчета маршрута
+        if route.get('code') != 'Ok':
+            logger.error(f"Could not build route between cities. Response: {route}")
+            return JsonResponse({
+                'error': 'Не удалось построить маршрут между указанными городами'
+            }, status=400)
+        
+        # Извлекаем расстояние и время из ответа
+        distance = route['routes'][0]['distance']  # в метрах
+        duration = route['routes'][0]['duration']  # в секундах
+        
+        logger.info(f"Calculated distance: {distance}m, duration: {duration}s")
+        
+        return JsonResponse({
+            'distance': distance,
+            'duration': duration
+        })
+        
+    except (KeyError, IndexError) as e:
+        logger.error(f"Error processing route data: {str(e)}")
+        return JsonResponse({
+            'error': 'Ошибка при обработке данных маршрута'
+        }, status=400)
+    except Exception as e:
+        logger.error(f"Error calculating route: {str(e)}")
+        return JsonResponse({
+            'error': f'Ошибка при расчете маршрута: {str(e)}'
+        }, status=500)
 
 @login_required
 def delete_car(request, car_id):

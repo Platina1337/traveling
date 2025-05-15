@@ -7,6 +7,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="{% static 'main/add.css' %}">
 <style>
+#fill-time-btn {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#fill-time-btn:hover:not(:disabled) {
+    background-color: #5a6268;
+}
+
+#fill-time-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
 .btn-secondary {
     background-color: #6c757d;
     color: white;
@@ -14,7 +34,6 @@
     padding: 8px 16px;
     border-radius: 4px;
     cursor: pointer;
-    margin-top: 10px;
 }
 
 .btn-secondary:disabled {
@@ -52,263 +71,10 @@
 }
 
 /* Стили для модального окна */
-.custom-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-    backdrop-filter: blur(5px);
-}
 
-.custom-modal.show {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
 
-.custom-modal-content {
-    background: white;
-    padding: 2rem;
-    border-radius: 16px;
-    width: 90%;
-    max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
-    position: relative;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    animation: modalFadeIn 0.3s ease-out;
-}
 
-@keyframes modalFadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
 
-.custom-close-btn {
-    position: absolute;
-    right: 1.5rem;
-    top: 1.5rem;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #666;
-    transition: color 0.3s ease;
-    background: none;
-    border: none;
-    padding: 0.5rem;
-    line-height: 1;
-}
-
-.custom-close-btn:hover {
-    color: #333;
-}
-
-.modal-header {
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #eee;
-}
-
-.modal-title {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #333;
-    margin: 0;
-    letter-spacing: -0.02em;
-}
-
-.modal-body {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-}
-
-.modal-section {
-    background: #f8f9fa;
-    padding: 1.25rem;
-    border-radius: 12px;
-    margin-bottom: 1.5rem;
-}
-
-.modal-section-title {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: #495057;
-    margin-bottom: 1rem;
-    letter-spacing: -0.01em;
-}
-
-.modal-info-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.75rem;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid #eee;
-}
-
-.modal-info-label {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    color: #6c757d;
-    font-size: 0.9rem;
-    font-weight: 400;
-    letter-spacing: 0.01em;
-}
-
-.modal-info-value {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    color: #212529;
-    font-weight: 500;
-    font-size: 0.95rem;
-    letter-spacing: 0.01em;
-}
-
-.modal-passengers-list {
-    margin-top: 1rem;
-}
-
-.modal-passenger-item {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem;
-    background: white;
-    border-radius: 8px;
-    margin-bottom: 0.5rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    font-size: 0.95rem;
-    color: #212529;
-    font-weight: 400;
-    letter-spacing: 0.01em;
-    transition: background-color 0.2s ease;
-}
-
-.modal-passenger-item:hover {
-    background-color: #f8f9fa;
-}
-
-.modal-passenger-item a {
-    flex: 1;
-    text-decoration: none;
-    color: #5B62FF;
-    font-weight: 500;
-    transition: color 0.2s ease;
-}
-
-.modal-passenger-item a:hover {
-    color: #4a50cc;
-}
-
-.modal-passenger-item button {
-    margin-left: auto;
-    padding: 4px 8px;
-    font-size: 0.9rem;
-    background-color: #6c757d;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.modal-passenger-item button:hover {
-    background-color: #5a6268;
-}
-
-.modal-passenger-item button:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-}
-
-.modal-status {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    background: #e9ecef;
-    border-radius: 12px;
-    margin-top: 1.5rem;
-}
-
-.modal-time-until {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    font-size: 1.1rem;
-    color: #495057;
-    font-weight: 500;
-    letter-spacing: 0.01em;
-}
-
-.modal-price {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #28a745;
-    letter-spacing: -0.02em;
-}
-
-/* Стили для скроллбара */
-.custom-modal-content::-webkit-scrollbar {
-    width: 8px;
-}
-
-.custom-modal-content::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-}
-
-.custom-modal-content::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
-}
-
-.custom-modal-content::-webkit-scrollbar-thumb:hover {
-    background: #555;
-}
-
-/* Адаптивность */
-@media (max-width: 768px) {
-    .modal-body {
-        grid-template-columns: 1fr;
-    }
-    
-    .custom-modal-content {
-        width: 95%;
-        padding: 1.5rem;
-    }
-
-    .modal-title {
-        font-size: 1.3rem;
-    }
-    
-    .modal-section-title {
-        font-size: 1rem;
-    }
-    
-    .modal-info-label,
-    .modal-info-value {
-        font-size: 0.9rem;
-    }
-    
-    .modal-time-until {
-        font-size: 1rem;
-    }
-    
-    .modal-price {
-        font-size: 1.15rem;
-    }
-}
 </style>
 {% endblock %}
 
@@ -363,6 +129,10 @@
                                     <option value="{{ city.name }}">
                                     {% endfor %}
                                 </datalist>
+                                <button type="button" class="btn btn-outline-primary mt-2" id="showDepartureMap">
+                                    Выбрать адрес на карте
+                                </button>
+                                <div id="departureAddressDisplay" class="mt-2 text-muted"></div>
                             </div>
                             <div class="form-group-input">
                                 <label for="arrival">Город прибытия</label>
@@ -373,6 +143,10 @@
                                     <option value="{{ city.name }}">
                                     {% endfor %}
                                 </datalist>
+                                <button type="button" class="btn btn-outline-primary mt-2" id="showDestinationMap">
+                                    Выбрать адрес на карте
+                                </button>
+                                <div id="destinationAddressDisplay" class="mt-2 text-muted"></div>
                             </div>
                             <div class="form-group-input">
                                 <label for="id_departure_time">Время отправления</label>
@@ -395,6 +169,15 @@
                                 {{ form.price|add_class:"half-width-input" }}
                             </div>
                         </div>
+                        <div id="trip-duration" class="trip-duration" >
+                            <div class="duration-info">
+                                <h4>Расчетное время в пути:</h4>
+                                <p id="duration-text" class="duration-text"></p>
+                                <button id="fill-time-btn" class="btn btn-secondary" disabled>
+                                    Заполнить время прибытия
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="form-group textarea-grid">
@@ -402,359 +185,201 @@
                     {{ form.comment.errors }}
                     {{ form.comment|add_class:"full-width-textarea" }}
                 </div>
-                <div id="trip-duration" class="trip-duration" style="display: none;">
-                    <h3>Расчетное время в пути:</h3>
-                    <p id="duration-text"></p>
-                    <button id="fill-time-btn" class="btn btn-secondary" disabled>Заполнить время прибытия</button>
-                </div>
+                
                 <div class="form-actions">
                     <button type="button" style="background-color: var(--color-darkblue)">Отменить</button>
                     <button type="submit" style="background-color: var(--color-lightblue)" {% if not profile_complete %}disabled{% endif %}>Опубликовать поездку</button>
                 </div>
             </form>
         </section>
-        <section class="section trips">
-            <div class="trips-header" style="display: flex;">
-                <h1>Мои поездки</h1>
-                <button class="sort-button"><span>
-
-                    </span>
-                </button>
-            </div>
-            <div class="trip-list">
-                {% for trip in trips %}
-                <div class="trip-card trip-your">
-                    <div class="trip-header">
-                        <div class="trip-time">
-                            <div class="time">{{ trip.departure_time|time:"H:i" }}</div>
-                            <div class="svg-container">
-                                <svg class="svg-large" width="63" height="14" viewBox="0 0 63 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <rect width="50" height="2" transform="translate(13 6)" fill="#444766"/>
-                                    <path d="M7 0C3.14008 0 0 3.14008 0 7C0 10.8599 3.14008 14 7 14C10.8599 14 14 10.8599 14 7C14 3.14008 10.8599 0 7 0ZM7 12.8333C3.7835 12.8333 1.16667 10.2165 1.16667 7C1.16667 3.7835 3.7835 1.16667 7 1.16667C10.2165 1.16667 12.8333 3.7835 12.8333 7C12.8333 10.2165 10.2165 12.8333 7 12.8333ZM9.33333 7C9.33333 8.28858 8.28858 9.33333 7 9.33333C5.71142 9.33333 4.66667 8.28858 4.66667 7C4.66667 5.71142 5.71142 4.66667 7 4.66667C8.28858 4.66667 9.33333 5.71142 9.33333 7Z" fill="#444766"/>
-                                </svg>
-                                <svg class="svg-small" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M7 0C3.14008 0 0 3.14008 0 7C0 10.8599 3.14008 14 7 14C10.8599 14 14 10.8599 14 7C14 3.14008 10.8599 0 7 0ZM7 12.8333C3.7835 12.8333 1.16667 10.2165 1.16667 7C1.16667 3.7835 3.7835 1.16667 7 1.16667C10.2165 1.16667 12.8333 3.7835 12.8333 7C12.8333 10.2165 10.2165 12.8333 7 12.8333ZM9.33333 7C9.33333 8.28858 8.28858 9.33333 7 9.33333C5.71142 9.33333 4.66667 8.28858 4.66667 7C4.66667 5.71142 5.71142 4.66667 7 4.66667C8.28858 4.66667 9.33333 5.71142 9.33333 7Z" fill="#444766"/>
-                                </svg>
-                                <div class="duration">
-                                    {{ trip.duration_string }}
-                                </div>
-                                <svg class="svg-large" width="63" height="14" viewBox="0 0 63 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <rect width="50" height="2" transform="matrix(-1 0 0 -1 50 8)" fill="#444766"/>
-                                    <path d="M55.998 14C59.858 14 62.998 10.8599 62.998 7C62.998 3.14008 59.858 0 55.998 0C52.1381 0 48.998 3.14008 48.998 7C48.998 10.8599 52.1381 14 55.998 14ZM55.998 1.16667C59.2145 1.16667 61.8314 3.7835 61.8314 7C61.8314 10.2165 59.2145 12.8333 55.998 12.8333C52.7815 12.8333 50.1647 10.2165 50.1647 7C50.1647 3.7835 52.7815 1.16667 55.998 1.16667ZM53.6647 7C53.6647 5.71142 54.7095 4.66667 55.998 4.66667C57.2866 4.66667 58.3314 5.71142 58.3314 7C58.3314 8.28858 57.2866 9.33333 55.998 9.33333C54.7095 9.33333 53.6647 8.28858 53.6647 7Z" fill="#444766"/>
-                                </svg>
-                                <svg class="svg-small" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M7 0C3.14008 0 0 3.14008 0 7C0 10.8599 3.14008 14 7 14C10.8599 14 14 10.8599 14 7C14 3.14008 10.8599 0 7 0ZM7 12.8333C3.7835 12.8333 1.16667 10.2165 1.16667 7C1.16667 3.7835 3.7835 1.16667 7 1.16667C10.2165 1.16667 12.8333 3.7835 12.8333 7C12.8333 10.2165 10.2165 12.8333 7 12.8333ZM9.33333 7C9.33333 8.28858 8.28858 9.33333 7 9.33333C5.71142 9.33333 4.66667 8.28858 4.66667 7C4.66667 5.71142 5.71142 4.66667 7 4.66667C8.28858 4.66667 9.33333 5.71142 9.33333 7Z" fill="#444766"/>
-                                </svg>
-                            </div>
-                            <div class="time">{{ trip.arrival_time|time:"H:i" }}</div>
-                        </div>
-                        <div class="trip-price"></div>
-                        <div class="trip-locations" style="width: 100%; display: flex; justify-content: space-between;">
-                            <div class="location" style="flex: 1; text-align: left;">{{ trip.departure_city }}</div>
-                            <div class="location" style="flex: 1; text-align: right;">{{ trip.destination_city }}</div>
-                        </div>
-                    </div>
-                    <div class="trip-details">
-                        <div class="trip-date">{{ trip.departure_date|date:"d.m.Y" }}</div>
-                        <div class="trip-link">
-                            <button style="background-color: #DFE0EC; color: #5B62FF; font-weight: bold; font-size: 18px" 
-                                    class="openModalBtn" 
-                                    data-trip-id="{{ trip.id }}">Детали поездки</button>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </section>
-        <div class="notification" id="notification">
-          <span class="close" onclick="closeNotification()">&times;</span>
-          <p id="notification-text">Вы можете добавить только 5 фотографий</p>
-        </div>
-        <div id="customModal" class="custom-modal">
-            <div class="custom-modal-content">
-                <button class="custom-close-btn">&times;</button>
-                <div class="modal-header">
-                    <h2 class="modal-title">Детали поездки</h2>
-                </div>
-                <div class="modal-body">
-                    <div class="modal-section">
-                        <h3 class="modal-section-title">Информация о маршруте</h3>
-                        <div class="modal-info-row">
-                            <span class="modal-info-label">Откуда:</span>
-                            <span class="modal-info-value" id="modal-departure-city"></span>
-                        </div>
-                        <div class="modal-info-row">
-                            <span class="modal-info-label">Время отправления:</span>
-                            <span class="modal-info-value" id="modal-departure-time"></span>
-                        </div>
-                        <div class="modal-info-row">
-                            <span class="modal-info-label">Куда:</span>
-                            <span class="modal-info-value" id="modal-destination-city"></span>
-                        </div>
-                        <div class="modal-info-row">
-                            <span class="modal-info-label">Время прибытия:</span>
-                            <span class="modal-info-value" id="modal-arrival-time"></span>
-                        </div>
-                    </div>
-                    
-                    <div class="modal-section">
-                        <h3 class="modal-section-title">Пассажиры</h3>
-                        <div class="modal-info-row">
-                            <span class="modal-info-label">Занято мест:</span>
-                            <span class="modal-info-value">
-                                <span id="modal-passengers-count">0</span>/<span id="modal-max-passengers">0</span>
-                            </span>
-                        </div>
-                        <div class="modal-passengers-list" id="modal-passengers-list">
-                            <!-- Список пассажиров будет добавлен динамически -->
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="modal-status">
-                    <div class="modal-time-until" id="modal-time-until"></div>
-                    <div class="modal-price" id="modal-price"></div>
-                </div>
-            </div>
-        </div>
     </main>
     <script src="{% static 'js/add_trip.js' %}"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const departureCity = document.getElementById('departure');
-        const destinationCity = document.getElementById('arrival');
-        const durationText = document.getElementById('duration-text');
-        const tripDuration = document.getElementById('trip-duration');
-        const fillTimeBtn = document.getElementById('fill-time-btn');
-        const departureTimeInput = document.getElementById('id_departure_time');
-        const arrivalTimeInput = document.getElementById('id_arrival_time');
-        
-        let currentDuration = null;
+    <style>
 
-        async function calculateDuration() {
-            const from = departureCity.value;
-            const to = destinationCity.value;
-            
-            if (!from || !to) {
-                tripDuration.style.display = 'none';
-                currentDuration = null;
-                return;
-            }
+.modal {
+    visibility: hidden; /* Скрыто и не занимает место */
+    opacity: 0; /* Полностью прозрачно */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.65); /* Немного темнее фон для лучшего контраста */
+    z-index: 1050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Плавный переход для opacity. Visibility меняется резко. */
+    transition: opacity 0.25s ease-out, visibility 0s linear 0.25s;
+    pointer-events: none; /* Не перехватывает клики, когда невидимо */
+}
+.modal.show {
+    visibility: visible;
+    opacity: 1;
+    transition-delay: 0s; /* Убираем задержку для visibility при показе */
+    pointer-events: auto; /* Разрешаем взаимодействие */
+}
 
-            if (from === to) {
-                tripDuration.style.display = 'none';
-                currentDuration = null;
-                return;
-            }
+/* Остальные стили (modal-dialog, modal-content, modal-header, etc.) остаются как были */
+.modal-dialog {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2); /* Более выраженная, но мягкая тень */
+    width: 90%;
+    max-width: 700px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: translateY(20px) scale(0.98); /* Начальное состояние для анимации "вылета" */
+    transition: transform 0.25s ease-out;
+}
 
-            try {
-                const response = await fetch(`{% url 'main:calculate_route' %}?start=${encodeURIComponent(from)}&end=${encodeURIComponent(to)}`);
-                const data = await response.json();
+.modal.show .modal-dialog {
+    transform: translateY(0) scale(1); /* Конечное состояние анимации */
+}
 
-                if (response.ok) {
-                    const distance = data.distance;
-                    const duration = data.duration;
-                    currentDuration = duration;
-                    
-                    const hours = Math.floor(duration / 3600);
-                    const minutes = Math.floor((duration % 3600) / 60);
-                    
-                    durationText.textContent = `${hours} ч ${minutes} м`;
-                    tripDuration.style.display = 'block';
-                    fillTimeBtn.disabled = false;
-                }
-            } catch (error) {
-                console.error('Error calculating duration:', error);
-            }
-        }
 
-        function updateFillTimeButton() {
-            fillTimeBtn.disabled = !currentDuration || !departureTimeInput.value;
-        }
+.modal-content {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
 
-        function fillArrivalTime() {
-            if (!currentDuration || !departureTimeInput.value) return;
-            
-            const departureDate = new Date(departureTimeInput.value);
-            const arrivalDate = new Date(departureDate.getTime() + currentDuration * 1000);
-            
-            arrivalTimeInput.value = arrivalDate.toISOString().slice(0, 16);
-        }
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 25px;
+    border-bottom: 1px solid #e9ecef;
+    background-color: #f8f9fa;
+}
 
-        departureCity.addEventListener('change', calculateDuration);
-        destinationCity.addEventListener('change', calculateDuration);
-        departureTimeInput.addEventListener('change', updateFillTimeButton);
-        fillTimeBtn.addEventListener('click', fillArrivalTime);
+.modal-title {
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: #343a40;
+    margin: 0;
+}
 
-        // Модальное окно
-        const openModalBtns = document.querySelectorAll('.openModalBtn');
-        const modal = document.getElementById('customModal');
-        const closeBtn = modal.querySelector('.custom-close-btn');
-        
-        function openModal(tripId) {
-            // Заполняем основную информацию из карточки поездки
-            const tripCard = document.querySelector(`[data-trip-id="${tripId}"]`).closest('.trip-card');
-            const departureCity = tripCard.querySelector('.location:first-child').textContent;
-            const destinationCity = tripCard.querySelector('.location:last-child').textContent;
-            const departureTime = tripCard.querySelector('.time:first-child').textContent;
-            const arrivalTime = tripCard.querySelector('.time:last-child').textContent;
-            const date = tripCard.querySelector('.trip-date').textContent;
-            
-            // Заполняем основную информацию
-            document.getElementById('modal-departure-city').textContent = departureCity;
-            document.getElementById('modal-destination-city').textContent = destinationCity;
-            document.getElementById('modal-departure-time').textContent = `${date}, ${departureTime}`;
-            document.getElementById('modal-arrival-time').textContent = `${date}, ${arrivalTime}`;
-            
-            // Получаем дополнительную информацию о поездке через AJAX
-            fetch(`/get_trip_details_profile/${tripId}/`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Полученные данные:', data); // Для отладки
-                    
-                    // Заполняем информацию о пассажирах
-                    document.getElementById('modal-passengers-count').textContent = data.passengers_count;
-                    document.getElementById('modal-max-passengers').textContent = data.max_passengers;
-                    document.getElementById('modal-price').textContent = `${data.price} ₽`;
-                    
-                    // Очищаем и заполняем список пассажиров
-                    const passengersList = document.getElementById('modal-passengers-list');
-                    passengersList.innerHTML = '';
-                    
-                    if (data.passengers && data.passengers.length > 0) {
-                        data.passengers.forEach(passenger => {
-                            const passengerItem = document.createElement('div');
-                            passengerItem.className = 'modal-passenger-item';
-                            
-                            const passengerLink = document.createElement('a');
-                            passengerLink.href = `/profile_user/?user_id=${passenger.id}`;
-                            passengerLink.textContent = `${passenger.first_name} ${passenger.last_name}`;
-                            passengerLink.style.textDecoration = 'none';
-                            passengerLink.style.color = '#5B62FF';
-                            passengerLink.style.fontWeight = '500';
-                            
-                            const removeButton = document.createElement('button');
-                            removeButton.className = 'btn btn-secondary';
-                            removeButton.textContent = 'Удалить';
-                            removeButton.style.marginLeft = 'auto';
-                            removeButton.style.padding = '4px 8px';
-                            removeButton.style.fontSize = '0.9rem';
-                            removeButton.onclick = function(e) {
-                                e.preventDefault();
-                                if (confirm(`Вы уверены, что хотите удалить пассажира ${passenger.first_name} ${passenger.last_name}?`)) {
-                                    fetch(`/remove_passenger/${tripId}/${passenger.id}/`, {
-                                        method: 'POST',
-                                        headers: {
-                                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                                        }
-                                    })
-                                    .then(response => response.json())
-                                    .then(data => {
-                                        if (data.success) {
-                                            passengerItem.remove();
-                                            const count = document.getElementById('modal-passengers-count');
-                                            count.textContent = parseInt(count.textContent) - 1;
-                                            alert('Пассажир успешно удален');
-                                        } else {
-                                            alert(data.message || 'Ошибка при удалении пассажира');
-                                        }
-                                    })
-                                    .catch(error => {
-                                        console.error('Error:', error);
-                                        alert('Ошибка при удалении пассажира');
-                                    });
-                                }
-                            };
-                            
-                            passengerItem.appendChild(passengerLink);
-                            passengerItem.appendChild(removeButton);
-                            passengersList.appendChild(passengerItem);
-                        });
-                    } else {
-                        const emptyMessage = document.createElement('div');
-                        emptyMessage.className = 'modal-passenger-item';
-                        emptyMessage.textContent = 'Пока нет пассажиров';
-                        emptyMessage.style.textAlign = 'center';
-                        emptyMessage.style.color = '#6c757d';
-                        passengersList.appendChild(emptyMessage);
-                    }
-                    
-                    // Обновляем время до начала поездки
-                    if (data.departure_datetime) {
-                        const timeUntil = document.getElementById('modal-time-until');
-                        timeUntil.setAttribute('data-departure', data.departure_datetime);
-                        updateTimeUntil(data.departure_datetime);
-                    }
-                })
-                .catch(error => {
-                    console.error('Ошибка при получении данных:', error);
-                    // Показываем сообщение об ошибке пользователю
-                    const passengersList = document.getElementById('modal-passengers-list');
-                    passengersList.innerHTML = '<li>Ошибка при загрузке данных</li>';
-                });
-            
-            modal.classList.add('show');
-        }
-        
-        function updateTimeUntil(departureDatetime) {
-            const departure = new Date(departureDatetime);
-            const now = new Date();
-            const diff = departure - now;
-            
-            const timeUntil = document.getElementById('modal-time-until');
-            
-            if (diff <= 0) {
-                timeUntil.textContent = 'Поездка уже началась';
-                return;
-            }
-            
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            
-            let timeString = '';
-            if (days > 0) timeString += `${days} д. `;
-            if (hours > 0) timeString += `${hours} ч. `;
-            timeString += `${minutes} мин.`;
-            
-            timeUntil.textContent = timeString;
-        }
-        
-        // Обновляем время до начала поездки каждую минуту
-        setInterval(() => {
-            const timeUntil = document.getElementById('modal-time-until');
-            if (timeUntil && timeUntil.textContent !== '-') {
-                const departureTime = timeUntil.getAttribute('data-departure');
-                if (departureTime) {
-                    updateTimeUntil(departureTime);
-                }
-            }
-        }, 60000);
-        
-        function closeModal() {
-            modal.classList.remove('show');
-        }
-        
-        openModalBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const tripId = this.getAttribute('data-trip-id');
-                openModal(tripId);
-            });
-        });
-        
-        closeBtn.addEventListener('click', closeModal);
-        
-        window.addEventListener('click', function(event) {
-            if (event.target === modal) {
-                closeModal();
-            }
-        });
-    });
-    </script>
+.modal-body {
+    padding: 25px;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+#map {
+    width: 100%;
+    height: 350px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+#addressSearch {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    font-size: 1rem;
+    margin-bottom: 10px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#addressSearch:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+#selectedAddress {
+    color: #495057;
+    font-size: 0.95rem;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #e9ecef;
+    border-radius: 6px;
+    min-height: 30px;
+}
+
+.modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 20px 25px;
+    border-top: 1px solid #e9ecef;
+    background-color: #f8f9fa;
+}
+
+.modal-footer .btn {
+    margin-left: 10px;
+    padding: 10px 20px;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.modal-footer .btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+.modal-footer .btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+}
+
+.modal-footer .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+.modal-footer .btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+
+.btn-close {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    padding: 0.5rem 1rem;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+.btn-close:hover {
+    opacity: 1;
+}
+    </style>
+    <!-- Модальное окно для карты -->
+<div class="modal fade" id="mapModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Выберите адрес на карте</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="map" style="height: 400px;"></div>
+                <div class="mt-3">
+                    <input type="text" id="addressSearch" class="form-control" placeholder="Поиск адреса...">
+                </div>
+                <div id="selectedAddress" class="mt-2 text-muted"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" id="confirmAddress">Подтвердить</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock content %}
+{% block js %}
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://api-maps.yandex.ru/2.1/?apikey=3eebf8cf-5f09-4a52-a48c-8eb308fc3297&lang=ru_RU"></script>
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <script src="{% static 'js/map.js' %}"></script>
+        <script src="{% static 'js/trip_calculator.js' %}"></script>
+{% endblock %}

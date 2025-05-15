@@ -1,5 +1,6 @@
 venv/scripts/activate
- cd traveling
+cd traveling
+python manage.py runserver
 
 подключение селери
 celery -A traveling worker --loglevel=info
