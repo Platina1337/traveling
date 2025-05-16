@@ -1434,12 +1434,11 @@ def add_trip(request):
                 
                 # Получаем рассчитанные данные маршрута
                 route_distance = form.cleaned_data.get('route_distance')
-                route_duration = form.cleaned_data.get('route_duration')
                 
                 logger.info(f"Route points data:")
                 logger.info(f"Departure: address={departure_address}, lat={departure_lat}, lon={departure_lon}")
                 logger.info(f"Destination: address={destination_address}, lat={destination_lat}, lon={destination_lon}")
-                logger.info(f"Route data: distance={route_distance}, duration={route_duration}")
+                logger.info(f"Route data: distance={route_distance}")
                 
                 # Создаем поездку
                 trip = Trip.objects.create(
@@ -1454,8 +1453,7 @@ def add_trip(request):
                     max_passengers=form.cleaned_data['max_passengers'],
                     price=form.cleaned_data['price'],
                     comment=form.cleaned_data['comment'],
-                    route_distance=route_distance,
-                    route_duration=route_duration
+                    route_distance=route_distance
                 )
                 logger.info(f"Created trip: {trip.id}")
                 

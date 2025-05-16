@@ -101,7 +101,6 @@ class Trip(models.Model):
     
     # Новые поля для хранения данных от Яндекс API
     route_distance = models.FloatField(null=True, blank=True)  # Расстояние в метрах
-    route_duration = models.IntegerField(null=True, blank=True)  # Длительность в секундах
 
     def has_active_trip(self):
         return Trip.objects.filter(user=self, status__in=['planned', 'in_progress']).exists()

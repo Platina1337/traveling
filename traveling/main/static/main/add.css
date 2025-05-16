@@ -172,7 +172,7 @@ header h1 {
 
 main {
     display: flex;
-    gap: 30px;
+    
 }
 
 .section {
@@ -190,6 +190,7 @@ main {
     display: flex;
     flex-direction: column;
     max-height: 730px;
+    margin: 0 auto;
 }
 
 .sort-button {
@@ -229,7 +230,7 @@ main {
 
 .trip-form form {
     width: 100%;
-    display: flex;
+    display: flexв;
     flex-direction: column;
 }
 
@@ -400,6 +401,11 @@ input[type="file"] {
 .form-group-input label {
     color: var(--color-purple);
     font-weight: bold;
+}
+.group_wrapper {
+    display: flex;
+    flex-direction: column;
+    
 }
 
 .textarea-grid label {
@@ -760,3 +766,288 @@ body.modal-open {
 
 .custom-driver-info h3::first-letter {
     color: var(--color-lightblue);
+}
+
+/* Стили для кнопок выбора адреса на карте */
+.map-address-btn {
+    background-color: var(--color-lightblue);
+    color: var(--color-white);
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 5px;
+}
+
+.map-address-btn:hover {
+    background-color: var(--color-darkblue);
+}
+
+/* Стили для блока отображения адреса */
+#departureAddressDisplay {
+    background-color: var(--color-lightestgray);
+    border: 1px solid var(--color-lightergray);
+    border-radius: 5px;
+    padding: 10px;
+    margin-top: 5px;
+    font-size: 14px;
+    color: var(--color-purple);
+    min-height: 20px;
+}
+
+#departureAddressDisplay:empty {
+    display: none;
+}
+
+/* Стили для контейнера с адресом и кнопкой */
+.address-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+/* Стили для подсказки при наведении на кнопку */
+.map-address-btn[title] {
+    position: relative;
+}
+
+.map-address-btn[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--color-darkblue);
+    color: var(--color-white);
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-bottom: 5px;
+}
+
+/* Адаптивные стили для мобильных устройств */
+@media (max-width: 768px) {
+    .map-address-btn {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+    }
+    
+    #departureAddressDisplay {
+        font-size: 16px;
+        padding: 12px;
+    }
+}
+/* Новый дизайн блока trip-duration */
+.trip-duration {
+    background-color: var(--color-white);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.trip-duration-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.trip-duration-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: var(--color-darkblue);
+}
+
+.trip-duration-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.duration-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background-color: var(--color-lightestgray);
+    border-radius: 8px;
+}
+
+.duration-info svg {
+    width: 24px;
+    height: 24px;
+    color: var(--color-lightblue);
+}
+
+.duration-text {
+    font-size: 16px;
+    color: var(--color-purple);
+}
+
+.fill-time-btn {
+    background-color: var(--color-lightblue);
+    color: var(--color-white);
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    align-self: flex-start;
+}
+
+.fill-time-btn:hover {
+    background-color: var(--color-darkblue);
+}
+
+.fill-time-btn:disabled {
+    background-color: var(--color-lightergray);
+    cursor: not-allowed;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .trip-duration {
+        padding: 15px;
+    }
+
+    .trip-duration-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .duration-info {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .fill-time-btn {
+        width: 100%;
+    }
+}
+
+/* Стили для модального окна карты */
+#mapModal.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1050;
+    overflow: hidden;
+}
+
+#mapModal.modal.fade {
+    transition: opacity 0.15s linear;
+}
+
+#mapModal.modal.show {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+#mapModal .modal-dialog {
+    position: relative;
+    width: 90%;
+    max-width: 800px;
+    margin: 1.75rem auto;
+    pointer-events: none;
+    transform: translate(0, -50px);
+    transition: transform 0.3s ease-out;
+}
+
+#mapModal.modal.show .modal-dialog {
+    transform: none;
+}
+
+#mapModal .modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    pointer-events: auto;
+    background-color: var(--color-white);
+    border-radius: 12px;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    outline: 0;
+}
+
+#mapModal .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid var(--color-lightergray);
+}
+
+#mapModal .modal-title {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--color-darkblue);
+    font-weight: 600;
+}
+
+#mapModal .modal-body {
+    position: relative;
+    flex: 1 1 auto;
+    padding: 1rem;
+}
+
+#mapModal .modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 1rem;
+    border-top: 1px solid var(--color-lightergray);
+}
+
+#mapModal .close {
+    padding: 1rem;
+    margin: -1rem -1rem -1rem auto;
+    background: transparent;
+    border: 0;
+    font-size: 1.5rem;
+    color: var(--color-purple);
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+#mapModal .close:hover {
+    color: var(--color-darkblue);
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    #mapModal .modal-dialog {
+        width: 95%;
+        margin: 0.5rem auto;
+    }
+    
+    #mapModal .modal-header {
+        padding: 0.75rem;
+    }
+    
+    #mapModal .modal-body {
+        padding: 0.75rem;
+    }
+    
+    #mapModal .modal-footer {
+        padding: 0.75rem;
+    }
+    
+    #mapModal .modal-title {
+        font-size: 1.1rem;
+    }
+}

@@ -148,17 +148,13 @@ class TripForm(forms.Form):
     )
 
     # Скрытые поля для координат и адресов
+    route_distance = forms.FloatField(required=False, widget=forms.HiddenInput())
     departure_address = forms.CharField(required=False, widget=forms.HiddenInput())
-    destination_address = forms.CharField(required=False, widget=forms.HiddenInput())
     departure_lat = forms.FloatField(required=False, widget=forms.HiddenInput())
     departure_lon = forms.FloatField(required=False, widget=forms.HiddenInput())
+    destination_address = forms.CharField(required=False, widget=forms.HiddenInput())
     destination_lat = forms.FloatField(required=False, widget=forms.HiddenInput())
     destination_lon = forms.FloatField(required=False, widget=forms.HiddenInput())
-    
-    # Скрытые поля для рассчитанных данных маршрута
-    route_distance = forms.FloatField(required=False, widget=forms.HiddenInput())
-    route_duration = forms.FloatField(required=False, widget=forms.HiddenInput())
-
     def clean(self):
         cleaned_data = super().clean()
 
