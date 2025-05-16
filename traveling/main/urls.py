@@ -9,7 +9,7 @@ from .views import (
     resend_verification, delete_car, edit_car, get_car_models,
     get_car_details, trip_details, get_all_trips_statuses,
     check_car_active_trips, get_trip_duration, confirm_email_change,
-    send_trip_start_emails
+    send_trip_start_emails, log_form_data
 )
 from django.conf import settings
 from django.conf.urls.static import static
@@ -31,6 +31,7 @@ urlpatterns = [
     path('logout/', logout_view, name='logout'),
     path('add_trip/', add_trip, name='add_trip'),
     path('calculate_route/', calculate_route, name='calculate_route'),
+    path('log_form_data/', log_form_data, name='log_form_data'),
     path('add_passenger/<int:trip_id>/', add_passenger, name='add_passenger'),
     path('handle_passenger_request/<int:notification_id>/<str:action>/', handle_passenger_request, name='handle_passenger_request'),
     path('remove_passenger/<int:trip_id>/<int:passenger_id>/', remove_passenger, name='remove_passenger'),

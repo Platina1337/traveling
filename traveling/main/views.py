@@ -23,7 +23,7 @@ from django.views.generic import DetailView, CreateView, ListView, TemplateView
 from django.views.generic import UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-from .models import UserProfile, Trip, City, Car, Notification, Comment, CarModel, CarBrand
+from .models import UserProfile, Trip, City, Car, Notification, Comment, CarModel, CarBrand, RoutePoint
 from .forms import LoginForm, UserRegistrationForm, UserLoginForm, TripForm, UserProfileForm, CustomPasswordChangeForm, \
     CommentForm, CarForm
 from django.contrib.auth.tokens import default_token_generator
@@ -588,7 +588,7 @@ def send_trip_notification_email(recipients, subject, message, context=None):
             
         # Определяем fail_silently в зависимости от бэкенда
         is_console_backend = settings.EMAIL_BACKEND == 'django.core.mail.backends.console.EmailBackend'
-        
+            
         send_mail(
             subject,
             message,  # Текстовая версия для клиентов, не поддерживающих HTML
@@ -638,10 +638,10 @@ def start_trip(request, trip_id):
         # Отправляем уведомления пассажирам
         message = f"Поездка из {trip.departure_city} в {trip.destination_city} началась!"
         for passenger in trip.passengers.all():
-            Notification.objects.create(
-                recipient=passenger,
-                sender=request.user.userprofile,
-                trip=trip,
+                Notification.objects.create(
+                    recipient=passenger,
+                    sender=request.user.userprofile,
+                    trip=trip,
                 message=message,
                 notification_type='start'
             )
@@ -881,7 +881,7 @@ def get_trip_details_profile(request, trip_id):
         if duration:
             duration_hours = duration.days * 24 + duration.seconds // 3600
             duration_minutes = (duration.seconds % 3600) // 60
-        
+
         trip_data = {
             'driver_id': driver.id,
             'driver_name': driver.first_name,
@@ -1393,24 +1393,55 @@ def handle_passenger_request(request, notification_id, action):
 @login_required
 def add_trip(request):
     if request.method == 'POST':
+        logger.info("\n=== Add Trip Request ===")
+        logger.info("POST data:")
+        for key, value in request.POST.items():
+            logger.info(f"{key}: {value}")
+        
         form = TripForm(request.POST, user=request.user)
+        logger.info(f"Form is valid: {form.is_valid()}")
+        if not form.is_valid():
+            logger.error(f"Form errors: {form.errors}")
+        
         if form.is_valid():
+            logger.info("Form is valid")
             try:
                 car_id = form.cleaned_data['car_name']
                 car = Car.objects.get(id=car_id)
+                logger.info(f"Found car: {car}")
                 
                 # Получаем первый найденный город или создаем новый
                 departure_city = City.objects.filter(name=form.cleaned_data['departure_city']).first()
                 if not departure_city:
                     departure_city = City.objects.create(name=form.cleaned_data['departure_city'])
+                logger.info(f"Departure city: {departure_city}")
                     
                 destination_city = City.objects.filter(name=form.cleaned_data['destination_city']).first()
                 if not destination_city:
                     destination_city = City.objects.create(name=form.cleaned_data['destination_city'])
+                logger.info(f"Destination city: {destination_city}")
                 
                 departure_datetime = form.cleaned_data['departure_time']
                 arrival_datetime = form.cleaned_data['arrival_time']
                 
+                # Получаем координаты точек маршрута
+                departure_address = form.cleaned_data.get('departure_address')
+                destination_address = form.cleaned_data.get('destination_address')
+                departure_lat = form.cleaned_data.get('departure_lat')
+                departure_lon = form.cleaned_data.get('departure_lon')
+                destination_lat = form.cleaned_data.get('destination_lat')
+                destination_lon = form.cleaned_data.get('destination_lon')
+                
+                # Получаем рассчитанные данные маршрута
+                route_distance = form.cleaned_data.get('route_distance')
+                route_duration = form.cleaned_data.get('route_duration')
+                
+                logger.info(f"Route points data:")
+                logger.info(f"Departure: address={departure_address}, lat={departure_lat}, lon={departure_lon}")
+                logger.info(f"Destination: address={destination_address}, lat={destination_lat}, lon={destination_lon}")
+                logger.info(f"Route data: distance={route_distance}, duration={route_duration}")
+                
+                # Создаем поездку
                 trip = Trip.objects.create(
                     user=request.user.userprofile,
                     car=car,
@@ -1422,13 +1453,76 @@ def add_trip(request):
                     arrival_time=arrival_datetime.time(),
                     max_passengers=form.cleaned_data['max_passengers'],
                     price=form.cleaned_data['price'],
-                    comment=form.cleaned_data['comment']
+                    comment=form.cleaned_data['comment'],
+                    route_distance=route_distance,
+                    route_duration=route_duration
                 )
+                logger.info(f"Created trip: {trip.id}")
+                
+                # Создаем точки маршрута
+                try:
+                    if all([departure_address, departure_lat, departure_lon]):
+                        departure_point = RoutePoint.objects.create(
+                            trip=trip,
+                            address=departure_address,
+                            latitude=departure_lat,
+                            longitude=departure_lon,
+                            order=1,
+                            is_departure=True,
+                            is_destination=False
+                        )
+                        logger.info(f"Created departure RoutePoint: {departure_point.id}")
+                    else:
+                        logger.warning("Missing departure point data")
+                        logger.warning(f"departure_address: {departure_address}")
+                        logger.warning(f"departure_lat: {departure_lat}")
+                        logger.warning(f"departure_lon: {departure_lon}")
+                    
+                    if all([destination_address, destination_lat, destination_lon]):
+                        destination_point = RoutePoint.objects.create(
+                            trip=trip,
+                            address=destination_address,
+                            latitude=destination_lat,
+                            longitude=destination_lon,
+                            order=2,
+                            is_departure=False,
+                            is_destination=True
+                        )
+                        logger.info(f"Created destination RoutePoint: {destination_point.id}")
+                    else:
+                        logger.warning("Missing destination point data")
+                        logger.warning(f"destination_address: {destination_address}")
+                        logger.warning(f"destination_lat: {destination_lat}")
+                        logger.warning(f"destination_lon: {destination_lon}")
+                except Exception as e:
+                    logger.error(f"Error creating RoutePoints: {str(e)}")
+                    # Удаляем поездку, если не удалось создать точки маршрута
+                    trip.delete()
+                    raise
                 
                 messages.success(request, 'Поездка успешно создана!')
+                logger.info("Trip creation completed successfully")
+                logger.info("===================\n")
                 return redirect('main:profile')
             except Car.DoesNotExist:
+                logger.error("Selected car not found")
                 form.add_error('car_name', 'Выбранный автомобиль не найден')
+            except Exception as e:
+                logger.error(f"Error creating trip: {str(e)}")
+                messages.error(request, f'Ошибка при создании поездки: {str(e)}')
+        else:
+            logger.error(f"Form validation failed: {form.errors}")
+            # Обработка ошибок формы
+            for field, errors in form.errors.items():
+                if field == '__all__':
+                    # Обработка общих ошибок формы
+                    for error in errors:
+                        messages.error(request, error)
+                else:
+                    # Обработка ошибок конкретных полей
+                    for error in errors:
+                        field_label = form.fields[field].label if field in form.fields else field
+                        messages.error(request, f'{field_label}: {error}')
     else:
         form = TripForm(user=request.user)
     
@@ -1476,141 +1570,141 @@ def is_profile_complete(user):
     except UserProfile.DoesNotExist:
         return False
 
+@login_required
 def calculate_route(request):
-    start = request.GET.get('start')
-    end = request.GET.get('end')
+    if request.method == 'GET':
+        start = request.GET.get('start')
+        end = request.GET.get('end')
+        
+        logger.info(f"\n=== Calculate Route Request ===")
+        logger.info(f"Start: {start}")
+        logger.info(f"End: {end}")
+        
+        if not start or not end:
+            logger.error("Missing start or end parameters")
+            return JsonResponse({
+                'error': 'Необходимо указать начальный и конечный пункты'
+            }, status=400)
+        
+        try:
+            # Получаем координаты начального города
+            start_geocode_url = f'https://geocode-maps.yandex.ru/1.x/'
+            start_geocode_params = {
+                'apikey': settings.YANDEX_MAPS_API_KEY,
+                'format': 'json',
+                'geocode': start,
+                'lang': 'ru_RU'
+            }
+            logger.info(f"Requesting geocode for start city: {start_geocode_url} with params {start_geocode_params}")
+            
+            start_geocode_response = requests.get(start_geocode_url, params=start_geocode_params)
+            logger.info(f"Start city geocode response status: {start_geocode_response.status_code}")
+            
+            if start_geocode_response.status_code != 200:
+                logger.error(f"Error in start city geocoding: {start_geocode_response.text}")
+                return JsonResponse({
+                    'error': 'Ошибка при определении координат города отправления'
+                }, status=400)
+            
+            start_geocode = start_geocode_response.json()
+            
+            # Проверяем результат геокодирования для начального города
+            if not start_geocode.get('response', {}).get('GeoObjectCollection', {}).get('featureMember'):
+                logger.error(f"Could not find start city: {start}")
+                return JsonResponse({
+                    'error': f'Не удалось найти город отправления: {start}'
+                }, status=400)
+            
+            # Получаем координаты конечного города
+            end_geocode_url = f'https://geocode-maps.yandex.ru/1.x/'
+            end_geocode_params = {
+                'apikey': settings.YANDEX_MAPS_API_KEY,
+                'format': 'json',
+                'geocode': end,
+                'lang': 'ru_RU'
+            }
+            logger.info(f"Requesting geocode for end city: {end_geocode_url} with params {end_geocode_params}")
+            
+            end_geocode_response = requests.get(end_geocode_url, params=end_geocode_params)
+            logger.info(f"End city geocode response status: {end_geocode_response.status_code}")
+            
+            if end_geocode_response.status_code != 200:
+                logger.error(f"Error in end city geocoding: {end_geocode_response.text}")
+                return JsonResponse({
+                    'error': 'Ошибка при определении координат города прибытия'
+                }, status=400)
+            
+            end_geocode = end_geocode_response.json()
+            
+            # Проверяем результат геокодирования для конечного города
+            if not end_geocode.get('response', {}).get('GeoObjectCollection', {}).get('featureMember'):
+                logger.error(f"Could not find end city: {end}")
+                return JsonResponse({
+                    'error': f'Не удалось найти город прибытия: {end}'
+                }, status=400)
+            
+            # Извлекаем координаты из ответа
+            start_coords = start_geocode['response']['GeoObjectCollection']['featureMember'][0]['GeoObject']['Point']['pos']
+            end_coords = end_geocode['response']['GeoObjectCollection']['featureMember'][0]['GeoObject']['Point']['pos']
+            
+            # Меняем порядок координат (OSRM использует формат долгота,широта)
+            start_lon, start_lat = start_coords.split()
+            end_lon, end_lat = end_coords.split()
+            
+            logger.info(f"Coordinates - Start: {start_lon},{start_lat}, End: {end_lon},{end_lat}")
+            
+            # Получаем маршрут между точками через OSRM
+            route_url = f'https://router.project-osrm.org/route/v1/driving/{start_lon},{start_lat};{end_lon},{end_lat}'
+            route_params = {
+                'overview': 'false'
+            }
+            logger.info(f"Requesting route: {route_url} with params {route_params}")
+            
+            route_response = requests.get(route_url, params=route_params)
+            logger.info(f"Route response status: {route_response.status_code}")
+            
+            if route_response.status_code != 200:
+                logger.error(f"Error in route calculation: {route_response.text}")
+                return JsonResponse({
+                    'error': 'Ошибка при расчете маршрута'
+                }, status=400)
+            
+            route = route_response.json()
+            
+            # Проверяем результат расчета маршрута
+            if route.get('code') != 'Ok':
+                logger.error(f"Could not build route between cities. Response: {route}")
+                return JsonResponse({
+                    'error': 'Не удалось построить маршрут между указанными городами'
+                }, status=400)
+            
+            # Извлекаем расстояние и время из ответа
+            distance = route['routes'][0]['distance']  # в метрах
+            duration = route['routes'][0]['duration']  # в секундах
+            
+            logger.info(f"Calculated distance: {distance}m, duration: {duration}s")
+            
+            response_data = {
+                'distance': distance,
+                'duration': duration,
+                'start_lat': start_lat,
+                'start_lon': start_lon,
+                'end_lat': end_lat,
+                'end_lon': end_lon
+            }
+            
+            logger.info(f"Response data: {response_data}")
+            logger.info("===================\n")
+            
+            return JsonResponse(response_data)
+            
+        except Exception as e:
+            logger.error(f"Error calculating route: {str(e)}")
+            return JsonResponse({
+                'error': f'Ошибка при расчете маршрута: {str(e)}'
+            }, status=500)
     
-    logger.info(f"Received request for route calculation: start={start}, end={end}")
-    
-    if not start or not end:
-        logger.error("Missing start or end parameters")
-        return JsonResponse({
-            'error': 'Необходимо указать начальный и конечный пункты'
-        }, status=400)
-    
-    # Проверяем наличие API ключа для геокодирования
-    if not settings.YANDEX_MAPS_API_KEY:
-        logger.error("YANDEX_MAPS_API_KEY is not set in settings")
-        return JsonResponse({
-            'error': 'Ошибка конфигурации сервера'
-        }, status=500)
-    
-    try:
-        # Получаем координаты начального города
-        start_geocode_url = f'https://geocode-maps.yandex.ru/1.x/'
-        start_geocode_params = {
-            'apikey': settings.YANDEX_MAPS_API_KEY,
-            'format': 'json',
-            'geocode': start,
-            'lang': 'ru_RU'
-        }
-        logger.info(f"Requesting geocode for start city: {start_geocode_url} with params {start_geocode_params}")
-        
-        start_geocode_response = requests.get(start_geocode_url, params=start_geocode_params)
-        logger.info(f"Start city geocode response status: {start_geocode_response.status_code}")
-        logger.info(f"Start city geocode response content: {start_geocode_response.text}")
-        
-        if start_geocode_response.status_code != 200:
-            logger.error(f"Error in start city geocoding: {start_geocode_response.text}")
-            return JsonResponse({
-                'error': 'Ошибка при определении координат города отправления'
-            }, status=400)
-        
-        start_geocode = start_geocode_response.json()
-        
-        # Проверяем результат геокодирования для начального города
-        if not start_geocode.get('response', {}).get('GeoObjectCollection', {}).get('featureMember'):
-            logger.error(f"Could not find start city: {start}")
-            return JsonResponse({
-                'error': f'Не удалось найти город отправления: {start}'
-            }, status=400)
-        
-        # Получаем координаты конечного города
-        end_geocode_url = f'https://geocode-maps.yandex.ru/1.x/'
-        end_geocode_params = {
-            'apikey': settings.YANDEX_MAPS_API_KEY,
-            'format': 'json',
-            'geocode': end,
-            'lang': 'ru_RU'
-        }
-        logger.info(f"Requesting geocode for end city: {end_geocode_url} with params {end_geocode_params}")
-        
-        end_geocode_response = requests.get(end_geocode_url, params=end_geocode_params)
-        logger.info(f"End city geocode response status: {end_geocode_response.status_code}")
-        logger.info(f"End city geocode response content: {end_geocode_response.text}")
-        
-        if end_geocode_response.status_code != 200:
-            logger.error(f"Error in end city geocoding: {end_geocode_response.text}")
-            return JsonResponse({
-                'error': 'Ошибка при определении координат города прибытия'
-            }, status=400)
-        
-        end_geocode = end_geocode_response.json()
-        
-        # Проверяем результат геокодирования для конечного города
-        if not end_geocode.get('response', {}).get('GeoObjectCollection', {}).get('featureMember'):
-            logger.error(f"Could not find end city: {end}")
-            return JsonResponse({
-                'error': f'Не удалось найти город прибытия: {end}'
-            }, status=400)
-        
-        # Извлекаем координаты из ответа
-        start_coords = start_geocode['response']['GeoObjectCollection']['featureMember'][0]['GeoObject']['Point']['pos']
-        end_coords = end_geocode['response']['GeoObjectCollection']['featureMember'][0]['GeoObject']['Point']['pos']
-        
-        # Меняем порядок координат (OSRM использует формат долгота,широта)
-        start_lon, start_lat = start_coords.split()
-        end_lon, end_lat = end_coords.split()
-        
-        logger.info(f"Coordinates - Start: {start_lon},{start_lat}, End: {end_lon},{end_lat}")
-        
-        # Получаем маршрут между точками через OSRM
-        route_url = f'https://router.project-osrm.org/route/v1/driving/{start_lon},{start_lat};{end_lon},{end_lat}'
-        route_params = {
-            'overview': 'false'
-        }
-        logger.info(f"Requesting route: {route_url} with params {route_params}")
-        
-        route_response = requests.get(route_url, params=route_params)
-        logger.info(f"Route response status: {route_response.status_code}")
-        logger.info(f"Route response content: {route_response.text}")
-        
-        if route_response.status_code != 200:
-            logger.error(f"Error in route calculation: {route_response.text}")
-            return JsonResponse({
-                'error': 'Ошибка при расчете маршрута'
-            }, status=400)
-        
-        route = route_response.json()
-        
-        # Проверяем результат расчета маршрута
-        if route.get('code') != 'Ok':
-            logger.error(f"Could not build route between cities. Response: {route}")
-            return JsonResponse({
-                'error': 'Не удалось построить маршрут между указанными городами'
-            }, status=400)
-        
-        # Извлекаем расстояние и время из ответа
-        distance = route['routes'][0]['distance']  # в метрах
-        duration = route['routes'][0]['duration']  # в секундах
-        
-        logger.info(f"Calculated distance: {distance}m, duration: {duration}s")
-        
-        return JsonResponse({
-            'distance': distance,
-            'duration': duration
-        })
-        
-    except (KeyError, IndexError) as e:
-        logger.error(f"Error processing route data: {str(e)}")
-        return JsonResponse({
-            'error': 'Ошибка при обработке данных маршрута'
-        }, status=400)
-    except Exception as e:
-        logger.error(f"Error calculating route: {str(e)}")
-        return JsonResponse({
-            'error': f'Ошибка при расчете маршрута: {str(e)}'
-        }, status=500)
+    return JsonResponse({'error': 'Метод не поддерживается'}, status=405)
 
 @login_required
 def delete_car(request, car_id):
@@ -1914,3 +2008,15 @@ def send_trip_start_emails(request, trip_id):
         return JsonResponse({'success': False, 'message': 'Поездка не найдена'})
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)})
+
+@csrf_exempt
+def log_form_data(request):
+    """Логирует данные формы в терминал"""
+    if request.method == 'POST':
+        logger.info("\n=== Form Data Log ===")
+        logger.info("POST data:")
+        for key, value in request.POST.items():
+            logger.info(f"{key}: {value}")
+        logger.info("===================\n")
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})

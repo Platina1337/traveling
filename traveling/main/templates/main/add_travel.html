@@ -100,6 +100,8 @@
 
             <form method="post" enctype="multipart/form-data" id="tripForm" {% if not profile_complete %}class="form-disabled"{% endif %}>
                 {% csrf_token %}
+                <input type="hidden" name="route_distance" id="route_distance">
+                <input type="hidden" name="route_duration" id="route_duration">
                 <div class="form-content">
                     {% if form.errors %}
                     <div class="error-messages">
@@ -180,11 +182,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="form-group textarea-grid">
-                    <label style="margin-bottom: -20px;">Комментарий</label>
-                    {{ form.comment.errors }}
-                    {{ form.comment|add_class:"full-width-textarea" }}
-                </div>
+                
                 
                 <div class="form-actions">
                     <button type="button" style="background-color: var(--color-darkblue)">Отменить</button>
