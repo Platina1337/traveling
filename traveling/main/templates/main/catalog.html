@@ -13,72 +13,74 @@
 
 {% block content %}
     <main class="main-container" style="margin-top: 100px;">
-        <aside>
-            <form id="filter-form" action="{% url 'main:catalog' %}" method="GET" class="search-filters">
-                <div class="filter-group">
-                    <label for="departure-city">Город отправления</label>
-                    <div class="input-container">
-                        <img src="{% static 'img/departure-icon.svg' %}" alt="Icon" class="input-icon">
-                        <input type="text" id="departure-city" name="departure_city" value="{{ selected_departure_city }}" autocomplete="off" placeholder="Москва" data-url="{% url 'main:city_suggestions' %}">
-                        <div id="departure-city-suggestions" class="suggestions"></div>
-                    </div>
-                </div>
-                <div class="filter-group">
-                    <label for="arrival-city">Город прибытия</label>
-                    <div class="input-container">
-                        <img src="{% static 'img/departure-icon.svg' %}" alt="Icon" class="input-icon">
-                        <input type="text" id="arrival-city" name="destination_city" value="{{ selected_destination_city }}" autocomplete="off" placeholder="Екатеринбург" data-url="{% url 'main:city_suggestions' %}">
-                        <div id="arrival-city-suggestions" class="suggestions"></div>
-                    </div>
-                </div>
-                <div class="filter-group">
-                    <label for="trip-date">Дата поездки</label>
-                    <div class="input-container">
-                        <img src="{% static 'img/date-icon.svg' %}" alt="Icon" class="input-icon">
-                        <input type="date" id="trip-date" name="date" value="{{ selected_date }}">
-                    </div>
-                </div>
-                <div class="filter-group">
-                    <label for="passengers">Количество пассажиров</label>
-                    <div class="select-container">
-                        <img src="{% static 'img/passengers-icon.svg' %}" alt="Icon" class="select-icon">
-                        <select id="passengers" name="passengers">
-                            <option value="" {% if selected_passengers == '' %}selected{% endif %}>Выберите количество</option>
-                            <option value="1" {% if selected_passengers == '1' %}selected{% endif %}>1 человек</option>
-                            <option value="2" {% if selected_passengers == '2' %}selected{% endif %}>2 человека</option>
-                            <option value="3" {% if selected_passengers == '3' %}selected{% endif %}>3 человека</option>
-                            <option value="4" {% if selected_passengers == '4' %}selected{% endif %}>4 человека</option>
-                        </select>
-                    </div>
-                </div>
-                <input type="hidden" name="price_min" value="{{ selected_price_min }}">
-                <input type="hidden" name="price_max" value="{{ selected_price_max }}">
-                <button class="search-button" type="submit">Найти поездку</button>
-            </form>
-            <div class="additional-filters">
-                <a href="{% url 'main:catalog' %}" class="reset-filters">Сбросить фильтры</a>
-                <form id="cost-filter-form" action="{% url 'main:catalog' %}" method="GET">
-                    <input type="hidden" name="departure_city" value="{{ selected_departure_city }}">
-                    <input type="hidden" name="destination_city" value="{{ selected_destination_city }}">
-                    <input type="hidden" name="date" value="{{ selected_date }}">
-                    <input type="hidden" name="passengers" value="{{ selected_passengers }}">
+        <div class="filters-wrapper">
+            <aside class="filters-sidebar">
+                <form id="filter-form" action="{% url 'main:catalog' %}" method="GET" class="search-filters">
                     <div class="filter-group">
-                        <label for="trip-cost" class="trip-cost">Стоимость поездки</label>
-                        <div class="range-slider">
-                            <input type="range" id="min-cost" name="price_min" min="{{ min_price }}" max="{{ max_price }}" value="{{ selected_price_min }}">
-                            <input type="range" id="max-cost" name="price_max" min="{{ min_price }}" max="{{ max_price }}" value="{{ selected_price_max }}">
-                            <div class="slider-track"></div>
-                        </div>
-                        <div class="range-values">
-                            <span>от</span>
-                            <input type="number" id="min-cost-value" name="price_min" value="{{ selected_price_min }}" min="{{ min_price }}" max="{{ max_price }}"> ₽
-                            <span>до</span>
-                            <input type="number" id="max-cost-value" name="price_max" value="{{ selected_price_max }}" min="{{ min_price }}" max="{{ max_price }}"> ₽
+                        <label for="departure-city">Город отправления</label>
+                        <div class="input-container">
+                            <img src="{% static 'img/departure-icon.svg' %}" alt="Icon" class="input-icon">
+                            <input type="text" id="departure-city" name="departure_city" value="{{ selected_departure_city }}" autocomplete="off" placeholder="Москва" data-url="{% url 'main:city_suggestions' %}">
+                            <div id="departure-city-suggestions" class="suggestions"></div>
                         </div>
                     </div>
+                    <div class="filter-group">
+                        <label for="arrival-city">Город прибытия</label>
+                        <div class="input-container">
+                            <img src="{% static 'img/departure-icon.svg' %}" alt="Icon" class="input-icon">
+                            <input type="text" id="arrival-city" name="destination_city" value="{{ selected_destination_city }}" autocomplete="off" placeholder="Екатеринбург" data-url="{% url 'main:city_suggestions' %}">
+                            <div id="arrival-city-suggestions" class="suggestions"></div>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label for="trip-date">Дата поездки</label>
+                        <div class="input-container">
+                            <img src="{% static 'img/date-icon.svg' %}" alt="Icon" class="input-icon">
+                            <input type="date" id="trip-date" name="date" value="{{ selected_date }}">
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label for="passengers">Количество пассажиров</label>
+                        <div class="select-container">
+                            <img src="{% static 'img/passengers-icon.svg' %}" alt="Icon" class="select-icon">
+                            <select id="passengers" name="passengers">
+                                <option value="" {% if selected_passengers == '' %}selected{% endif %}>Выберите количество</option>
+                                <option value="1" {% if selected_passengers == '1' %}selected{% endif %}>1 человек</option>
+                                <option value="2" {% if selected_passengers == '2' %}selected{% endif %}>2 человека</option>
+                                <option value="3" {% if selected_passengers == '3' %}selected{% endif %}>3 человека</option>
+                                <option value="4" {% if selected_passengers == '4' %}selected{% endif %}>4 человека</option>
+                            </select>
+                        </div>
+                    </div>
+                    <input type="hidden" name="price_min" value="{{ selected_price_min }}">
+                    <input type="hidden" name="price_max" value="{{ selected_price_max }}">
+                    
                 </form>
-            </div>
-        </aside>
+                <div class="additional-filters">
+                    <a href="{% url 'main:catalog' %}" class="reset-filters">Сбросить фильтры</a>
+                    <form id="cost-filter-form" action="{% url 'main:catalog' %}" method="GET">
+                        <input type="hidden" name="departure_city" value="{{ selected_departure_city }}">
+                        <input type="hidden" name="destination_city" value="{{ selected_destination_city }}">
+                        <input type="hidden" name="date" value="{{ selected_date }}">
+                        <input type="hidden" name="passengers" value="{{ selected_passengers }}">
+                        <div class="filter-group">
+                            <label for="trip-cost" class="trip-cost">Стоимость поездки</label>
+                            <div class="range-slider">
+                                <input type="range" id="min-cost" name="price_min" min="{{ min_price }}" max="{{ max_price }}" value="{{ selected_price_min }}">
+                                <input type="range" id="max-cost" name="price_max" min="{{ min_price }}" max="{{ max_price }}" value="{{ selected_price_max }}">
+                                <div class="slider-track"></div>
+                            </div>
+                            <div class="range-values">
+                                <span>от</span>
+                                <input type="number" id="min-cost-value" name="price_min" value="{{ selected_price_min }}" min="{{ min_price }}" max="{{ max_price }}"> ₽
+                                <span>до</span>
+                                <input type="number" id="max-cost-value" name="price_max" value="{{ selected_price_max }}" min="{{ min_price }}" max="{{ max_price }}"> ₽
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </aside>
+        </div>
         <section class="trip-results" id="trips-container">
             <div class="pagination top-pagination" id="top-pagination"></div>
             <p>Всего найдено {{ trips_with_duration|length }} поездок</p>
@@ -178,6 +180,7 @@
     </button>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Пагинация
             const itemsPerPage = 5;
             const trips = document.querySelectorAll('.trip');
             const totalItems = trips.length;
@@ -273,9 +276,146 @@
                 });
             }
             
-            // Инициализация
+            // Инициализация пагинации
             showPage(currentPage);
             createPagination();
+
+            // Обработка фильтров
+            const filterForm = document.getElementById('filter-form');
+            const costFilterForm = document.getElementById('cost-filter-form');
+            const departureCityInput = document.getElementById('departure-city');
+            const destinationCityInput = document.getElementById('arrival-city');
+            const dateInput = document.getElementById('trip-date');
+            const passengersSelect = document.getElementById('passengers');
+            const minCostInput = document.getElementById('min-cost');
+            const maxCostInput = document.getElementById('max-cost');
+            const minCostValue = document.getElementById('min-cost-value');
+            const maxCostValue = document.getElementById('max-cost-value');
+
+            // Функция для обновления URL с параметрами фильтров
+            function updateURL(params) {
+                const url = new URL(window.location.href);
+                Object.keys(params).forEach(key => {
+                    if (params[key]) {
+                        url.searchParams.set(key, params[key]);
+                    } else {
+                        url.searchParams.delete(key);
+                    }
+                });
+                window.history.pushState({}, '', url);
+            }
+
+            // Обработка изменений в полях фильтров
+            [departureCityInput, destinationCityInput, dateInput, passengersSelect].forEach(element => {
+                element.addEventListener('change', function() {
+                    const formData = new FormData(filterForm);
+                    const params = {};
+                    formData.forEach((value, key) => {
+                        params[key] = value;
+                    });
+                    updateURL(params);
+                    filterForm.submit();
+                });
+            });
+
+            // Обработка автодополнения для городов
+            function setupCityAutocomplete(inputElement, suggestionsElement) {
+                let timeoutId;
+                
+                inputElement.addEventListener('input', function() {
+                    clearTimeout(timeoutId);
+                    const query = this.value.trim();
+                    
+                    if (query.length < 2) {
+                        suggestionsElement.innerHTML = '';
+                        return;
+                    }
+
+                    timeoutId = setTimeout(() => {
+                        fetch(`${this.dataset.url}?q=${encodeURIComponent(query)}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                suggestionsElement.innerHTML = '';
+                                data.forEach(city => {
+                                    const div = document.createElement('div');
+                                    div.className = 'suggestion-item';
+                                    div.textContent = city.name;
+                                    div.addEventListener('click', () => {
+                                        inputElement.value = city.name;
+                                        suggestionsElement.innerHTML = '';
+                                        inputElement.dispatchEvent(new Event('change'));
+                                    });
+                                    suggestionsElement.appendChild(div);
+                                });
+                            })
+                            .catch(error => console.error('Error:', error));
+                    }, 300);
+                });
+
+                // Закрытие подсказок при клике вне
+                document.addEventListener('click', function(e) {
+                    if (!inputElement.contains(e.target) && !suggestionsElement.contains(e.target)) {
+                        suggestionsElement.innerHTML = '';
+                    }
+                });
+            }
+
+            // Настройка автодополнения для обоих полей городов
+            setupCityAutocomplete(departureCityInput, document.getElementById('departure-city-suggestions'));
+            setupCityAutocomplete(destinationCityInput, document.getElementById('arrival-city-suggestions'));
+
+            // Обработка слайдера цен
+            function updateCostFilter() {
+                const minValue = parseInt(minCostInput.value);
+                const maxValue = parseInt(maxCostInput.value);
+                
+                if (minValue > maxValue) {
+                    minCostInput.value = maxValue;
+                    minCostValue.value = maxValue;
+                }
+                
+                minCostValue.value = minCostInput.value;
+                maxCostValue.value = maxCostInput.value;
+
+                // Обновляем URL и отправляем форму
+                const formData = new FormData(costFilterForm);
+                const params = {};
+                formData.forEach((value, key) => {
+                    params[key] = value;
+                });
+                updateURL(params);
+                costFilterForm.submit();
+            }
+
+            // Обработчики событий для слайдера цен
+            [minCostInput, maxCostInput].forEach(input => {
+                input.addEventListener('input', updateCostFilter);
+            });
+
+            [minCostValue, maxCostValue].forEach(input => {
+                input.addEventListener('change', function() {
+                    const value = parseInt(this.value);
+                    const min = parseInt(minCostInput.min);
+                    const max = parseInt(minCostInput.max);
+                    
+                    if (value < min) this.value = min;
+                    if (value > max) this.value = max;
+                    
+                    if (this === minCostValue) {
+                        minCostInput.value = this.value;
+                    } else {
+                        maxCostInput.value = this.value;
+                    }
+                    
+                    updateCostFilter();
+                });
+            });
+
+            // Обработка сброса фильтров
+            document.querySelector('.reset-filters').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = this.href;
+            });
         });
 
         function joinTrip(tripId) {

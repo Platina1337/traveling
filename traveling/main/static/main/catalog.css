@@ -662,8 +662,7 @@ aside {
     }
 
     .trip-header {
-        flex-direction: column;
-        gap: 12px;
+        
     }
 
     .trip-footer {
@@ -680,7 +679,7 @@ aside {
 
 @media (max-width: 760px) {
     .trip {
-        margin: 0 -20px;
+        
         border-radius: 0;
         box-shadow: none;
         border-bottom: 1px solid var(--color-lightergray);
@@ -727,7 +726,7 @@ aside {
 
 @media (max-width: 480px) {
     .trip {
-        margin: 0 -12px;
+        
     }
 
     .trip-image {
@@ -758,15 +757,12 @@ aside {
     }
 
     .route-points {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
+        justify-content: space-between;
+    
     }
 
     .route-line {
-        width: 2px;
-        height: 20px;
-        margin: 4px 0;
+        display: none;
     }
 
     .route-line::before,
@@ -886,5 +882,179 @@ aside {
     .pagination-item svg {
         width: 16px;
         height: 16px;
+    }
+}
+
+/* Адаптивная верстка */
+@media screen and (max-width: 960px) {
+    .main-container {
+        flex-direction: column;
+        padding: 0;
+        gap: 0px;
+    }
+
+    .filters-wrapper {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    .filters-sidebar {
+        width: 100%;
+        position: static;
+        padding: 20px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        height: auto;
+        box-sizing: border-box;
+    }
+
+    .search-filters {
+        max-width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        background-color: transparent;
+        padding: 0;
+        box-shadow: none;
+    }
+
+    .filter-group {
+        margin-bottom: 0;
+        width: 100%;
+    }
+
+    .input-container,
+    .select-container {
+        width: 100%;
+    }
+
+    .input-container input,
+    .select-container select {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    .search-button {
+        grid-column: 1 / -1;
+        width: 100%;
+        padding: 15px;
+        font-size: 16px;
+        margin-top: 10px;
+    }
+
+    .additional-filters {
+        max-width: 90%;
+        margin-top: 10px;
+        padding-top: 5px;
+        border-top: 1px solid #e0e0e0;
+        background-color: transparent;
+        box-sizing: border-box;
+        padding-right: 0px;
+        padding-left: 0px;
+        
+        margin-right: auto;
+        
+        margin-left: auto;
+    }
+
+    .reset-filters {
+        display: block;
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 16px;
+    }
+
+    .range-slider {
+        margin: 20px 0;
+    }
+
+    .range-values {
+        display: flex;
+        gap: 15px;
+        margin-top: 15px;
+        flex-wrap: wrap;
+    }
+
+    .range-values input {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+    }
+
+    .trip-results {
+        width: 100%;
+        margin-left: 0;
+        padding: 0;
+    }
+
+    .trip {
+        flex-direction: column;
+    }
+
+    .trip-image {
+        width: 100%;
+        height: 200px;
+    }
+
+    .trip-content {
+        padding: 20px;
+    }
+
+    .trip-route {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+   
+
+    .trip-footer {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .trip-actions {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .pagination {
+        justify-content: center;
+        margin: 20px 0;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .search-filters {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .filter-group {
+        width: 100%;
+    }
+
+    .range-values {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .range-values input {
+        width: 100%;
+    }
+
+    .trip-image {
+        height: 150px;
+    }
+
+    .trip-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .trip-seats {
+        margin-left: 0;
     }
 }
