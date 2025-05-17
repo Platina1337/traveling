@@ -177,52 +177,6 @@
         <img src="{% static 'img/arrow-up.svg' %}" alt="Наверх">
     </button>
     <script>
-    function joinTrip(tripId) {
-        fetch(`/join_trip/${tripId}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showNotification('Запрос на присоединение к поездке отправлен');
-                // Обновляем UI после успешного присоединения
-                updateTripUI(tripId);
-            } else {
-                // Показываем сообщение об ошибке
-                if (data.error) {
-                    showNotification(data.error, 'error');
-                } else {
-                    showNotification('Произошла ошибка при присоединении к поездке', 'error');
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification('Произошла ошибка при присоединении к поездке', 'error');
-        });
-    }
-
-    function showNotification(message, type = 'success') {
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.innerHTML = `
-            <span class="close" onclick="this.parentElement.remove()">&times;</span>
-            <p>${message}</p>
-        `;
-        document.body.appendChild(notification);
-        
-        // Автоматически удаляем уведомление через 5 секунд
-        setTimeout(() => {
-            notification.remove();
-        }, 5000);
-    }
-    </script>
-    <script src="{% static 'js/search.js' %}"></script>
-    <script>
         document.addEventListener('DOMContentLoaded', function() {
             const itemsPerPage = 5;
             const trips = document.querySelectorAll('.trip');
@@ -276,7 +230,7 @@
                         pageButtons += '<span class="pagination-ellipsis">...</span>';
                     }
                 }
-
+                
                 const nextButtons = `
                     <button class="pagination-item next-page" ${currentPage === totalPages ? 'disabled' : ''}>
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -295,12 +249,12 @@
                 
                 topPagination.innerHTML = paginationHTML + pageButtons + nextButtons;
                 bottomPagination.innerHTML = paginationHTML + pageButtons + nextButtons;
-
+                
                 // Добавляем обработчики событий
                 document.querySelectorAll('.pagination-item').forEach(button => {
                     button.addEventListener('click', function() {
                         if (this.hasAttribute('disabled')) return;
-
+                        
                         if (this.classList.contains('first-page')) {
                             currentPage = 1;
                         } else if (this.classList.contains('prev-page')) {
@@ -312,16 +266,61 @@
                         } else if (this.hasAttribute('data-page')) {
                             currentPage = parseInt(this.getAttribute('data-page'));
                         }
-
+                        
                         showPage(currentPage);
                         createPagination();
                     });
                 });
             }
-
+            
             // Инициализация
             showPage(currentPage);
             createPagination();
         });
+
+        function joinTrip(tripId) {
+            fetch(`/join_trip/${tripId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Запрос на присоединение к поездке отправлен');
+                    // Обновляем UI после успешного присоединения
+                    updateTripUI(tripId);
+                } else {
+                    // Показываем сообщение об ошибке
+                    if (data.error) {
+                        showNotification(data.error, 'error');
+                    } else {
+                        showNotification('Произошла ошибка при присоединении к поездке', 'error');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Произошла ошибка при присоединении к поездке', 'error');
+            });
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <span class="close" onclick="this.parentElement.remove()">&times;</span>
+                <p>${message}</p>
+            `;
+            document.body.appendChild(notification);
+            
+            // Автоматически удаляем уведомление через 5 секунд
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
     </script>
+    <script src="{% static 'js/search.js' %}"></script>
 {% endblock content %}
