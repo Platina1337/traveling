@@ -138,173 +138,167 @@ main {
 }
 
 .trip-results {
-    margin-left: 370px;
+    margin-left: 390px;
     flex-grow: 1;
     padding: 20px;
 }
 
 .trip-results p {
-    margin: 0 0 20px 0;
-    font-size: 18px;
-    color: var(--color-purple)
+    
 }
 
 .trip {
+    background: var(--color-white);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 24px;
     display: flex;
-    max-width: 1190px !important;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.trip:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+}
+
+.trip-image {
+    width: 280px;
+    flex-shrink: 0;
+}
+
+.trip-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.trip-content {
+    flex: 1;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
     gap: 20px;
-    background-color: var(--color-white);
-    border-radius: 5px;
-    box-shadow: 0 0 5px rgba(0,0,0,0.08);
-    padding-right: 20px;
-    margin-bottom: 20px;
+}
+
+.trip-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.trip-header h2 {
+    color: var(--color-darkblue);
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.trip-seats {
+    color: var(--color-purple);
+    font-size: 16px;
+    margin: 0;
+    padding: 6px 12px;
+    background: var(--color-lightestgray);
+    border-radius: 8px;
+}
+
+.trip-route {
+    background: var(--color-lightestgray);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.route-points {
+    display: flex;
     align-items: center;
-    flex: 1 2 200px;
-    min-width: 200px;
-    box-sizing: border-box;
-    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 12px;
 }
 
-.trip-price-card {
-    color: #141732 !important;
-    font-size: 32px !important;
-    font-weight: 600 !important;
+.departure, .arrival {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
-.trip-location {
+.departure .time, .arrival .time {
+    color: var(--color-darkblue);
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.departure .city, .arrival .city {
+    color: var(--color-purple);
+    font-size: 16px;
+}
+
+.route-line {
+    flex: 1;
+    height: 2px;
+    background: var(--color-lightblue2);
+    position: relative;
+}
+
+.route-line::before,
+.route-line::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-lightblue);
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.route-line::before {
+    left: 0;
+}
+
+.route-line::after {
+    right: 0;
+}
+
+.trip-duration {
+    text-align: center;
+    color: var(--color-purple);
+    font-size: 14px;
+}
+
+.trip-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: auto;
 }
 
-.trip-time {
-    display: block !important;
-}
-
-
-
-
-
-.trip-time,
-.trip-locations {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: #444766;
-}
-
-.trip-time .time,
-.trip-locations .location {
-    font-size: 20px;
-    font-weight: bold;
-}
-
-.trip-time {
-    max-width: 200px;
-}
-
-.trip-locations {
-    max-width: 350px;
-}
-
-.trip-time .svg-container {
-    display: flex;
-    align-items: center;
-}
-
-.trip-time svg {
-    margin: 0 5px;
+.driver-info p {
+    color: var(--color-darkblue);
+    font-size: 16px;
+    margin: 0;
 }
 
 .trip-price {
     font-size: 24px;
-    font-weight: bold;
+    font-weight: 600;
     color: var(--color-darkblue);
-    text-align: right;
 }
 
-
-
-.trip-your-text {
-    font-size: 20px;
-    font-weight: bold;
-    color: var(--color-darkblue);
-    text-align: right;
-}
-
-.trip-header div {
-    margin: 5px 0;
-}
-
-aside {
-    position: fixed;
-    top: 100px;
-    left: 20px;
-    width: 350px;
-    height: calc(100vh - 120px);
-    background-color: var(--color-lightestgray);
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    overflow-y: auto;
-    z-index: 100;
-}
-
-.trip-locations .location:last-child {
-    text-align: right;
-}
-
-.trip-details {
+.trip-actions {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: #444766;
-}
-
-.trip-date,
-.trip-link {
-    font-size: 18px;
-    color: var(--color-darkblue);
-}
-
-.trip-link a {
-    text-decoration: none;
-    color: var(--color-lightblue);
-    font-weight: bold;
-}
-
-.duration {
-    white-space: nowrap;
-}
-
-.time-card {
-    display: flex;
-    justify-content: space-between;
-
-}
-
-
-
-
-
-
-.trip img {
-    width: 200px;
-    height: 200px;
-    border-radius: 5px 0 0 5px;
+    gap: 12px;
 }
 
 .trip-info {
-    flex-grow: 1;
 }
 
 .trip-info h2 {
-    margin: 0;
-    font-size: 24px;
+    
 }
 
 .trip-info p {
-    margin: 5px 0;
+    
 }
 
 .card-flex-name {
@@ -629,60 +623,268 @@ body.modal-open {
     color: var(--color-lightblue);
 }
 
+aside {
+    position: fixed;
+    top: 100px;
+    left: 20px;
+    width: 350px;
+    height: calc(100vh - 120px);
+    background-color: var(--color-lightestgray);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    overflow-y: auto;
+    z-index: 100;
+}
 
-@media (max-width: 800px) {
+@media (max-width: 1200px) {
     .trip {
-        flex: 1 1 100%; /* Блоки будут занимать всю ширину контейнера */
-    }
-
-    .trip-locations {
-        flex-direction: column; /* Переносим элементы на новую строку вертикально */
-    }
-
-    .card-flex-btns,
-    .trip-time {
-        display: block; /* Изменяем display на block для переноса на новую строку */
-        width: 100%; /* Убедитесь, что элементы занимают всю доступную ширину */
-        margin-top: 10px; /* Добавьте отступ между элементами */
-    }
-
-    .trip-location {
-        display: block !important;
-    }
-
-    .trip-locations {
-        display: flex !important;
-    }
-}
-
-
-@media (max-width: 640px) {
-    main {
-        flex-wrap: wrap !important;
-        max-width: 100%
-    }
-}
-
-@media (max-width: 500px) {
-    .trip {
-        display:flex;
-        display: justify-content-center
-    }
-}
-
-@media (max-width: 768px) {
-    .main-container {
         flex-direction: column;
     }
 
-    aside {
-        position: static;
+    .trip-image {
         width: 100%;
-        height: auto;
-        margin-bottom: 20px;
+        height: 240px;
     }
 
-    .trip-results {
-        margin-left: 0;
+    .trip-content {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 900px) {
+    .trip-image {
+        height: 200px;
+    }
+
+    .trip-content {
+        padding: 16px;
+    }
+
+    .trip-header {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .trip-footer {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+    }
+
+    .trip-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 760px) {
+    .trip {
+        margin: 0 -20px;
+        border-radius: 0;
+        box-shadow: none;
+        border-bottom: 1px solid var(--color-lightergray);
+    }
+
+    .trip:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .trip-image {
+        height: 160px;
+    }
+
+    .trip-content {
+        padding: 12px;
+        gap: 12px;
+    }
+
+    .trip-header h2 {
+        font-size: 20px;
+    }
+
+    .trip-route {
+        padding: 12px;
+    }
+
+    .route-points {
+        gap: 8px;
+    }
+
+    .departure .time, .arrival .time {
+        font-size: 16px;
+    }
+
+    .departure .city, .arrival .city {
+        font-size: 14px;
+    }
+
+    .trip-duration {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .trip {
+        margin: 0 -12px;
+    }
+
+    .trip-image {
+        height: 140px;
+    }
+
+    .trip-content {
+        padding: 10px;
+        gap: 10px;
+    }
+
+    .trip-header {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .trip-header h2 {
+        font-size: 18px;
+    }
+
+    .trip-seats {
+        font-size: 14px;
+        padding: 4px 8px;
+    }
+
+    .trip-route {
+        padding: 10px;
+    }
+
+    .route-points {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .route-line {
+        width: 2px;
+        height: 20px;
+        margin: 4px 0;
+    }
+
+    .route-line::before,
+    .route-line::after {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .route-line::before {
+        top: 0;
+    }
+
+    .route-line::after {
+        top: 100%;
+    }
+
+    .trip-footer {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .driver-info p {
+        font-size: 14px;
+    }
+
+    .trip-price {
+        font-size: 20px;
+    }
+
+    .trip-actions {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .trip-actions button {
+        flex: 1;
+        min-width: 120px;
+        font-size: 14px;
+        padding: 8px;
+    }
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin: 20px 0;
+    padding: 10px;
+}
+
+.top-pagination {
+    margin-bottom: 0;
+}
+
+.bottom-pagination {
+    margin-top: 0;
+}
+
+.pagination-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    border-radius: 4px;
+    background-color: var(--color-white);
+    color: var(--color-darkblue);
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    border: 1px solid var(--color-lightergray);
+    cursor: pointer;
+}
+
+.pagination-item:hover:not([disabled]) {
+    background-color: var(--color-lightblue);
+    color: var(--color-white);
+    border-color: var(--color-lightblue);
+}
+
+.pagination-item.active {
+    background-color: var(--color-lightblue);
+    color: var(--color-white);
+    border-color: var(--color-lightblue);
+}
+
+.pagination-item[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-item svg {
+    width: 20px;
+    height: 20px;
+}
+
+.pagination-ellipsis {
+    color: var(--color-darkblue);
+    padding: 0 4px;
+}
+
+@media (max-width: 760px) {
+    .pagination {
+        gap: 4px;
+    }
+
+    .pagination-item {
+        min-width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+
+    .pagination-item svg {
+        width: 16px;
+        height: 16px;
     }
 }
