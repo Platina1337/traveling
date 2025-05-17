@@ -144,33 +144,67 @@
             {% endfor %}
             <div class="pagination bottom-pagination" id="bottom-pagination"></div>
         </section>
-        <div id="customModal" class="custom-modal">
-            <div class="custom-modal-content">
-                <span class="custom-close-btn">&times;</span>
-                <div class="custom-driver-info">
-                    <h3>О водителе</h3>
-                    <img src="{% static 'img/women-high-fiving-car.png' %}" alt="Driver" class="custom-driver-photo" id="driver-photo">
-                    <div class="custom-driver-details">
-                        <h2 id="driver-name"><a href="{% url 'main:profile_user' %}?user_id={{ driver_id }}">{{ driver_name }} {{ driver_surname }} <span id="driver-rating" class="custom-rating">{{ driver_rating }}&#9733;</span></a></h2>
-                        <p id="driver-description">Описание водителя</p>
+        <div id="customModal" class="custom-trip-modal">
+            <div class="custom-trip-modal-content">
+                <button class="custom-trip-close-btn">&times;</button>
+                <div class="modal-header">
+                    <h2 class="modal-title">Детали поездки</h2>
+                </div>
+                <div class="driver-info-section">
+                    <div class="driver-info-content">
+                        <div class="driver-photo">
+                            <img src="" alt="Фото водителя" id="driver-photo">
+                        </div>
+                        <div class="driver-details">
+                            <a href="" class="driver-name" id="driver-name"></a>
+                            <p class="driver-description" id="driver-description"></p>
+                        </div>
                     </div>
                 </div>
-                <div class="custom-trip-details">
-                    <h3>Детали поездки</h3>
-                    <div class="custom-trip-info">
-                        <div class="custom-from">
-                            <p><strong>Откуда</strong></p>
-                            <p id="trip-from-address">Адрес отправления</p>
-                            <p id="trip-from-time">Время отправления</p>
-                            <p id="trip-passengers">Количество пассажиров</p>
+                
+                <div class="modal-body">
+                    <div class="modal-section">
+                        <h3 class="modal-section-title">Информация о маршруте</h3>
+                        <div class="modal-info-row">
+                            <span class="modal-info-label">Откуда:</span>
+                            <div class="modal-info-value">
+                                <span id="modal-departure-city"></span>
+                                <button class="map-view-btn" onclick="showMapPoint('departure')">на карте</button>
+                            </div>
                         </div>
-                        <div class="custom-to">
-                            <p><strong>Куда</strong></p>
-                            <p id="trip-to-address">Адрес прибытия</p>
-                            <p id="trip-to-time">Время прибытия</p>
-                            <p id="trip-price">Стоимость поездки</p>
+                        <div class="modal-info-row">
+                            <span class="modal-info-label">Время отправления:</span>
+                            <span class="modal-info-value" id="modal-departure-time"></span>
+                        </div>
+                        <div class="modal-info-row">
+                            <span class="modal-info-label">Куда:</span>
+                            <div class="modal-info-value">
+                                <span id="modal-destination-city"></span>
+                                <button class="map-view-btn" onclick="showMapPoint('destination')">на карте</button>
+                            </div>
+                        </div>
+                        <div class="modal-info-row">
+                            <span class="modal-info-label">Время прибытия:</span>
+                            <span class="modal-info-value" id="modal-arrival-time"></span>
                         </div>
                     </div>
+                    
+                    <div class="modal-section">
+                        <h3 class="modal-section-title">Пассажиры</h3>
+                        <div class="modal-info-row">
+                            <span class="modal-info-label">Занято мест:</span>
+                            <span class="modal-info-value">
+                                <span id="modal-passengers-count">0</span>/<span id="modal-max-passengers">0</span>
+                            </span>
+                        </div>
+                        <div class="modal-passengers-list" id="modal-passengers-list">
+                            <!-- Список пассажиров будет добавлен динамически -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-status">
+                    <div class="modal-time-until" id="modal-time-until"></div>
+                    <div class="modal-price" id="modal-price"></div>
                 </div>
             </div>
         </div>
@@ -178,289 +212,89 @@
     <button id="scrollToTopBtn" title="Наверх">
         <img src="{% static 'img/arrow-up.svg' %}" alt="Наверх">
     </button>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Пагинация
-            const itemsPerPage = 5;
-            const trips = document.querySelectorAll('.trip');
-            const totalItems = trips.length;
-            const totalPages = Math.ceil(totalItems / itemsPerPage);
-            let currentPage = 1;
+    <!-- Модальное окно для карты -->
+    <div id="mapModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeMapModal()">&times;</span>
+            <h2 id="mapModalTitle">Точка на карте</h2>
+            <div id="map" style="width: 100%; height: 400px;"></div>
+            <div class="full-address-container">
+                <span class="address-label">Полный адрес:</span>
+                <span id="fullAddress" class="address-value"></span>
+            </div>
+        </div>
+    </div>
 
-            function showPage(page) {
-                const start = (page - 1) * itemsPerPage;
-                const end = start + itemsPerPage;
-
-                trips.forEach((trip, index) => {
-                    if (index >= start && index < end) {
-                        trip.style.display = 'flex';
-                    } else {
-                        trip.style.display = 'none';
-                    }
-                });
-            }
-
-            function createPagination() {
-                const paginationHTML = `
-                    <button class="pagination-item first-page" ${currentPage === 1 ? 'disabled' : ''}>
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M15.8333 10H4.16667M4.16667 10L10 15.8333M4.16667 10L10 4.16667" stroke="currentColor" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                    <button class="pagination-item prev-page" ${currentPage === 1 ? 'disabled' : ''}>
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                `;
-
-                let pageButtons = '';
-                for (let i = 1; i <= totalPages; i++) {
-                    if (
-                        i === 1 || 
-                        i === totalPages || 
-                        (i >= currentPage - 1 && i <= currentPage + 1)
-                    ) {
-                        pageButtons += `
-                            <button class="pagination-item ${i === currentPage ? 'active' : ''}" data-page="${i}">
-                                ${i}
-                            </button>
-                        `;
-                    } else if (
-                        i === currentPage - 2 || 
-                        i === currentPage + 2
-                    ) {
-                        pageButtons += '<span class="pagination-ellipsis">...</span>';
-                    }
-                }
-                
-                const nextButtons = `
-                    <button class="pagination-item next-page" ${currentPage === totalPages ? 'disabled' : ''}>
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                    <button class="pagination-item last-page" ${currentPage === totalPages ? 'disabled' : ''}>
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M4.16667 10H15.8333M15.8333 10L10 4.16667M15.8333 10L10 15.8333" stroke="currentColor" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                `;
-
-                const topPagination = document.getElementById('top-pagination');
-                const bottomPagination = document.getElementById('bottom-pagination');
-                
-                topPagination.innerHTML = paginationHTML + pageButtons + nextButtons;
-                bottomPagination.innerHTML = paginationHTML + pageButtons + nextButtons;
-                
-                // Добавляем обработчики событий
-                document.querySelectorAll('.pagination-item').forEach(button => {
-                    button.addEventListener('click', function() {
-                        if (this.hasAttribute('disabled')) return;
-                        
-                        if (this.classList.contains('first-page')) {
-                            currentPage = 1;
-                        } else if (this.classList.contains('prev-page')) {
-                            currentPage = Math.max(1, currentPage - 1);
-                        } else if (this.classList.contains('next-page')) {
-                            currentPage = Math.min(totalPages, currentPage + 1);
-                        } else if (this.classList.contains('last-page')) {
-                            currentPage = totalPages;
-                        } else if (this.hasAttribute('data-page')) {
-                            currentPage = parseInt(this.getAttribute('data-page'));
-                        }
-                        
-                        showPage(currentPage);
-                        createPagination();
-                    });
-                });
-            }
-            
-            // Инициализация пагинации
-            showPage(currentPage);
-            createPagination();
-
-            // Обработка фильтров
-            const filterForm = document.getElementById('filter-form');
-            const costFilterForm = document.getElementById('cost-filter-form');
-            const departureCityInput = document.getElementById('departure-city');
-            const destinationCityInput = document.getElementById('arrival-city');
-            const dateInput = document.getElementById('trip-date');
-            const passengersSelect = document.getElementById('passengers');
-            const minCostInput = document.getElementById('min-cost');
-            const maxCostInput = document.getElementById('max-cost');
-            const minCostValue = document.getElementById('min-cost-value');
-            const maxCostValue = document.getElementById('max-cost-value');
-
-            // Функция для обновления URL с параметрами фильтров
-            function updateURL(params) {
-                const url = new URL(window.location.href);
-                Object.keys(params).forEach(key => {
-                    if (params[key]) {
-                        url.searchParams.set(key, params[key]);
-                    } else {
-                        url.searchParams.delete(key);
-                    }
-                });
-                window.history.pushState({}, '', url);
-            }
-
-            // Обработка изменений в полях фильтров
-            [departureCityInput, destinationCityInput, dateInput, passengersSelect].forEach(element => {
-                element.addEventListener('change', function() {
-                    const formData = new FormData(filterForm);
-                    const params = {};
-                    formData.forEach((value, key) => {
-                        params[key] = value;
-                    });
-                    updateURL(params);
-                    filterForm.submit();
-                });
-            });
-
-            // Обработка автодополнения для городов
-            function setupCityAutocomplete(inputElement, suggestionsElement) {
-                let timeoutId;
-                
-                inputElement.addEventListener('input', function() {
-                    clearTimeout(timeoutId);
-                    const query = this.value.trim();
-                    
-                    if (query.length < 2) {
-                        suggestionsElement.innerHTML = '';
-                        return;
-                    }
-
-                    timeoutId = setTimeout(() => {
-                        fetch(`${this.dataset.url}?q=${encodeURIComponent(query)}`)
-                            .then(response => response.json())
-                            .then(data => {
-                                suggestionsElement.innerHTML = '';
-                                data.forEach(city => {
-                                    const div = document.createElement('div');
-                                    div.className = 'suggestion-item';
-                                    div.textContent = city.name;
-                                    div.addEventListener('click', () => {
-                                        inputElement.value = city.name;
-                                        suggestionsElement.innerHTML = '';
-                                        inputElement.dispatchEvent(new Event('change'));
-                                    });
-                                    suggestionsElement.appendChild(div);
-                                });
-                            })
-                            .catch(error => console.error('Error:', error));
-                    }, 300);
-                });
-
-                // Закрытие подсказок при клике вне
-                document.addEventListener('click', function(e) {
-                    if (!inputElement.contains(e.target) && !suggestionsElement.contains(e.target)) {
-                        suggestionsElement.innerHTML = '';
-                    }
-                });
-            }
-
-            // Настройка автодополнения для обоих полей городов
-            setupCityAutocomplete(departureCityInput, document.getElementById('departure-city-suggestions'));
-            setupCityAutocomplete(destinationCityInput, document.getElementById('arrival-city-suggestions'));
-
-            // Обработка слайдера цен
-            function updateCostFilter() {
-                const minValue = parseInt(minCostInput.value);
-                const maxValue = parseInt(maxCostInput.value);
-                
-                if (minValue > maxValue) {
-                    minCostInput.value = maxValue;
-                    minCostValue.value = maxValue;
-                }
-                
-                minCostValue.value = minCostInput.value;
-                maxCostValue.value = maxCostInput.value;
-
-                // Обновляем URL и отправляем форму
-                const formData = new FormData(costFilterForm);
-                const params = {};
-                formData.forEach((value, key) => {
-                    params[key] = value;
-                });
-                updateURL(params);
-                costFilterForm.submit();
-            }
-
-            // Обработчики событий для слайдера цен
-            [minCostInput, maxCostInput].forEach(input => {
-                input.addEventListener('input', updateCostFilter);
-            });
-
-            [minCostValue, maxCostValue].forEach(input => {
-                input.addEventListener('change', function() {
-                    const value = parseInt(this.value);
-                    const min = parseInt(minCostInput.min);
-                    const max = parseInt(minCostInput.max);
-                    
-                    if (value < min) this.value = min;
-                    if (value > max) this.value = max;
-                    
-                    if (this === minCostValue) {
-                        minCostInput.value = this.value;
-                    } else {
-                        maxCostInput.value = this.value;
-                    }
-                    
-                    updateCostFilter();
-                });
-            });
-
-            // Обработка сброса фильтров
-            document.querySelector('.reset-filters').addEventListener('click', function(e) {
-                e.preventDefault();
-                window.location.href = this.href;
-            });
-        });
-
-        function joinTrip(tripId) {
-            fetch(`/join_trip/${tripId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCookie('csrftoken'),
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showNotification('Запрос на присоединение к поездке отправлен');
-                    // Обновляем UI после успешного присоединения
-                    updateTripUI(tripId);
-                } else {
-                    // Показываем сообщение об ошибке
-                    if (data.error) {
-                        showNotification(data.error, 'error');
-                    } else {
-                        showNotification('Произошла ошибка при присоединении к поездке', 'error');
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('Произошла ошибка при присоединении к поездке', 'error');
-            });
-        }
-
-        function showNotification(message, type = 'success') {
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.innerHTML = `
-                <span class="close" onclick="this.parentElement.remove()">&times;</span>
-                <p>${message}</p>
-            `;
-            document.body.appendChild(notification);
-            
-            // Автоматически удаляем уведомление через 5 секунд
-            setTimeout(() => {
-                notification.remove();
-            }, 5000);
-        }
-    </script>
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=3eebf8cf-5f09-4a52-a48c-8eb308fc3297&lang=ru_RU"></script>
     <script src="{% static 'js/search.js' %}"></script>
 {% endblock content %}
+
+<style>
+.driver-info-section {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.driver-info-content {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.driver-photo {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.driver-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.driver-details {
+    flex: 1;
+}
+
+.driver-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 0.5rem 0;
+}
+
+.driver-profile-link {
+    display: block;
+    color: #5B62FF;
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.driver-profile-link:hover {
+    text-decoration: underline;
+}
+
+.driver-description {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0;
+    line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+    .driver-info-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .driver-photo {
+        margin: 0 auto;
+    }
+}
+</style>

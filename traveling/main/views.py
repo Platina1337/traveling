@@ -850,12 +850,29 @@ def get_trip_details(request, trip_id):
         trip = get_object_or_404(Trip, id=trip_id)
         driver = trip.user
 
+        # Рассчитываем время до отправления
+        departure_datetime = make_aware(datetime.combine(trip.departure_date, trip.departure_time))
+        now = timezone.now()
+        time_until = departure_datetime - now
+        
+        if time_until.days > 0:
+            time_until_str = f"{time_until.days} дн. {time_until.seconds // 3600} ч."
+        else:
+            hours = time_until.seconds // 3600
+            minutes = (time_until.seconds % 3600) // 60
+            if hours > 0:
+                time_until_str = f"{hours} ч. {minutes} мин."
+            else:
+                time_until_str = f"{minutes} мин."
+
         trip_data = {
-            'driver_id': driver.id,  # Добавляем driver_id
+            'id': trip.id,
+            'trip_id': trip.id,
+            'driver_id': driver.id,
             'driver_name': driver.first_name,
             'driver_surname': driver.last_name,
             'driver_description': trip.comment if trip.comment else '',
-            'driver_photo_url': driver.avatar.url if driver.avatar else '',
+            'driver_photo': driver.avatar.url if driver.avatar else '/static/img/default-avatar.png',
             'driver_rating': driver.rating if hasattr(driver, 'rating') else '',
             'departure_address': trip.departure_city.name,
             'departure_date': trip.departure_date.strftime('%Y-%m-%d'),
@@ -864,8 +881,12 @@ def get_trip_details(request, trip_id):
             'destination_address': trip.destination_city.name,
             'arrival_date': trip.departure_date.strftime('%Y-%m-%d'),
             'arrival_time': trip.arrival_time.strftime('%H:%M'),
-            'price': str(trip.price),  # Преобразуем Decimal в строку для JSON
+            'price': str(trip.price),
             'comment': trip.comment,
+            'passengers_count': trip.passengers.count(),
+            'max_passengers': trip.max_passengers,
+            'is_driver': request.user.is_authenticated and hasattr(request.user, 'userprofile') and trip.user == request.user.userprofile,
+            'time_until': time_until_str
         }
         return JsonResponse(trip_data)
     except Trip.DoesNotExist:

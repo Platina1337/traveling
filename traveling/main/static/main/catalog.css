@@ -634,7 +634,7 @@ aside {
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
     overflow-y: auto;
-    z-index: 100;
+    z-index: 3;
 }
 
 @media (max-width: 1200px) {
@@ -1056,5 +1056,442 @@ aside {
 
     .trip-seats {
         margin-left: 0;
+    }
+}
+
+/* Стили для модального окна */
+.custom-trip-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+}
+
+.custom-trip-modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -52%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+.custom-trip-close-btn {
+    position: absolute;
+    right: 1.5rem;
+    top: 1.5rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+    transition: color 0.3s ease;
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    line-height: 1;
+}
+
+.custom-trip-close-btn:hover {
+    color: #333;
+}
+
+.modal-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-title {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+
+.modal-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.modal-section {
+    background: #f8f9fa;
+    padding: 1.25rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.modal-section-title {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 1rem;
+    letter-spacing: -0.01em;
+}
+
+.modal-info-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-info-label {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    color: #6c757d;
+    font-size: 0.9rem;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+}
+
+.modal-info-value {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    color: #212529;
+    font-weight: 500;
+    font-size: 0.95rem;
+    letter-spacing: 0.01em;
+}
+
+.modal-passengers-list,
+.modal-driver-list {
+    margin-top: 1rem;
+}
+
+.modal-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #e9ecef;
+    border-radius: 12px;
+    margin-top: 1.5rem;
+}
+
+.modal-time-until {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 1.1rem;
+    color: #495057;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+}
+
+.modal-price {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #28a745;
+    letter-spacing: -0.02em;
+}
+
+/* Стили для скроллбара */
+.custom-trip-modal-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-trip-modal-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.custom-trip-modal-content::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.custom-trip-modal-content::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .modal-body {
+        grid-template-columns: 1fr;
+    }
+    
+    .custom-trip-modal-content {
+        width: 95%;
+        padding: 1.5rem;
+    }
+    
+    .modal-title {
+        font-size: 1.3rem;
+    }
+    
+    .modal-section-title {
+        font-size: 1rem;
+    }
+    
+    .modal-info-label,
+    .modal-info-value {
+        font-size: 0.9rem;
+    }
+    
+    .modal-time-until {
+        font-size: 1rem;
+    }
+    
+    .modal-price {
+        font-size: 1.15rem;
+    }
+}
+
+/* Стили для кнопок карты в модальном окне */
+.map-view-btn {
+    background-color: var(--color-lightblue);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.map-view-btn:hover {
+    background-color: var(--color-lightbluehover);
+}
+
+/* Стили для списка пассажиров */
+.modal-passenger-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.95rem;
+    color: #212529;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    transition: background-color 0.2s ease;
+}
+
+.modal-passenger-item:hover {
+    background-color: #f8f9fa;
+}
+
+.modal-passenger-item a {
+    flex: 1;
+    text-decoration: none;
+    color: #5B62FF;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.modal-passenger-item a:hover {
+    color: #4a50cc;
+}
+
+.modal-passenger-item button {
+    margin-left: auto;
+    padding: 4px 8px;
+    font-size: 0.9rem;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.modal-passenger-item button:hover {
+    background-color: #5a6268;
+}
+
+.modal-passenger-item button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+/* Стили для модального окна карты */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    backdrop-filter: blur(5px);
+}
+
+.modal.show {
+    opacity: 1;
+}
+
+.modal .modal-content {
+    width: 90%;
+    max-width: 800px;
+    margin: 50px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    position: relative;
+    transform: translateY(-20px);
+    opacity: 0;
+    transition: all 0.3s ease-in-out;
+}
+
+.modal.show .modal-content {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.modal .close {
+    position: absolute;
+    right: 20px;
+    top: 10px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #666;
+    transition: color 0.2s ease;
+}
+
+.modal .close:hover {
+    color: #000;
+}
+
+#map {
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.full-address-container {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+    transition: background-color 0.2s ease;
+}
+
+.full-address-container:hover {
+    background-color: #e9ecef;
+}
+
+.address-label {
+    font-weight: 500;
+    color: #495057;
+    margin-right: 8px;
+}
+
+.address-value {
+    color: #212529;
+}
+
+.driver-info-section {
+    background: var(--color-lightestgray);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.driver-info-content {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.driver-photo {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--color-white);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.driver-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.driver-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.driver-name {
+    color: var(--color-blue);
+    text-decoration: underline;
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin: 0;
+    transition: color 0.3s ease;
+}
+
+.driver-name:hover {
+    color: var(--color-darkblue);
+}
+
+.driver-profile-link {
+    display: inline-block;
+    color: var(--color-lightblue);
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.driver-profile-link:hover {
+    text-decoration: underline;
+}
+
+.driver-description {
+    font-size: 0.9rem;
+    color: var(--color-purple);
+    margin: 0;
+    line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+    .driver-info-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .driver-photo {
+        margin: 0 auto;
+    }
+
+    .driver-details {
+        text-align: center;
     }
 }
