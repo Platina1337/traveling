@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.db.models import Min, Max, Case, When
+from django.db.models import Min, Max, Case, When, Count
 from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
 from django.utils.decorators import method_decorator
@@ -747,9 +747,22 @@ class CatalogView(ListView):
         price_min = self.request.GET.get('price_min', 0)
         price_max = self.request.GET.get('price_max', 15000)
 
+        # Фильтруем только запланированные поездки
+        queryset = queryset.filter(status='planned')
+
+        # Исключаем полностью заполненные поездки
+        queryset = queryset.annotate(
+            current_passengers=Count('passengers')
+        ).filter(current_passengers__lt=Max('max_passengers'))
+
         if self.request.user.is_authenticated:
             current_user_profile = UserProfile.objects.get(user=self.request.user)
-            queryset = queryset.exclude(user=current_user_profile)
+            # Показываем поездки, где пользователь уже является пассажиром
+            user_trips = queryset.filter(passengers=current_user_profile)
+            # Показываем другие поездки, кроме своих
+            other_trips = queryset.exclude(user=current_user_profile)
+            # Объединяем оба queryset
+            queryset = user_trips | other_trips
 
         if departure_city:
             queryset = queryset.filter(departure_city__name=departure_city)
@@ -764,7 +777,7 @@ class CatalogView(ListView):
         if price_max:
             queryset = queryset.filter(price__lte=price_max)
 
-        return queryset
+        return queryset.distinct()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -2018,3 +2031,24 @@ def log_form_data(request):
         logger.info("===================\n")
         return JsonResponse({'success': True})
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+@login_required
+def get_route_point(request, trip_id, point_type):
+    try:
+        trip = Trip.objects.get(id=trip_id)
+        if point_type == 'departure':
+            route_point = RoutePoint.objects.get(trip=trip, is_departure=True)
+        else:
+            route_point = RoutePoint.objects.get(trip=trip, is_destination=True)
+        
+        return JsonResponse({
+            'success': True,
+            'address': route_point.address,
+            'latitude': route_point.latitude,
+            'longitude': route_point.longitude
+        })
+    except (Trip.DoesNotExist, RoutePoint.DoesNotExist):
+        return JsonResponse({
+            'success': False,
+            'error': 'Точка маршрута не найдена'
+        })

@@ -106,7 +106,7 @@
         {% endfor %}
     {% endif %}
     
-        <div class="page-sections">
+        <div class="page-sections" style="margin-top: 100px;">
             
 
         <section class="section trips">
@@ -354,7 +354,7 @@
                     <div class="modal-info-row">
                         <span class="modal-info-label">Откуда:</span>
                         <span class="modal-info-value" id="modal-departure-city"></span>
-                        <button class="map-view-btn" onclick="showMapPoint('departure')">Посмотреть на карте</button>
+                        <button class="map-view-btn" onclick="showMapPoint('departure')">на карте</button>
                     </div>
                     <div class="modal-info-row">
                         <span class="modal-info-label">Время отправления:</span>
@@ -363,7 +363,7 @@
                     <div class="modal-info-row">
                         <span class="modal-info-label">Куда:</span>
                         <span class="modal-info-value" id="modal-destination-city"></span>
-                        <button class="map-view-btn" onclick="showMapPoint('destination')">Посмотреть на карте</button>
+                        <button class="map-view-btn" onclick="showMapPoint('destination')">на карте</button>
                     </div>
                     <div class="modal-info-row">
                         <span class="modal-info-label">Время прибытия:</span>
@@ -2382,79 +2382,133 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function showMapPoint(type) {
-        const modal = document.getElementById('mapModal');
+        const mapModal = document.getElementById('mapModal');
+        const customTripModal = document.getElementById('customTripModal');
         const title = document.getElementById('mapModalTitle');
-        const address = type === 'departure' ? 
-            document.getElementById('modal-departure-city').textContent :
-            document.getElementById('modal-destination-city').textContent;
+        const tripId = customTripModal.getAttribute('data-trip-id');
+        
+        // Закрываем модальное окно с деталями поездки
+        customTripModal.classList.remove('show');
         
         title.textContent = type === 'departure' ? 'Точка отправления' : 'Точка прибытия';
-        modal.style.display = 'block';
+        mapModal.style.display = 'block';
+        
+        // Добавляем класс show с небольшой задержкой для анимации
+        setTimeout(() => {
+            mapModal.classList.add('show');
+        }, 10);
 
-        // Инициализируем карту, если она еще не инициализирована
-        if (!map) {
-            ymaps.ready(initMap);
-        }
+        // Получаем данные о точке маршрута через AJAX
+        fetch(`/get_route_point/${tripId}/${type}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const address = data.address;
+                    document.getElementById('fullAddress').textContent = address;
 
-        // Геокодируем адрес
-        ymaps.geocode(address, {
-            results: 1
-        }).then(function(res) {
-            const firstGeoObject = res.geoObjects.get(0);
-            const coords = firstGeoObject.geometry.getCoordinates();
-            
-            // Получаем полный адрес
-            const fullAddress = firstGeoObject.getAddressLine();
-            document.getElementById('fullAddress').textContent = fullAddress;
-            
-            // Устанавливаем центр карты на найденные координаты
-            map.setCenter(coords, 15);
-            
-            // Удаляем предыдущую метку, если она есть
-            if (placemark) {
-                map.geoObjects.remove(placemark);
-            }
-            
-            // Создаем новую метку
-            placemark = new ymaps.Placemark(coords, {
-                balloonContent: fullAddress
-            }, {
-                preset: type === 'departure' ? 'islands#greenDotIcon' : 'islands#redDotIcon'
+                    // Инициализируем карту, если она еще не инициализирована
+                    if (!map) {
+                        ymaps.ready(initMap);
+                    }
+
+                    // Геокодируем адрес
+                    ymaps.geocode(address, {
+                        results: 1
+                    }).then(function(res) {
+                        const firstGeoObject = res.geoObjects.get(0);
+                        const coords = firstGeoObject.geometry.getCoordinates();
+                        
+                        // Устанавливаем центр карты на найденные координаты
+                        map.setCenter(coords, 15);
+                        
+                        // Удаляем предыдущую метку, если она есть
+                        if (placemark) {
+                            map.geoObjects.remove(placemark);
+                        }
+                        
+                        // Создаем новую метку
+                        placemark = new ymaps.Placemark(coords, {
+                            balloonContent: address
+                        }, {
+                            preset: type === 'departure' ? 'islands#greenDotIcon' : 'islands#redDotIcon'
+                        });
+                        
+                        // Добавляем метку на карту
+                        map.geoObjects.add(placemark);
+                    });
+                } else {
+                    alert('Не удалось получить данные о точке маршрута');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Произошла ошибка при получении данных о точке маршрута');
             });
-            
-            // Добавляем метку на карту
-            map.geoObjects.add(placemark);
-        });
     }
 
     function closeMapModal() {
-        document.getElementById('mapModal').style.display = 'none';
+        const mapModal = document.getElementById('mapModal');
+        const customTripModal = document.getElementById('customTripModal');
+        
+        // Убираем класс show для анимации исчезновения
+        mapModal.classList.remove('show');
+        
+        // Ждем окончания анимации перед скрытием
+        setTimeout(() => {
+            mapModal.style.display = 'none';
+            // Открываем обратно модальное окно с деталями поездки
+            customTripModal.classList.add('show');
+        }, 300);
     }
 
     // Закрытие модального окна при клике вне его содержимого
     window.onclick = function(event) {
         const mapModal = document.getElementById('mapModal');
         if (event.target == mapModal) {
-            mapModal.style.display = 'none';
+            closeMapModal();
         }
     }
     </script>
 
     <style>
     .map-view-btn {
-        background-color: #4a90e2;
+        background-color: #5B62FF;
         color: white;
         border: none;
-        padding: 6px 12px;
+        padding: 4px 8px;
         border-radius: 4px;
         cursor: pointer;
-        font-size: 0.9rem;
-        margin-left: 10px;
-        transition: background-color 0.2s;
+        font-size: 0.85rem;
+        margin-left: 8px;
+        transition: all 0.2s ease;
+        font-weight: 500;
     }
 
     .map-view-btn:hover {
-        background-color: #357abd;
+        background-color: #4a50cc;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(91, 98, 255, 0.2);
+    }
+    </style>
+
+    <style>
+    /* Стили для модального окна карты */
+    #mapModal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+        backdrop-filter: blur(5px);
+    }
+
+    #mapModal.show {
+        opacity: 1;
     }
 
     #mapModal .modal-content {
@@ -2465,6 +2519,14 @@ document.addEventListener('DOMContentLoaded', function() {
         padding: 20px;
         border-radius: 8px;
         position: relative;
+        transform: translateY(-20px);
+        opacity: 0;
+        transition: all 0.3s ease-in-out;
+    }
+
+    #mapModal.show .modal-content {
+        transform: translateY(0);
+        opacity: 1;
     }
 
     #mapModal .close {
@@ -2475,22 +2537,18 @@ document.addEventListener('DOMContentLoaded', function() {
         font-weight: bold;
         cursor: pointer;
         color: #666;
+        transition: color 0.2s ease;
     }
 
     #mapModal .close:hover {
         color: #000;
     }
 
-    #mapModal h2 {
-        margin-top: 0;
-        margin-bottom: 20px;
-        color: #333;
-    }
-
     #map {
         border-radius: 8px;
         overflow: hidden;
         margin-bottom: 15px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
 
     .full-address-container {
@@ -2498,16 +2556,11 @@ document.addEventListener('DOMContentLoaded', function() {
         padding: 15px;
         border-radius: 8px;
         margin-top: 15px;
+        transition: background-color 0.2s ease;
     }
 
-    .address-label {
-        font-weight: 600;
-        color: #495057;
-        margin-right: 10px;
-    }
-
-    .address-value {
-        color: #212529;
+    .full-address-container:hover {
+        background-color: #e9ecef;
     }
     </style>
 {% endblock content %}
