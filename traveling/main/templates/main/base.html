@@ -38,6 +38,7 @@
         </a>
         <button class="navbar-toggle">&#9776;</button>
         <div class="header-buttons">
+            <button class="add-trip" id="findButton">Найти поездку</button>
             <button class="add-trip" id="addButton">Добавить поездку</button>
             {% if user.is_authenticated %}
                 <button class="profile" id="profileButton">Профиль</button>
@@ -57,6 +58,11 @@
         // Перенаправление на страницу профиля
         document.getElementById('profileButton')?.addEventListener('click', function() {
             window.location.href = "{% url 'main:profile' %}";
+        });
+
+        // Перенаправление на страницу поиска поездок
+        document.getElementById('findButton')?.addEventListener('click', function() {
+            window.location.href = "{% url 'main:catalog' %}";
         });
 
         // Переключение навбара

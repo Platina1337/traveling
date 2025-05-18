@@ -455,7 +455,250 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('There was a problem with the fetch operation:', error));
         });
     });
+
+    // Инициализируем пагинацию
+    initializePagination();
 });
+
+// Пагинация
+function initializePagination() {
+    const trips = document.querySelectorAll('.trip');
+    const itemsPerPage = 6;
+    const totalPages = Math.ceil(trips.length / itemsPerPage);
+    let currentPage = 1;
+
+    function showPage(pageNumber) {
+        const start = (pageNumber - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        
+        trips.forEach((trip, index) => {
+            if (index >= start && index < end) {
+                trip.style.display = 'flex';
+            } else {
+                trip.style.display = 'none';
+            }
+        });
+    }
+
+    function createPagination() {
+        const topPagination = document.getElementById('top-pagination');
+        const bottomPagination = document.getElementById('bottom-pagination');
+        
+        function createPaginationElement(container) {
+            container.innerHTML = '';
+            
+            // Контейнер для кнопок
+            const paginationContainer = document.createElement('div');
+            paginationContainer.className = 'pagination-container';
+            
+            // Кнопка "Предыдущая"
+            const prevButton = document.createElement('button');
+            prevButton.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            prevButton.className = 'pagination-button prev-button';
+            prevButton.onclick = () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    showPage(currentPage);
+                    updatePagination();
+                }
+            };
+            paginationContainer.appendChild(prevButton);
+            
+            // Номера страниц
+            const pagesContainer = document.createElement('div');
+            pagesContainer.className = 'pages-container';
+            
+            // Первая страница
+            if (currentPage > 2) {
+                const firstPage = document.createElement('button');
+                firstPage.textContent = '1';
+                firstPage.className = 'pagination-button';
+                firstPage.onclick = () => {
+                    currentPage = 1;
+                    showPage(currentPage);
+                    updatePagination();
+                };
+                pagesContainer.appendChild(firstPage);
+                
+                if (currentPage > 3) {
+                    const dots = document.createElement('span');
+                    dots.className = 'pagination-dots';
+                    dots.textContent = '...';
+                    pagesContainer.appendChild(dots);
+                }
+            }
+            
+            // Страницы вокруг текущей
+            for (let i = Math.max(1, currentPage - 1); i <= Math.min(totalPages, currentPage + 1); i++) {
+                const pageButton = document.createElement('button');
+                pageButton.textContent = i;
+                pageButton.className = 'pagination-button';
+                if (i === currentPage) {
+                    pageButton.classList.add('active');
+                }
+                pageButton.onclick = () => {
+                    currentPage = i;
+                    showPage(currentPage);
+                    updatePagination();
+                };
+                pagesContainer.appendChild(pageButton);
+            }
+            
+            // Последняя страница
+            if (currentPage < totalPages - 1) {
+                if (currentPage < totalPages - 2) {
+                    const dots = document.createElement('span');
+                    dots.className = 'pagination-dots';
+                    dots.textContent = '...';
+                    pagesContainer.appendChild(dots);
+                }
+                
+                const lastPage = document.createElement('button');
+                lastPage.textContent = totalPages;
+                lastPage.className = 'pagination-button';
+                lastPage.onclick = () => {
+                    currentPage = totalPages;
+                    showPage(currentPage);
+                    updatePagination();
+                };
+                pagesContainer.appendChild(lastPage);
+            }
+            
+            paginationContainer.appendChild(pagesContainer);
+            
+            // Кнопка "Следующая"
+            const nextButton = document.createElement('button');
+            nextButton.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            nextButton.className = 'pagination-button next-button';
+            nextButton.onclick = () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    showPage(currentPage);
+                    updatePagination();
+                }
+            };
+            paginationContainer.appendChild(nextButton);
+            
+            container.appendChild(paginationContainer);
+        }
+        
+        createPaginationElement(topPagination);
+        createPaginationElement(bottomPagination);
+    }
+    
+    function updatePagination() {
+        const buttons = document.querySelectorAll('.pagination-button');
+        buttons.forEach(button => {
+            if (button.textContent === currentPage.toString()) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        });
+        
+        // Обновляем состояние кнопок prev/next
+        const prevButtons = document.querySelectorAll('.prev-button');
+        const nextButtons = document.querySelectorAll('.next-button');
+        
+        prevButtons.forEach(button => {
+            button.disabled = currentPage === 1;
+            button.classList.toggle('disabled', currentPage === 1);
+        });
+        
+        nextButtons.forEach(button => {
+            button.disabled = currentPage === totalPages;
+            button.classList.toggle('disabled', currentPage === totalPages);
+        });
+    }
+    
+    // Добавляем стили для пагинации
+    const style = document.createElement('style');
+    style.textContent = `
+        .pagination-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            
+        }
+        
+        .pages-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .pagination-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            height: 40px;
+            padding: 0 12px;
+            border: 2px solid var(--color-lightgray);
+            background-color: white;
+            color: var(--color-darkblue);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .pagination-button:hover:not(.disabled) {
+            background-color: var(--color-lightblue);
+            color: white;
+            border-color: var(--color-lightblue);
+        }
+        
+        .pagination-button.active {
+            background-color: var(--color-darkblue);
+            color: white;
+            border-color: var(--color-darkblue);
+        }
+        
+        .pagination-button.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .pagination-dots {
+            color: var(--color-darkblue);
+            font-weight: 500;
+        }
+        
+        .prev-button,
+        .next-button {
+            padding: 0 8px;
+        }
+        
+        .prev-button svg,
+        .next-button svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .pagination-container {
+                gap: 4px;
+            }
+            
+            .pages-container {
+                gap: 4px;
+            }
+            
+            .pagination-button {
+                min-width: 36px;
+                height: 36px;
+                padding: 0 8px;
+                font-size: 14px;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    showPage(currentPage);
+    createPagination();
+}
 
 // Кнопка прокрутки наверх
 var scrollToTopBtn = document.getElementById("scrollToTopBtn");

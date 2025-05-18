@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-b&apzb$&%)04br5gy$4!llb@68#+9y-m$l1_%vxu8kg26krgi4
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.ngrok.io', '.ngrok-free.app']
+ALLOWED_HOSTS = ['*']  # Разрешаем все хосты для ngrok
 
 
 # Application definition
@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'main',
     'main.templatetags',
 
@@ -45,6 +46,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -121,13 +123,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'main/static'),
@@ -144,3 +139,18 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # API ключи для карт
 YANDEX_MAPS_API_KEY = '3eebf8cf-5f09-4a52-a48c-8eb308fc3297'  # Ключ для геокодирования
 GOOGLE_MAPS_API_KEY = 'AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg'  # Ключ Google Maps API
+
+# Настройки CSRF
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'https://*.ngrok.io',
+    'https://*.ngrok-free.app',
+]
+
+# Настройки CORS
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
+# Настройки сессий
+SESSION_COOKIE_SECURE = False  # Для работы через HTTP
+CSRF_COOKIE_SECURE = False    # Для работы через HTTP

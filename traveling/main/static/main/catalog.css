@@ -807,18 +807,9 @@ aside {
     }
 }
 
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    margin: 20px 0;
-    padding: 10px;
-}
 
-.top-pagination {
-    margin-bottom: 0;
-}
+
+
 
 .bottom-pagination {
     margin-top: 0;
