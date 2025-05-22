@@ -107,11 +107,7 @@ def add_comment(request, user_profile_id):
         comment.save()
 
     return redirect('profile_user', user_profile_id=user_profile_id)
-class AddTravelView(View):
-    template_name = 'main/add_travel.html'
 
-    def get(self, request, *args, **kwargs):
-        return render(request, self.template_name)
 
 
 def send_verification_email(user, request):

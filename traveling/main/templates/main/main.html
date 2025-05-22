@@ -220,15 +220,16 @@
             </div>
             <div class="unique-footer-buttons-column">
                 <div class="unique-footer-buttons">
-                    <button class="unique-footer-button-publish"><a href="{% url 'main:add_trip' %}" style="color: #fff; text-decoration: none">Опубликовать поездку</a></button>
+                    {% if user.is_authenticated %}
+                        <button class="unique-footer-button-publish"><a href="{% url 'main:add_trip' %}" style="color: #fff; text-decoration: none">Опубликовать поездку</a></button>
+                    {% else %}
+                        <button class="unique-footer-button-publish"><a href="{% url 'main:login' %}" style="color: #fff; text-decoration: none">Опубликовать поездку</a></button>
+                    {% endif %}
                     <button class="unique-footer-button-find"><a href="{% url 'main:catalog' %}" style="color: #fff; text-decoration: none">Найти поездку</a></button>
-
                 </div>
             </div>
         </div>
     </footer>
 
-    <script src="{% static 'js/home.js' %}">
 
-</script>
 {% endblock content %}
