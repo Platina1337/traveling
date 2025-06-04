@@ -109,13 +109,13 @@
         <div class="page-sections" style="margin-top: 100px;">
             
 
-        <section class="section trips">
-            <div class="trips-header">
-                <h2>Мои поездки</h2>
+<section class="section trips">
+    <div class="trips-header">
+        <h2>Мои поездки</h2>
                 <div class="trips-filters">
                     <div class="filter-section active" data-filter="all">
                         <span class="chip-icon">🌐</span> Все
-            </div>
+    </div>
                     <div class="filter-section" data-filter="active">
                         <span class="chip-icon">🚗</span> Активные
                     </div>
@@ -128,146 +128,146 @@
                 {% for trip_info in all_trips %}
                 <div class="trip-card {% if trip_info.user_trip %}trip-your{% else %}trip-poputrchik{% endif %}"
                      data-trip-status="{{ trip_info.trip.status }}">
-                <div class="card-div">
-                    <div class="card-div-svg">
-                        <div class="trip-time">
-                            <div class="time">{{ trip_info.trip.departure_time|time:"H:i" }}</div>
-                            <div class="svg-container">
-                                <svg class="svg-large" width="63" height="14" viewBox="0 0 63 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <rect width="50" height="2" transform="translate(13 6)" fill="#444766"/>
-                                    <path d="M7 0C3.14008 0 0 3.14008 0 7C0 10.8599 3.14008 14 7 14C10.8599 14 14 10.8599 14 7C14 3.14008 10.8599 0 7 0ZM7 12.8333C3.7835 12.8333 1.16667 10.2165 1.16667 7C1.16667 3.7835 3.7835 1.16667 7 1.16667C10.2165 1.16667 12.8333 3.7835 12.8333 7C12.8333 10.2165 10.2165 12.8333 7 12.8333ZM9.33333 7C9.33333 8.28858 8.28858 9.33333 7 9.33333C5.71142 9.33333 4.66667 8.28858 4.66667 7C4.66667 5.71142 5.71142 4.66667 7 4.66667C8.28858 4.66667 9.33333 5.71142 9.33333 7Z" fill="#444766"/>
-                                </svg>
-                                <svg class="svg-small" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M7 0C3.14008 0 0 3.14008 0 7C0 10.8599 3.14008 14 7 14C10.8599 14 14 10.8599 14 7C14 3.14008 10.8599 0 7 0ZM7 12.8333C3.7835 12.8333 1.16667 10.2165 1.16667 7C1.16667 3.7835 3.7835 1.16667 7 1.16667C10.2165 1.16667 12.8333 3.7835 12.8333 7C12.8333 10.2165 10.2165 12.8333 7 12.8333ZM9.33333 7C9.33333 8.28858 8.28858 9.33333 7 9.33333C5.71142 9.33333 4.66667 8.28858 4.66667 7C4.66667 5.71142 5.71142 4.66667 7 4.66667C8.28858 4.66667 9.33333 5.71142 9.33333 7Z" fill="#444766"/>
-                                </svg>
-                                <div class="duration">
-                                    <span>{{ trip_info.duration_hours }} ч {{ trip_info.duration_minutes }} м</span>
-                                </div>
-                                <svg class="svg-large" width="63" height="14" viewBox="0 0 63 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <rect width="50" height="2" transform="matrix(-1 0 0 -1 50 8)" fill="#444766"/>
-                                    <path d="M55.998 14C59.858 14 62.998 10.8599 62.998 7C62.998 3.14008 59.858 0 55.998 0C52.1381 0 48.998 3.14008 48.998 7C48.998 10.8599 52.1381 14 55.998 14ZM55.998 1.16667C59.2145 1.16667 61.8314 3.7835 61.8314 7C61.8314 10.2165 59.2145 12.8333 55.998 12.8333C52.7815 12.8333 50.1647 10.2165 50.1647 7C50.1647 3.7835 52.7815 1.16667 55.998 1.16667ZM53.6647 7C53.6647 5.71142 54.7095 4.66667 55.998 4.66667C57.2866 4.66667 58.3314 5.71142 58.3314 7C58.3314 8.28858 57.2866 9.33333 55.998 9.33333C54.7095 9.33333 53.6647 8.28858 53.6647 7Z" fill="#444766"/>
-                                </svg>
-                                <svg class="svg-small" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M7 0C3.14008 0 0 3.14008 0 7C0 10.8599 3.14008 14 7 14C10.8599 14 14 10.8599 14 7C14 3.14008 10.8599 0 7 0ZM7 12.8333C3.7835 12.8333 1.16667 10.2165 1.16667 7C1.16667 3.7835 3.7835 1.16667 7 1.16667C10.2165 1.16667 12.8333 3.7835 12.8333 7C12.8333 10.2165 10.2165 12.8333 7 12.8333ZM9.33333 7C9.33333 8.28858 8.28858 9.33333 7 9.33333C5.71142 9.33333 4.66667 8.28858 4.66667 7C4.66667 5.71142 5.71142 4.66667 7 4.66667C8.28858 4.66667 9.33333 5.71142 9.33333 7Z" fill="#444766"/>
-                                </svg>
-                            </div>
-                            <div class="time">{{ trip_info.trip.arrival_time|time:"H:i" }}</div>
-                        </div>
-                        <div class="trip-locations">
-                            <div class="location">{{ trip_info.trip.departure_city }}</div>
-                            <div class="location" style="text-align: right;">{{ trip_info.trip.destination_city }}</div>
-                        </div>
-                    </div>
-                    {% if trip_info.user_trip %}
-                    <div class="trip-your-text">Ваша поездка</div>
-                    {% else %}
-                    <div class="trip-price">{{ trip_info.trip.price }} р</div>
-                    {% endif %}
+        <div class="card-div">
+            <div class="card-div-svg">
+                <div class="trip-time">
+            <div class="time">{{ trip_info.trip.departure_time|time:"H:i" }}</div>
+            <div class="svg-container">
+                <svg class="svg-large" width="63" height="14" viewBox="0 0 63 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="50" height="2" transform="translate(13 6)" fill="#444766"/>
+                    <path d="M7 0C3.14008 0 0 3.14008 0 7C0 10.8599 3.14008 14 7 14C10.8599 14 14 10.8599 14 7C14 3.14008 10.8599 0 7 0ZM7 12.8333C3.7835 12.8333 1.16667 10.2165 1.16667 7C1.16667 3.7835 3.7835 1.16667 7 1.16667C10.2165 1.16667 12.8333 3.7835 12.8333 7C12.8333 10.2165 10.2165 12.8333 7 12.8333ZM9.33333 7C9.33333 8.28858 8.28858 9.33333 7 9.33333C5.71142 9.33333 4.66667 8.28858 4.66667 7C4.66667 5.71142 5.71142 4.66667 7 4.66667C8.28858 4.66667 9.33333 5.71142 9.33333 7Z" fill="#444766"/>
+                </svg>
+                <svg class="svg-small" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7 0C3.14008 0 0 3.14008 0 7C0 10.8599 3.14008 14 7 14C10.8599 14 14 10.8599 14 7C14 3.14008 10.8599 0 7 0ZM7 12.8333C3.7835 12.8333 1.16667 10.2165 1.16667 7C1.16667 3.7835 3.7835 1.16667 7 1.16667C10.2165 1.16667 12.8333 3.7835 12.8333 7C12.8333 10.2165 10.2165 12.8333 7 12.8333ZM9.33333 7C9.33333 8.28858 8.28858 9.33333 7 9.33333C5.71142 9.33333 4.66667 8.28858 4.66667 7C4.66667 5.71142 5.71142 4.66667 7 4.66667C8.28858 4.66667 9.33333 5.71142 9.33333 7Z" fill="#444766"/>
+                </svg>
+                <div class="duration">
+                    <span>{{ trip_info.duration_hours }} ч {{ trip_info.duration_minutes }} м</span>
                 </div>
-
-                <div class="footer-card-info">
-                    <div class="trip-actions">
-                        {% if trip_info.user_trip %}
-                        <button class="delete-button" data-trip-id="{{ trip_info.trip.id }}" data-delete-type="trip">Удалить поездку</button>
-                        {% else %}
-                        <button class="delete-button" data-trip-id="{{ trip_info.trip.id }}" data-delete-type="passenger">Выйти из поездки</button>
-                        {% endif %}
-                    </div>
-                    <div class="trip-details">
-                        <div class="trip-date">{{ trip_info.trip.departure_date|date:"d.m.Y" }}</div>
-                        <!-- Пер кнримопок с установленными атрибутами -->
-                        <a href="#" class="openModalBtn trip-link" data-trip-id="{{ trip_info.trip.id }}" data-user-trip="{{ trip_info.user_trip }}">Детали поездки</a>
-                    </div>
-                </div>
+                <svg class="svg-large" width="63" height="14" viewBox="0 0 63 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="50" height="2" transform="matrix(-1 0 0 -1 50 8)" fill="#444766"/>
+                    <path d="M55.998 14C59.858 14 62.998 10.8599 62.998 7C62.998 3.14008 59.858 0 55.998 0C52.1381 0 48.998 3.14008 48.998 7C48.998 10.8599 52.1381 14 55.998 14ZM55.998 1.16667C59.2145 1.16667 61.8314 3.7835 61.8314 7C61.8314 10.2165 59.2145 12.8333 55.998 12.8333C52.7815 12.8333 50.1647 10.2165 50.1647 7C50.1647 3.7835 52.7815 1.16667 55.998 1.16667ZM53.6647 7C53.6647 5.71142 54.7095 4.66667 55.998 4.66667C57.2866 4.66667 58.3314 5.71142 58.3314 7C58.3314 8.28858 57.2866 9.33333 55.998 9.33333C54.7095 9.33333 53.6647 8.28858 53.6647 7Z" fill="#444766"/>
+                </svg>
+                <svg class="svg-small" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7 0C3.14008 0 0 3.14008 0 7C0 10.8599 3.14008 14 7 14C10.8599 14 14 10.8599 14 7C14 3.14008 10.8599 0 7 0ZM7 12.8333C3.7835 12.8333 1.16667 10.2165 1.16667 7C1.16667 3.7835 3.7835 1.16667 7 1.16667C10.2165 1.16667 12.8333 3.7835 12.8333 7C12.8333 10.2165 10.2165 12.8333 7 12.8333ZM9.33333 7C9.33333 8.28858 8.28858 9.33333 7 9.33333C5.71142 9.33333 4.66667 8.28858 4.66667 7C4.66667 5.71142 5.71142 4.66667 7 4.66667C8.28858 4.66667 9.33333 5.71142 9.33333 7Z" fill="#444766"/>
+                </svg>
             </div>
-            {% endfor %}
-        </section>
+            <div class="time">{{ trip_info.trip.arrival_time|time:"H:i" }}</div>
+        </div>
+        <div class="trip-locations">
+            <div class="location">{{ trip_info.trip.departure_city }}</div>
+            <div class="location" style="text-align: right;">{{ trip_info.trip.destination_city }}</div>
+        </div>
+            </div>
+        {% if trip_info.user_trip %}
+        <div class="trip-your-text">Ваша поездка</div>
+        {% else %}
+        <div class="trip-price">{{ trip_info.trip.price }} р</div>
+        {% endif %}
+        </div>
+
+        <div class="footer-card-info">
+            <div class="trip-actions">
+                {% if trip_info.user_trip %}
+                <button class="delete-button" data-trip-id="{{ trip_info.trip.id }}" data-delete-type="trip">Удалить поездку</button>
+                {% else %}
+                <button class="delete-button" data-trip-id="{{ trip_info.trip.id }}" data-delete-type="passenger">Выйти из поездки</button>
+                {% endif %}
+            </div>
+            <div class="trip-details">
+                <div class="trip-date">{{ trip_info.trip.departure_date|date:"d.m.Y" }}</div>
+                                <!-- Пер кнримопок с установленными атрибутами -->
+                    <a href="#" class="openModalBtn trip-link" data-trip-id="{{ trip_info.trip.id }}" data-user-trip="{{ trip_info.user_trip }}">Детали поездки</a>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+    </section>
 
             <section class="section profile-section">
-            <div class="profile-header">
-                <div class="profile-title">
-                    <h2>Мой профиль</h2>
-                    {% if user.is_authenticated %}
-                        <form method="post" action="{% url 'main:logout' %}" class="profile-logout-form" id="logoutForm">
-                            {% csrf_token %}
-                            <button type="submit" class="profile-btn profile-logout">
-                                <svg class="logout-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
-                                    <g>
-                                        <path d="M170.698,448H72.757c-4.814-0.012-8.714-3.911-8.725-8.725V72.725c0.012-4.814,3.911-8.714,8.725-8.725h97.941c17.673,0,32-14.327,32-32s-14.327-32-32-32H72.757C32.611,0.047,0.079,32.58,0.032,72.725v366.549C0.079,479.42,32.611,511.953,72.757,512h97.941c17.673,0,32-14.327,32-32S188.371,448,170.698,448z"/>
-                                        <path d="M483.914,188.117l-82.816-82.752c-12.501-12.495-32.764-12.49-45.259,0.011s-12.49,32.764,0.011,45.259l72.789,72.768L138.698,224c-17.673,0-32,14.327-32,32s14.327,32,32,32l0,0l291.115-0.533l-73.963,73.963c-12.042,12.936-11.317,33.184,1.618,45.226c12.295,11.445,31.346,11.436,43.63-0.021l82.752-82.752c37.491-37.49,37.491-98.274,0.001-135.764c0,0-0.001-0.001-0.001-0.001L483.914,188.117z"/>
-                                    </g>
-                                </svg>
-                            </button>
-                        </form>
-                    {% endif %}
-                </div>
-                <div class="profile-icon" id="avatar-icon">
-                    {% if profile.avatar %}
-                    <img src="{{ profile.avatar.url }}" alt="аватарка" id="avatar-image" width="100">
-                    {% else %}
-                    <img src="{% static 'img/def_pic.jpg' %}" alt="аватарка" width="200">
-                    {% endif %}
-                </div>
+    <div class="profile-header">
+        <div class="profile-title">
+            <h2>Мой профиль</h2>
+            {% if user.is_authenticated %}
+                <form method="post" action="{% url 'main:logout' %}" class="profile-logout-form" id="logoutForm">
+                    {% csrf_token %}
+                    <button type="submit" class="profile-btn profile-logout">
+                        <svg class="logout-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
+                            <g>
+                                <path d="M170.698,448H72.757c-4.814-0.012-8.714-3.911-8.725-8.725V72.725c0.012-4.814,3.911-8.714,8.725-8.725h97.941c17.673,0,32-14.327,32-32s-14.327-32-32-32H72.757C32.611,0.047,0.079,32.58,0.032,72.725v366.549C0.079,479.42,32.611,511.953,72.757,512h97.941c17.673,0,32-14.327,32-32S188.371,448,170.698,448z"/>
+                                <path d="M483.914,188.117l-82.816-82.752c-12.501-12.495-32.764-12.49-45.259,0.011s-12.49,32.764,0.011,45.259l72.789,72.768L138.698,224c-17.673,0-32,14.327-32,32s14.327,32,32,32l0,0l291.115-0.533l-73.963,73.963c-12.042,12.936-11.317,33.184,1.618,45.226c12.295,11.445,31.346,11.436,43.63-0.021l82.752-82.752c37.491-37.49,37.491-98.274,0.001-135.764c0,0-0.001-0.001-0.001-0.001L483.914,188.117z"/>
+                            </g>
+                        </svg>
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+        <div class="profile-icon" id="avatar-icon">
+            {% if profile.avatar %}
+            <img src="{{ profile.avatar.url }}" alt="аватарка" id="avatar-image" width="100">
+            {% else %}
+            <img src="{% static 'img/def_pic.jpg' %}" alt="аватарка" width="200">
+            {% endif %}
+        </div>
+    </div>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="profile-info">
+            <div class="profile-item">
+                <span class="profile-label" id="first_name_display">{{ profile.first_name }}</span>
+                <input type="text" name="first_name" class="profile-input" id="first_name_input" value="{{ profile.first_name }}" style="display: none;">
+                <span class="profile-edit" onclick="editField('first_name')">&#9998;</span>
             </div>
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="profile-info">
-                    <div class="profile-item">
-                        <span class="profile-label" id="first_name_display">{{ profile.first_name }}</span>
-                        <input type="text" name="first_name" class="profile-input" id="first_name_input" value="{{ profile.first_name }}" style="display: none;">
-                        <span class="profile-edit" onclick="editField('first_name')">&#9998;</span>
-                    </div>
-                    <div class="profile-item">
-                        <span class="profile-label" id="last_name_display">{{ profile.last_name }}</span>
-                        <input type="text" name="last_name" class="profile-input" id="last_name_input" value="{{ profile.last_name }}" style="display: none;">
-                        <span class="profile-edit" onclick="editField('last_name')">&#9998;</span>
-                    </div>
-                    <div class="profile-item">
-                        <span class="profile-label" id="phone_number_display">{{ profile.phone_number }}</span>
-                        <input type="text" name="phone_number" class="profile-input" id="phone_number_input" value="{{ profile.phone_number }}" style="display: none;">
-                        <span class="profile-edit" onclick="editField('phone_number')">&#9998;</span>
-                    </div>
-                    <div class="profile-item">
-                        <span class="profile-label" id="email_display">{{ profile.email }}</span>
-                        <input type="email" name="email" class="profile-input" id="email_input" value="{{ profile.email }}" style="display: none;">
-                        <span class="profile-edit" onclick="editField('email')">&#9998;</span>
-                    </div>
-                    <div class="profile-item">
-                        <span class="profile-label">Обо мне:</span>
-                        <span class="profile-label" id="about_me_display">{{ profile.about_me }}</span>
-                        <textarea name="about_me" class="profile-input" id="about_me_input" style="display: none;">{{ profile.about_me }}</textarea>
-                        <span class="profile-edit" onclick="editField('about_me')">&#9998;</span>
-                    </div>
-                    <div class="profile-item" style="display: none;">
-                        <input type="file" name="avatar" id="avatar-input" class="profile-input" accept="image/*">
-                    </div>
+            <div class="profile-item">
+                <span class="profile-label" id="last_name_display">{{ profile.last_name }}</span>
+                <input type="text" name="last_name" class="profile-input" id="last_name_input" value="{{ profile.last_name }}" style="display: none;">
+                <span class="profile-edit" onclick="editField('last_name')">&#9998;</span>
+            </div>
+            <div class="profile-item">
+                <span class="profile-label" id="phone_number_display">{{ profile.phone_number }}</span>
+                <input type="text" name="phone_number" class="profile-input" id="phone_number_input" value="{{ profile.phone_number }}" style="display: none;">
+                <span class="profile-edit" onclick="editField('phone_number')">&#9998;</span>
+            </div>
+            <div class="profile-item">
+                <span class="profile-label" id="email_display">{{ profile.email }}</span>
+                <input type="email" name="email" class="profile-input" id="email_input" value="{{ profile.email }}" style="display: none;">
+                <span class="profile-edit" onclick="editField('email')">&#9998;</span>
+            </div>
+            <div class="profile-item">
+                <span class="profile-label">Обо мне:</span>
+                <span class="profile-label" id="about_me_display">{{ profile.about_me }}</span>
+                <textarea name="about_me" class="profile-input" id="about_me_input" style="display: none;">{{ profile.about_me }}</textarea>
+                <span class="profile-edit" onclick="editField('about_me')">&#9998;</span>
+            </div>
+            <div class="profile-item" style="display: none;">
+                <input type="file" name="avatar" id="avatar-input" class="profile-input" accept="image/*">
+            </div>
                     <div class="profile-item profile-item_mrg">
                         <button type="button" class="profile-btn" onclick="openAddCarModal()">Добавить автомобиль</button>
                         <button type="button" class="profile-btn profile-btn-secondary" onclick="openManageCarsModal()">Управление автомобилями</button>
                         
-                    </div>
+        </div>
                     <div class="profile-item">
                         <button type="button" class="profile-btn profile-btn-secondary" onclick="openPasswordModal()">Сменить пароль</button>
                         <button type="submit" class="profile-btn">Сохранить изменения</button>
                 </div>
-                </div>
-            </form>
+        </div>
+    </form>
 
-            <!-- Модальное окно для смены пароля -->
-            <div id="passwordModal" class="modal">
-                <div class="modal-content">
-                    <span class="close" onclick="closePasswordModal()">&times;</span>
-                    <h2>Смена пароля</h2>
-                    <form id="passwordForm" method="post" action="{% url 'main:change_password' %}">
-                        {% csrf_token %}
-                        {{ change_password_form.old_password.label_tag }} {{ change_password_form.old_password }}<br>
-                        {{ change_password_form.new_password1.label_tag }} {{ change_password_form.new_password1 }}<br>
-                        {{ change_password_form.new_password2.label_tag }} {{ change_password_form.new_password2 }}<br>
-                        <button type="submit" class="btn">Сменить пароль</button>
-                    </form>
-                </div>
-            </div>
-        </section>
+    <!-- Модальное окно для смены пароля -->
+<div id="passwordModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closePasswordModal()">&times;</span>
+            <h2>Смена пароля</h2>
+            <form id="passwordForm" method="post" action="{% url 'main:change_password' %}">
+                {% csrf_token %}
+                {{ change_password_form.old_password.label_tag }} {{ change_password_form.old_password }}<br>
+                {{ change_password_form.new_password1.label_tag }} {{ change_password_form.new_password1 }}<br>
+                {{ change_password_form.new_password2.label_tag }} {{ change_password_form.new_password2 }}<br>
+                <button type="submit" class="btn">Сменить пароль</button>
+            </form>
+        </div>
+    </div>
+</section>
 
             <section class="section notifications-section">
             <div class="notifications-header">
@@ -288,9 +288,9 @@
                 </div>
             </div>
             <div class="notification-wrapper">
-            {% for notification in notifications %}
+    {% for notification in notifications %}
                     <div class="notification notification-{{ notification.notification_type }}">
-                    <div class="notification-text">
+            <div class="notification-text">
                             {% if notification.is_request %}
                                 <a href="{% url 'main:profile_user' %}?user_id={{ notification.sender.id }}" class="notification-user-link">{{ notification.sender.first_name }} {{ notification.sender.last_name }}</a> хочет присоединиться к <a href="#" class="notification-trip-link openModalBtn" data-trip-id="{{ notification.trip.id }}">вашей поездке</a>.
                             {% elif notification.notification_type == 'success' %}
@@ -310,36 +310,36 @@
                             {% elif notification.notification_type == 'end' %}
                                 <a href="{% url 'main:profile_user' %}?user_id={{ notification.sender.id }}" class="notification-user-link">{{ notification.sender.first_name }} {{ notification.sender.last_name }}</a> завершил <a href="#" class="notification-trip-link openModalBtn" data-trip-id="{{ notification.trip.id }}">поездку</a>.
                             {% else %}
-                        {{ notification.message }}
-                        {% endif %}
-                </div>
-                <div class="notification-info">
+                {{ notification.message }}
+                {% endif %}
+        </div>
+        <div class="notification-info">
                             <span class="notification-date">{{ notification.created_at|date:"d.m.Y H:i" }}</span>
-                </div>
+        </div>
                         {% if not notification.read and notification.is_request %}
                             <div class="notification-actions">
                                 <button class="notification-action" data-action="accept" data-notification-id="{{ notification.id }}">Принять</button>
                                 <button class="notification-action" data-action="decline" data-notification-id="{{ notification.id }}">Отклонить</button>
                             </div>
                         {% endif %}
-            </div>
-            {% endfor %}
+    </div>
+{% endfor %}
             </div>
 
-        </section>
+</section>
         </div>
     </main>
 
-    <div id="deleteModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <p>Вы уверены, что хотите удалить эту поездку?</p>
-            <div class="modal-buttons">
-                <button id="confirmDelete" class="modal-button modal-button-confirm">Да</button>
-                <button class="modal-button modal-button-cancel">Нет</button>
-            </div>
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <p>Вы уверены, что хотите удалить эту поездку?</p>
+        <div class="modal-buttons">
+            <button id="confirmDelete" class="modal-button modal-button-confirm">Да</button>
+            <button class="modal-button modal-button-cancel">Нет</button>
         </div>
     </div>
+</div>
 
     <!-- Модальное окно  -->
     <div id="customTripModal" class="custom-trip-modal">
@@ -347,7 +347,7 @@
             <button class="custom-trip-close-btn">&times;</button>
             <div class="modal-header">
                 <h2 class="modal-title">Детали поездки</h2>
-            </div>
+                </div>
             <div class="modal-body">
                 <div class="modal-section">
                     <h3 class="modal-section-title">Информация о маршруте</h3>
@@ -355,7 +355,7 @@
                         <span class="modal-info-label">Откуда:</span>
                         <span class="modal-info-value" id="modal-departure-city"></span>
                         <button class="map-view-btn" onclick="showMapPoint('departure')">на карте</button>
-                    </div>
+            </div>
                     <div class="modal-info-row">
                         <span class="modal-info-label">Время отправления:</span>
                         <span class="modal-info-value" id="modal-departure-time"></span>
@@ -368,8 +368,8 @@
                     <div class="modal-info-row">
                         <span class="modal-info-label">Время прибытия:</span>
                         <span class="modal-info-value" id="modal-arrival-time"></span>
-                    </div>
                 </div>
+                    </div>
                
                 <div class="modal-section">
                     <h3 class="modal-section-title">Пассажиры</h3>
@@ -378,7 +378,7 @@
                         <span class="modal-info-value">
                             <span id="modal-passengers-count">0</span>/<span id="modal-max-passengers">0</span>
                         </span>
-                </div>
+                    </div>
                     <div class="modal-passengers-list" id="modal-passengers-list">
                         <!-- Список пассажиров будет добавлен динамически -->
                 </div>
@@ -386,9 +386,9 @@
                         <h3 class="modal-section-title">Водитель</h3>
                         <div class="modal-driver-list" id="modal-driver-list">
                             <!-- Информация о водителе будет добавлена динамически -->
-            </div>
+                </div>
                     
-            </div>
+                </div>
             </div>
             <div class="modal-status">
                 <div class="modal-time-until" id="modal-time-until"></div>
@@ -497,35 +497,40 @@
                 
                 <div class="form-group">
                     <label for="edit_brand">Марка автомобиля</label>
-                    <select name="brand" id="edit_brand" class="form-control">
+                    <select name="brand" id="edit_brand" class="form-control" required>
                         <option value="">Выберите марку</option>
                         {% for brand in car_brands %}
                         <option value="{{ brand.id }}">{{ brand.name }}</option>
                         {% endfor %}
                     </select>
+                    <div class="validation-message"></div>
                 </div>
                 
                 <div class="form-group">
                     <label for="edit_model">Модель автомобиля</label>
-                    <select name="model" id="edit_model" class="form-control">
+                    <select name="model" id="edit_model" class="form-control" required>
                         <option value="">Сначала выберите марку</option>
                     </select>
+                    <div class="validation-message"></div>
                 </div>
                 
                 <div class="form-group">
                     <label for="edit_color">Цвет автомобиля</label>
-                    <input type="text" name="color" id="edit_color" class="form-control">
+                    <input type="text" name="color" id="edit_color" class="form-control" required>
+                    <div class="validation-message"></div>
                 </div>
                 
                 <div class="form-group">
                     <label for="edit_license_plate">Государственный номер</label>
-                    <input type="text" name="license_plate" id="edit_license_plate" class="form-control">
+                    <input type="text" name="license_plate" id="edit_license_plate" class="form-control" required pattern="[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}\d{2,3}">
+                    <div class="validation-message"></div>
                 </div>
                 
                 <div class="form-group">
                     <label for="edit_image">Фото автомобиля</label>
-                    <input type="file" name="image" id="edit_image" class="form-control">
+                    <input type="file" name="image" id="edit_image" class="form-control" accept="image/*">
                     <div id="current_car_image"></div>
+                    <div class="validation-message"></div>
                 </div>
                 
                 <button type="submit" class="btn">Сохранить</button>
@@ -533,7 +538,7 @@
         </div>
     </div>
 
-    <script src="{% static 'js/profile.js' %}"></script>
+<script src="{% static 'js/profile.js' %}"></script>
     <script src="{% static 'js/car_management.js' %}"></script>
 
     <script>
@@ -806,11 +811,16 @@ window.addEventListener('click', function(event) {
         function openEditCarModal(carId) {
             document.getElementById('editCarModal').style.display = 'block';
             var formElement = document.getElementById('editCarForm');
-            formElement.action = '/edit_car/' + carId + '/';
+            formElement.action = "{% url 'main:edit_car' 0 %}".replace('0', carId);
             
             // Загружаем данные автомобиля через AJAX
-            fetch('/get_car_details/' + carId + '/')
-                .then(response => response.json())
+            fetch("{% url 'main:get_car_details' 0 %}".replace('0', carId))
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Ошибка загрузки данных автомобиля');
+                    }
+                    return response.json();
+                })
                 .then(car => {
                     document.getElementById('edit_brand').value = car.brand_id;
                     
@@ -819,10 +829,7 @@ window.addEventListener('click', function(event) {
                     const modelSelect = document.getElementById('edit_model');
                     
                     // Загружаем модели и выбираем нужную
-                    updateModels(car.brand_id, modelSelect);
-                    
-                    // Устанавливаем выбранную модель с задержкой, чтобы дать время на загрузку моделей
-                    setTimeout(() => {
+                    updateModels(car.brand_id, modelSelect).then(() => {
                         if (modelSelect) {
                             // Находим опцию с нужным ID модели
                             const options = modelSelect.querySelectorAll('option');
@@ -833,15 +840,20 @@ window.addEventListener('click', function(event) {
                                 }
                             }
                         }
-                    }, 500);
+                    });
                     
-                    document.getElementById('edit_color').value = car.color;
-                    document.getElementById('edit_license_plate').value = car.license_plate;
+                    document.getElementById('edit_color').value = car.color || '';
+                    document.getElementById('edit_license_plate').value = car.license_plate || '';
                     
                     if (car.image_url) {
                         var imgContainer = document.getElementById('current_car_image');
                         imgContainer.innerHTML = `<p>Текущее изображение:</p><img src="${car.image_url}" alt="Текущее изображение автомобиля" width="100">`;
                     }
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    alert('Произошла ошибка при загрузке данных автомобиля. Пожалуйста, попробуйте еще раз.');
+                    closeEditCarModal();
                 });
         }
 
@@ -875,39 +887,30 @@ window.addEventListener('click', function(event) {
         });
         
         // Функция для обновления списка моделей
-        function updateModels(brandId, modelSelect) {
-            if (!modelSelect) {
-                return;
-            }
-            
-            // Очищаем текущие модели
-            modelSelect.innerHTML = '<option value="">Выберите модель</option>';
-            
+        async function updateModels(brandId, modelSelect) {
             if (!brandId) {
+                modelSelect.innerHTML = '<option value="">Сначала выберите марку</option>';
                 return;
             }
-            
-            // Загружаем модели для выбранной марки через AJAX
-            fetch(`/get_car_models/?brand_id=${brandId}`)
-                .then(response => {
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.models && Array.isArray(data.models) && data.models.length > 0) {
-                        // Добавляем модели напрямую в DOM
-                        data.models.forEach(function(model) {
-                            const option = document.createElement('option');
-                            option.value = model.id;
-                            option.textContent = model.name;
-                            modelSelect.appendChild(option);
-                        });
-                    } else {
-                        modelSelect.innerHTML = '<option value="">Нет доступных моделей</option>';
-                    }
-                })
-                .catch(error => {
-                    modelSelect.innerHTML = '<option value="">Ошибка загрузки моделей</option>';
+
+            try {
+                const response = await fetch(`/get_car_models/?brand_id=${brandId}`);
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки моделей');
+                }
+                const models = await response.json();
+                
+                modelSelect.innerHTML = '<option value="">Выберите модель</option>';
+                models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model.id;
+                    option.textContent = model.name;
+                    modelSelect.appendChild(option);
                 });
+            } catch (error) {
+                console.error('Ошибка при загрузке моделей:', error);
+                modelSelect.innerHTML = '<option value="">Ошибка загрузки моделей</option>';
+            }
         }
 
         // Закрытие модальных окон при клике вне их содержимого
@@ -2138,7 +2141,6 @@ window.addEventListener('click', function(event) {
             border-radius: 16px;
             padding: 1.5rem;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            margin-bottom: 1.5rem;
             height: auto; /* Убираем фиксированную высоту */
             overflow: visible; /* Убираем скролл */
             display: flex;

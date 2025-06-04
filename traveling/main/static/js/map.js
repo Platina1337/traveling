@@ -133,10 +133,15 @@ document.getElementById('confirmAddress').addEventListener('click', function() {
         const address = document.getElementById('selectedAddress').textContent;
         
         // Обновляем отображение адреса в соответствующем блоке
-        if (currentAddressType === 'departure') {
-            document.getElementById('departureAddressDisplay').textContent = address;
-        } else if (currentAddressType === 'destination') {
-            document.getElementById('destinationAddressDisplay').textContent = address;
+        const departureDisplay = document.getElementById('departureAddressDisplay');
+        const destinationDisplay = document.getElementById('destinationAddressDisplay');
+        
+        if (currentAddressType === 'departure' && departureDisplay) {
+            departureDisplay.textContent = address;
+            departureDisplay.style.display = address ? 'block' : 'none';
+        } else if (currentAddressType === 'destination' && destinationDisplay) {
+            destinationDisplay.textContent = address;
+            destinationDisplay.style.display = address ? 'block' : 'none';
         }
         
         const mapModalInstance = bootstrap.Modal.getInstance(document.getElementById('mapModal'));

@@ -235,14 +235,14 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateSVGDisplay() {
         const largeSVG = document.querySelector('.svg-large');
         const smallSVG = document.querySelector('.svg-small');
-        
+
         if (largeSVG && smallSVG) {
-            if (window.innerWidth <= 420) {
-                largeSVG.style.display = 'none';
-                smallSVG.style.display = 'block';
-            } else {
-                largeSVG.style.display = 'block';
-                smallSVG.style.display = 'none';
+        if (window.innerWidth <= 420) {
+            largeSVG.style.display = 'none';
+            smallSVG.style.display = 'block';
+        } else {
+            largeSVG.style.display = 'block';
+            smallSVG.style.display = 'none';
             }
         }
     }
@@ -339,49 +339,49 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    let currentTripId = null; // Добавляем глобальную переменную для текущего tripId
+let currentTripId = null; // Добавляем глобальную переменную для текущего tripId
 
-    document.querySelectorAll('.openModalBtn').forEach(function(button) {
-        button.addEventListener('click', function() {
-            const tripId = this.dataset.tripId;
-            const userTrip = this.dataset.userTrip === 'True';
+document.querySelectorAll('.openModalBtn').forEach(function(button) {
+    button.addEventListener('click', function() {
+        const tripId = this.dataset.tripId;
+        const userTrip = this.dataset.userTrip === 'True';
 
-            if (!tripId) {
-                console.error('tripId is undefined');
-                return;
-            }
+        if (!tripId) {
+            console.error('tripId is undefined');
+            return;
+        }
 
-            currentTripId = tripId; // Устанавливаем текущий tripId
+        currentTripId = tripId; // Устанавливаем текущий tripId
 
-            fetch(`/get_trip_details_profile/${tripId}/`)
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data);
-                    const fromAddressElem = document.getElementById('trip-from-address');
-                    const toAddressElem = document.getElementById('trip-to-address');
-                    const seatsElem = document.getElementById('trip-seats');
-                    const priceElem = document.getElementById('trip-price');
-                    const departureDateElem = document.getElementById('trip-departure-date');
-                    const arrivalDateElem = document.getElementById('trip-arrival-date');
-                    const driverInfoElem = document.getElementById('driver-info');
-                    const priceSectionElem = document.getElementById('trip-price-section');
-                    const passengersInfoElem = document.getElementById('passengers-info');
-                    const tripActionsElem = document.getElementById('trip-actions');
-                    const startTripBtn = document.getElementById('start-trip-btn');
-                    const endTripBtn = document.getElementById('end-trip-btn');
-                    const passengersListElem = document.getElementById('passengers-list');
+        fetch(`/get_trip_details_profile/${tripId}/`)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                const fromAddressElem = document.getElementById('trip-from-address');
+                const toAddressElem = document.getElementById('trip-to-address');
+                const seatsElem = document.getElementById('trip-seats');
+                const priceElem = document.getElementById('trip-price');
+                const departureDateElem = document.getElementById('trip-departure-date');
+                const arrivalDateElem = document.getElementById('trip-arrival-date');
+                const driverInfoElem = document.getElementById('driver-info');
+                const priceSectionElem = document.getElementById('trip-price-section');
+                const passengersInfoElem = document.getElementById('passengers-info');
+                const tripActionsElem = document.getElementById('trip-actions');
+                const startTripBtn = document.getElementById('start-trip-btn');
+                const endTripBtn = document.getElementById('end-trip-btn');
+                const passengersListElem = document.getElementById('passengers-list');
 
-                    if (fromAddressElem) fromAddressElem.textContent = data.departure_address || '';
-                    if (toAddressElem) toAddressElem.textContent = data.destination_address || '';
-                    if (seatsElem) seatsElem.textContent = `${data.seats_taken || 0}/${data.total_seats || 0}`;
-                    if (priceElem) priceElem.textContent = (data.price || 0) + " р";
+                if (fromAddressElem) fromAddressElem.textContent = data.departure_address || '';
+                if (toAddressElem) toAddressElem.textContent = data.destination_address || '';
+                if (seatsElem) seatsElem.textContent = `${data.seats_taken || 0}/${data.total_seats || 0}`;
+                if (priceElem) priceElem.textContent = (data.price || 0) + " р";
 
-                    if (departureDateElem) {
-                        departureDateElem.textContent = `${data.departure_date || ''} ${data.departure_time || ''}`;
-                    }
-                    if (arrivalDateElem) {
-                        arrivalDateElem.textContent = `${data.arrival_date || ''} ${data.arrival_time || ''}`;
-                    }
+                if (departureDateElem) {
+                    departureDateElem.textContent = `${data.departure_date || ''} ${data.departure_time || ''}`;
+                }
+                if (arrivalDateElem) {
+                    arrivalDateElem.textContent = `${data.arrival_date || ''} ${data.arrival_time || ''}`;
+                }
 
                     // Сохраняем статус поездки глобально
                     tripStatus = data.status;
@@ -392,171 +392,99 @@ document.addEventListener('DOMContentLoaded', function() {
                         tripStatusMessage.style.display = data.status === 'in_progress' ? 'block' : 'none';
                     }
 
-                    if (userTrip) {
-                        if (driverInfoElem) driverInfoElem.style.display = 'none';
-                        if (priceSectionElem) priceSectionElem.style.display = 'none';
+                if (userTrip) {
+                    if (driverInfoElem) driverInfoElem.style.display = 'none';
+                    if (priceSectionElem) priceSectionElem.style.display = 'none';
 
-                        if (passengersInfoElem) passengersInfoElem.style.display = 'block';
-                        if (tripActionsElem) tripActionsElem.style.display = 'block';
-                        if (startTripBtn) startTripBtn.style.display = data.status === 'planned' ? 'block' : 'none';
-                        if (endTripBtn) endTripBtn.style.display = data.status === 'in_progress' ? 'block' : 'none';
+                    if (passengersInfoElem) passengersInfoElem.style.display = 'block';
+                    if (tripActionsElem) tripActionsElem.style.display = 'block';
+                    if (startTripBtn) startTripBtn.style.display = data.status === 'planned' ? 'block' : 'none';
+                    if (endTripBtn) endTripBtn.style.display = data.status === 'in_progress' ? 'block' : 'none';
 
-                        if (passengersListElem) {
-                            passengersListElem.innerHTML = ''; // Clear the list before adding passengers
-                            if (Array.isArray(data.passengers)) {
-                                data.passengers.forEach((passenger, index) => {
-                                    const listItem = document.createElement('li');
-                                    listItem.textContent = passenger.name;
+                    if (passengersListElem) {
+                        passengersListElem.innerHTML = ''; // Clear the list before adding passengers
+                        if (Array.isArray(data.passengers)) {
+                            data.passengers.forEach((passenger, index) => {
+                                const listItem = document.createElement('li');
+                                listItem.textContent = passenger.name;
 
                                     // Добавляем кнопку "Удалить" только если поездка еще не началась
                                     if (data.status === 'planned') {
-                                        const removeButton = document.createElement('button');
-                                        removeButton.textContent = 'Удалить';
-                                        removeButton.classList.add('remove-passenger-btn');
-                                        removeButton.dataset.passengerId = passenger.id;
+                                const removeButton = document.createElement('button');
+                                removeButton.textContent = 'Удалить';
+                                removeButton.classList.add('remove-passenger-btn');
+                                removeButton.dataset.passengerId = passenger.id;
 
-                                        removeButton.addEventListener('click', function() {
-                                            removePassenger(tripId, passenger.id, index);
-                                        });
+                                removeButton.addEventListener('click', function() {
+                                    removePassenger(tripId, passenger.id, index);
+                                });
 
-                                        listItem.appendChild(removeButton);
+                                listItem.appendChild(removeButton);
                                     }
                                     
-                                    passengersListElem.appendChild(listItem);
-                                });
-                            }
-                        }
-                    } else {
-                        if (driverInfoElem) driverInfoElem.style.display = 'block';
-                        if (priceSectionElem) priceSectionElem.style.display = 'block';
-                        if (passengersInfoElem) passengersInfoElem.style.display = 'none';
-                        if (tripActionsElem) tripActionsElem.style.display = 'none';
-
-                        if (data.driver_photo) {
-                            const driverPhotoElem = document.getElementById('driver-photo');
-                            if (driverPhotoElem) driverPhotoElem.src = data.driver_photo;
-                        }
-                        const driverNameElem = document.getElementById('driver-name');
-                        const driverProfileLinkElem = document.getElementById('driver-profile-link');
-
-                        if (driverNameElem) {
-                            driverNameElem.textContent = `${data.driver_name || ''} ${data.driver_surname || ''}`;
-                        }
-                        if (driverProfileLinkElem) {
-                            driverProfileLinkElem.href = `/profile_user/?user_id=${data.driver_id}`;
-                        }
-
-                        const driverDescElem = document.getElementById('driver-description');
-                        if (driverDescElem) driverDescElem.textContent = data.driver_description || '';
-
-                        const driverRatingElem = document.getElementById('driver-rating');
-                        if (driverRatingElem) {
-                            driverRatingElem.textContent = data.driver_rating !== undefined ? data.driver_rating + "★" : "No rating";
+                                passengersListElem.appendChild(listItem);
+                            });
                         }
                     }
+                } else {
+                    if (driverInfoElem) driverInfoElem.style.display = 'block';
+                    if (priceSectionElem) priceSectionElem.style.display = 'block';
+                    if (passengersInfoElem) passengersInfoElem.style.display = 'none';
+                    if (tripActionsElem) tripActionsElem.style.display = 'none';
 
-                    const customModalElem = document.getElementById('customModal');
-                    if (customModalElem) customModalElem.style.display = 'block';
-                    document.body.classList.add('modal-open');
+                    if (data.driver_photo) {
+                        const driverPhotoElem = document.getElementById('driver-photo');
+                        if (driverPhotoElem) driverPhotoElem.src = data.driver_photo;
+                    }
+                    const driverNameElem = document.getElementById('driver-name');
+                    const driverProfileLinkElem = document.getElementById('driver-profile-link');
+
+                    if (driverNameElem) {
+                        driverNameElem.textContent = `${data.driver_name || ''} ${data.driver_surname || ''}`;
+                    }
+                    if (driverProfileLinkElem) {
+                        driverProfileLinkElem.href = `/profile_user/?user_id=${data.driver_id}`;
+                    }
+
+                    const driverDescElem = document.getElementById('driver-description');
+                    if (driverDescElem) driverDescElem.textContent = data.driver_description || '';
+
+                    const driverRatingElem = document.getElementById('driver-rating');
+                    if (driverRatingElem) {
+                        driverRatingElem.textContent = data.driver_rating !== undefined ? data.driver_rating + "★" : "No rating";
+                    }
+                }
+
+                const customModalElem = document.getElementById('customModal');
+                if (customModalElem) customModalElem.style.display = 'block';
+                document.body.classList.add('modal-open');
 
                     // Обновляем состояние кнопок удаления поездки на странице
                     updateDeleteButtons(data.status);
-                })
-                .catch(error => console.error('Error fetching trip details:', error));
-        });
+            })
+            .catch(error => console.error('Error fetching trip details:', error));
     });
+});
 
-    const customCloseBtn = document.querySelector('.custom-close-btn');
-    if (customCloseBtn) {
-        customCloseBtn.addEventListener('click', function() {
-            const customModalElem = document.getElementById('customModal');
-            if (customModalElem) customModalElem.style.display = 'none';
-            document.body.classList.remove('modal-open');
-            currentTripId = null; // Сбрасываем текущий tripId
-        });
+const customCloseBtn = document.querySelector('.custom-close-btn');
+if (customCloseBtn) {
+    customCloseBtn.addEventListener('click', function() {
+        const customModalElem = document.getElementById('customModal');
+        if (customModalElem) customModalElem.style.display = 'none';
+        document.body.classList.remove('modal-open');
+        currentTripId = null; // Сбрасываем текущий tripId
+    });
     }
 
-    const startTripBtn = document.getElementById('start-trip-btn');
-    if (startTripBtn) {
-        startTripBtn.addEventListener('click', function() {
-            if (!currentTripId) {
-                console.error('No tripId available');
-                return;
-            }
-
-            fetch(`/start_trip/${currentTripId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Поездка началась');
-                    startTripBtn.style.display = 'none';
-                    endTripBtn.style.display = 'block';
-
-                    const tripStatusElem = document.querySelector(`.trip-status[data-trip-id="${currentTripId}"]`);
-                    if (tripStatusElem) {
-                        tripStatusElem.textContent = 'in_progress';
-                    }
-                } else {
-                    alert(data.message || 'Ошибка при начале поездки');
-                }
-            })
-            .catch(error => console.error('Error starting trip:', error));
-        });
-    }
-
-    const endTripBtn = document.getElementById('end-trip-btn');
-    if (endTripBtn) {
-        endTripBtn.addEventListener('click', function() {
-            if (!currentTripId) {
-                console.error('No tripId available');
-                return;
-            }
-
-            fetch(`/end_trip/${currentTripId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Поездка завершена');
-                    const customModalElem = document.getElementById('customModal');
-                    if (customModalElem) customModalElem.style.display = 'none';
-                    document.body.classList.remove('modal-open');
-                    window.location.reload();
-                } else {
-                    alert(data.message || 'Ошибка при завершении поездки');
-                }
-            })
-            .catch(error => console.error('Error ending trip:', error));
-        });
-    }
-
-    function removePassenger(tripId, passengerId, index) {
-        console.log('Trip ID:', tripId);
-        console.log('Passenger ID:', passengerId);
-
-        // Проверяем, не началась ли уже поездка
-        if (tripStatus === 'in_progress') {
-            alert('Нельзя удалить пассажира из начатой поездки.');
+const startTripBtn = document.getElementById('start-trip-btn');
+if (startTripBtn) {
+    startTripBtn.addEventListener('click', function() {
+        if (!currentTripId) {
+            console.error('No tripId available');
             return;
         }
 
-        if (!tripId || !passengerId) {
-            console.error('Trip ID or Passenger ID is missing');
-            return;
-        }
-
-        fetch(`/remove_passenger/${tripId}/${passengerId}/`, {
+        fetch(`/start_trip/${currentTripId}/`, {
             method: 'POST',
             headers: {
                 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
@@ -566,20 +494,92 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Пассажир удален');
-                const passengersListElem = document.getElementById('passengers-list');
-                if (passengersListElem) {
-                    const listItems = passengersListElem.getElementsByTagName('li');
-                    if (listItems[index]) {
-                        passengersListElem.removeChild(listItems[index]);
-                    }
+                alert('Поездка началась');
+                startTripBtn.style.display = 'none';
+                endTripBtn.style.display = 'block';
+
+                const tripStatusElem = document.querySelector(`.trip-status[data-trip-id="${currentTripId}"]`);
+                if (tripStatusElem) {
+                    tripStatusElem.textContent = 'in_progress';
                 }
             } else {
-                alert(data.message || 'Ошибка при удалении пассажира');
+                alert(data.message || 'Ошибка при начале поездки');
             }
         })
-        .catch(error => console.error('Error removing passenger:', error));
+        .catch(error => console.error('Error starting trip:', error));
+    });
+}
+
+const endTripBtn = document.getElementById('end-trip-btn');
+if (endTripBtn) {
+    endTripBtn.addEventListener('click', function() {
+        if (!currentTripId) {
+            console.error('No tripId available');
+            return;
+        }
+
+        fetch(`/end_trip/${currentTripId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Поездка завершена');
+                const customModalElem = document.getElementById('customModal');
+                if (customModalElem) customModalElem.style.display = 'none';
+                document.body.classList.remove('modal-open');
+                window.location.reload();
+            } else {
+                alert(data.message || 'Ошибка при завершении поездки');
+            }
+        })
+        .catch(error => console.error('Error ending trip:', error));
+    });
+}
+
+function removePassenger(tripId, passengerId, index) {
+    console.log('Trip ID:', tripId);
+    console.log('Passenger ID:', passengerId);
+
+        // Проверяем, не началась ли уже поездка
+        if (tripStatus === 'in_progress') {
+            alert('Нельзя удалить пассажира из начатой поездки.');
+            return;
+        }
+
+    if (!tripId || !passengerId) {
+        console.error('Trip ID or Passenger ID is missing');
+        return;
     }
+
+    fetch(`/remove_passenger/${tripId}/${passengerId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Пассажир удален');
+            const passengersListElem = document.getElementById('passengers-list');
+            if (passengersListElem) {
+                const listItems = passengersListElem.getElementsByTagName('li');
+                if (listItems[index]) {
+                    passengersListElem.removeChild(listItems[index]);
+                }
+            }
+        } else {
+            alert(data.message || 'Ошибка при удалении пассажира');
+        }
+    })
+    .catch(error => console.error('Error removing passenger:', error));
+}
 
     // Глобальная переменная для хранения статуса поездки
     let tripStatus = null;
@@ -599,7 +599,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 button.disabled = false;
                 button.classList.remove('disabled-button');
                 button.removeAttribute('title');
-            }
+}
         });
     }
 

@@ -1760,14 +1760,16 @@ def edit_car(request, car_id):
     if request.method == 'POST':
         form = CarForm(request.POST, request.FILES, instance=car)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Информация об автомобиле обновлена')
-            return redirect('main:profile')
+            try:
+                form.save()
+                messages.success(request, 'Информация об автомобиле успешно обновлена')
+                return JsonResponse({'status': 'success', 'message': 'Информация об автомобиле успешно обновлена'})
+            except Exception as e:
+                messages.error(request, f'Произошла ошибка при сохранении: {str(e)}')
+                return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
         else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f'{form.fields[field].label}: {error}')
-            return redirect('main:profile')
+            errors = {field: errors[0] for field, errors in form.errors.items()}
+            return JsonResponse({'status': 'error', 'errors': errors}, status=400)
     else:
         # Если это GET-запрос, просто показываем форму редактирования
         form = CarForm(instance=car)

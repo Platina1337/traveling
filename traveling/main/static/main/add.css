@@ -690,6 +690,21 @@ body.modal-open {
     color: var(--color-purple);
     min-height: 20px;
 }
+.destinationAddressDisplay {
+    background-color: var(--color-lightestgray);
+    border: 1px solid var(--color-lightergray);
+    border-radius: 5px;
+    padding: 10px;
+    margin-top: 5px;
+    font-size: 14px;
+    color: var(--color-purple);
+    min-height: 20px;
+    display: none; /* Скрываем по умолчанию */
+}
+
+.destinationAddressDisplay:not(:empty) {
+    display: block; /* Показываем только когда есть содержимое */
+}
 
 #departureAddressDisplay:empty {
     display: none;

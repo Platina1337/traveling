@@ -15,3 +15,358 @@ git add .
 git commit -m "."
 git push origin main
 git pull origin main
+
+sql city
+INSERT INTO main_city (name) VALUES 
+('Донецк'),
+('Макеевка'),
+('Горловка'),
+('Енакиево'),
+('Харцызск'),
+('Ясиноватая'),
+('Дебальцево'),
+('Торез'),
+('Снежное'),
+('Шахтерск'),
+('Амвросиевка'),
+('Новоазовск'),
+('Мариуполь'),
+('Волноваха'),
+('Краматорск');
+
+sql 
+carBrand
+
+INSERT INTO main_carbrand (name) VALUES 
+('Toyota'),
+('Honda'),
+('Nissan'),
+('Mazda'),
+('Mitsubishi'),
+('Kia'),
+('Hyundai'),
+('Volkswagen'),
+('BMW'),
+('Mercedes-Benz'),
+('Audi'),
+('Skoda'),
+('Renault'),
+('Peugeot'),
+('Citroen');
+
+sql CarModel
+INSERT INTO main_carmodel (brand_id, name) VALUES 
+(1, 'Camry'),
+(1, 'Corolla'),
+(1, 'RAV4'),
+(2, 'Civic'),
+(2, 'Accord'),
+(2, 'CR-V'),
+(3, 'X-Trail'),
+(3, 'Qashqai'),
+(3, 'Teana'),
+(4, '3'),
+(4, '6'),
+(4, 'CX-5'),
+(5, 'Lancer'),
+(5, 'Outlander'),
+(5, 'ASX'),
+(6, 'Rio'),
+(6, 'Ceed'),
+(6, 'Sportage'),
+(7, 'Solaris'),
+(7, 'Elantra'),
+(7, 'Tucson'),
+(8, 'Polo'),
+(8, 'Golf'),
+(8, 'Passat'),
+(9, '3 Series'),
+(9, '5 Series'),
+(9, 'X5'),
+(10, 'C-Class'),
+(10, 'E-Class'),
+(10, 'GLC'),
+(11, 'A4'),
+(11, 'A6'),
+(11, 'Q5'),
+(12, 'Octavia'),
+(12, 'Superb'),
+(12, 'Kodiaq'),
+(13, 'Logan'),
+(13, 'Duster'),
+(13, 'Kaptur'),
+(14, '308'),
+(14, '408'),
+(14, '3008'),
+(15, 'C4'),
+(15, 'C5'),
+(15, 'C3');
+
+
+
+python manage.py shell
+
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
+from main.models import UserProfile
+from datetime import date
+
+# Создаем пользователей и их профили
+users_data = [
+    {
+        'email': 'ivanov@example.com',
+        'password': 'password123',
+        'first_name': 'Иван',
+        'last_name': 'Иванов',
+        'phone': '+7(999)111-22-33',
+        'birth_date': date(1990, 1, 15),
+        'about_me': 'Опытный водитель с 10-летним стажем',
+        'gender': 'M'
+    },
+    {
+        'email': 'petrov@example.com',
+        'password': 'password123',
+        'first_name': 'Петр',
+        'last_name': 'Петров',
+        'phone': '+7(999)222-33-44',
+        'birth_date': date(1985, 5, 20),
+        'about_me': 'Люблю путешествовать',
+        'gender': 'M'
+    },
+    {
+        'email': 'sidorov@example.com',
+        'password': 'password123',
+        'first_name': 'Алексей',
+        'last_name': 'Сидоров',
+        'phone': '+7(999)333-44-55',
+        'birth_date': date(1992, 11, 30),
+        'about_me': 'Регулярные поездки по маршруту',
+        'gender': 'M'
+    },
+    {
+        'email': 'smirnov@example.com',
+        'password': 'password123',
+        'first_name': 'Мария',
+        'last_name': 'Смирнова',
+        'phone': '+7(999)444-55-66',
+        'birth_date': date(1988, 7, 25),
+        'about_me': 'Комфортные поездки',
+        'gender': 'F'
+    },
+    {
+        'email': 'kuznetsov@example.com',
+        'password': 'password123',
+        'first_name': 'Анна',
+        'last_name': 'Кузнецова',
+        'phone': '+7(999)555-66-77',
+        'birth_date': date(1995, 3, 10),
+        'about_me': 'Безопасное вождение',
+        'gender': 'F'
+    }
+]
+
+for user_data in users_data:
+    # Создаем пользователя с email в качестве username
+    user = User.objects.create_user(
+        username=user_data['email'],  # Используем email как username
+        password=user_data['password'],
+        first_name=user_data['first_name'],
+        last_name=user_data['last_name'],
+        email=user_data['email']
+    )
+    
+    # Создаем профиль пользователя без пароля
+    UserProfile.objects.create(
+        user=user,
+        first_name=user_data['first_name'],
+        last_name=user_data['last_name'],
+        birth_date=user_data['birth_date'],
+        phone_number=user_data['phone'],
+        email=user_data['email'],
+        about_me=user_data['about_me'],
+        gender=user_data['gender'],
+        is_active=True
+    )
+
+
+INSERT INTO main_car (brand_id, model_id, color, license_plate, owner_id) VALUES 
+(1, 1, 'Черный', 'А123БВ77', 1),
+(2, 4, 'Белый', 'В456ГД88', 1),
+(3, 7, 'Серебристый', 'Е789ЖЗ99', 2),
+(4, 10, 'Красный', 'К012ЛМ11', 2),
+(5, 13, 'Синий', 'Н345ОП22', 3),
+(6, 16, 'Серый', 'Р678СТ33', 3),
+(7, 19, 'Зеленый', 'У901ФХ44', 4),
+(8, 22, 'Бежевый', 'Ц234ШЩ55', 4),
+(9, 25, 'Темно-синий', 'Э567ЮЯ66', 5),
+(10, 28, 'Коричневый', 'Я890АБ77', 5);
+
+-- Создаем поездки
+INSERT INTO main_trip (user_id, departure_city_id, destination_city_id, car_id, departure_date, departure_time, 
+                      arrival_date, arrival_time, max_passengers, price, comment, status) VALUES 
+-- Поездка 1: Донецк - Макеевка
+(1, 1, 2, 1, '2024-03-20', '08:00:00', '2024-03-20', '08:30:00', 3, 200.00, 'Комфортная поездка', 'planned'),
+-- Поездка 2: Горловка - Донецк
+(2, 3, 1, 2, '2024-03-20', '09:00:00', '2024-03-20', '10:00:00', 4, 300.00, 'Быстрая поездка', 'planned'),
+-- Поездка 3: Енакиево - Харцызск
+(3, 4, 5, 3, '2024-03-21', '10:00:00', '2024-03-21', '10:45:00', 2, 250.00, 'Экономичная поездка', 'planned'),
+-- Поездка 4: Ясиноватая - Донецк
+(4, 6, 1, 4, '2024-03-21', '11:00:00', '2024-03-21', '11:30:00', 3, 180.00, 'Регулярная поездка', 'planned'),
+-- Поездка 5: Дебальцево - Торез
+(5, 7, 8, 5, '2024-03-22', '12:00:00', '2024-03-22', '13:00:00', 4, 350.00, 'Комфортный автомобиль', 'planned'),
+-- Поездка 6: Снежное - Шахтерск
+(1, 9, 10, 6, '2024-03-22', '13:00:00', '2024-03-22', '14:00:00', 3, 280.00, 'Быстрая поездка', 'planned'),
+-- Поездка 7: Амвросиевка - Новоазовск
+(2, 11, 12, 7, '2024-03-23', '14:00:00', '2024-03-23', '15:00:00', 2, 320.00, 'Экономичная поездка', 'planned'),
+-- Поездка 8: Мариуполь - Волноваха
+(3, 13, 14, 8, '2024-03-23', '15:00:00', '2024-03-23', '16:30:00', 4, 450.00, 'Комфортная поездка', 'planned'),
+-- Поездка 9: Краматорск - Донецк
+(4, 15, 1, 9, '2024-03-24', '16:00:00', '2024-03-24', '17:30:00', 3, 400.00, 'Регулярная поездка', 'planned'),
+-- Поездка 10: Донецк - Мариуполь
+(5, 1, 13, 10, '2024-03-24', '17:00:00', '2024-03-24', '19:00:00', 4, 500.00, 'Комфортный автомобиль', 'planned');
+
+-- Добавляем точки маршрута для поездок
+INSERT INTO main_routepoint (trip_id, address, latitude, longitude, `order`, is_departure, is_destination) VALUES 
+-- Точки для поездки 1 (Донецк - Макеевка)
+(1, 'Донецк, ул. Артема, 1', 48.0159, 37.8028, 1, true, false),
+(1, 'Макеевка, ул. Ленина, 1', 48.0473, 37.9251, 2, false, true),
+
+-- Точки для поездки 2 (Горловка - Донецк)
+(2, 'Горловка, пр. Победы, 1', 48.2921, 38.0547, 1, true, false),
+(2, 'Донецк, ул. Артема, 1', 48.0159, 37.8028, 2, false, true),
+
+-- Точки для поездки 3 (Енакиево - Харцызск)
+(3, 'Енакиево, ул. Ленина, 1', 48.2313, 38.2054, 1, true, false),
+(3, 'Харцызск, ул. Советская, 1', 48.0333, 38.1500, 2, false, true),
+
+-- Точки для поездки 4 (Ясиноватая - Донецк)
+(4, 'Ясиноватая, ул. Центральная, 1', 48.1297, 37.8644, 1, true, false),
+(4, 'Донецк, ул. Артема, 1', 48.0159, 37.8028, 2, false, true),
+
+-- Точки для поездки 5 (Дебальцево - Торез)
+(5, 'Дебальцево, ул. Ленина, 1', 48.3333, 38.4000, 1, true, false),
+(5, 'Торез, ул. Советская, 1', 48.0167, 38.6333, 2, false, true),
+
+-- Точки для поездки 6 (Снежное - Шахтерск)
+(6, 'Снежное, ул. Ленина, 1', 48.0167, 38.7667, 1, true, false),
+(6, 'Шахтерск, ул. Советская, 1', 48.0333, 38.4667, 2, false, true),
+
+-- Точки для поездки 7 (Амвросиевка - Новоазовск)
+(7, 'Амвросиевка, ул. Ленина, 1', 47.8000, 38.4833, 1, true, false),
+(7, 'Новоазовск, ул. Советская, 1', 47.1167, 38.0833, 2, false, true),
+
+-- Точки для поездки 8 (Мариуполь - Волноваха)
+(8, 'Мариуполь, пр. Мира, 1', 47.0971, 37.5434, 1, true, false),
+(8, 'Волноваха, ул. Ленина, 1', 47.6000, 37.4833, 2, false, true),
+
+-- Точки для поездки 9 (Краматорск - Донецк)
+(9, 'Краматорск, ул. Ленина, 1', 48.7333, 37.5833, 1, true, false),
+(9, 'Донецк, ул. Артема, 1', 48.0159, 37.8028, 2, false, true),
+
+-- Точки для поездки 10 (Донецк - Мариуполь)
+(10, 'Донецк, ул. Артема, 1', 48.0159, 37.8028, 1, true, false),
+(10, 'Мариуполь, пр. Мира, 1', 47.0971, 37.5434, 2, false, true);
+
+
+
+-- Добавляем пассажиров к поездкам
+INSERT INTO main_trip_passengers (trip_id, userprofile_id) VALUES 
+(1, 2), -- Петров в поездке Иванова
+(1, 3), -- Сидоров в поездке Иванова
+(2, 4), -- Смирнова в поездке Петрова
+(3, 5), -- Кузнецова в поездке Сидорова
+(4, 1), -- Иванов в поездке Смирновой
+(5, 2), -- Петров в поездке Кузнецовой
+(6, 3), -- Сидоров в поездке Иванова
+(7, 4), -- Смирнова в поездке Петрова
+(8, 5), -- Кузнецова в поездке Сидорова
+(9, 1); -- Иванов в поездке Смирновой
+
+
+INSERT INTO main_comment (user_profile_id, author_id, text, date) VALUES 
+(1, 2, 'Отличная поездка, комфортный автомобиль!', NOW()),
+(2, 1, 'Пунктуальный водитель, все понравилось.', NOW()),
+(3, 4, 'Быстрая и безопасная поездка.', NOW()),
+(4, 3, 'Очень удобно и комфортно.', NOW()),
+(5, 1, 'Рекомендую, отличный сервис!', NOW());
+
+
+python manage.py shell
+
+from django.contrib.auth.models import User
+from main.models import UserProfile, Notification, Trip
+from datetime import datetime, timedelta
+
+# Получаем всех пользователей
+users = UserProfile.objects.all()
+
+# Создаем различные типы уведомлений для каждого пользователя
+for user in users:
+    # 1. Информационное сообщение
+    Notification.objects.create(
+        recipient=user,
+        message="Добро пожаловать в FastTravel! Мы рады видеть вас в нашем сервисе.",
+        notification_type='info'
+    )
+    
+    # 2. Предупреждение
+    Notification.objects.create(
+        recipient=user,
+        message="Не забудьте подтвердить свой email для полного доступа к функциям сервиса.",
+        notification_type='warning'
+    )
+    
+    # 3. Успешное действие
+    Notification.objects.create(
+        recipient=user,
+        message="Ваш профиль успешно обновлен.",
+        notification_type='success'
+    )
+    
+    # 4. Запрос на присоединение (если есть другие пользователи)
+    other_users = UserProfile.objects.exclude(id=user.id)
+    if other_users.exists():
+        sender = other_users.first()
+        # Находим или создаем тестовую поездку
+        trip = Trip.objects.first()
+        if trip:
+            Notification.objects.create(
+                recipient=user,
+                sender=sender,
+                trip=trip,
+                message=f"{sender.first_name} {sender.last_name} хочет присоединиться к вашей поездке.",
+                notification_type='request'
+            )
+    
+    # 5. Уведомление о начале поездки
+    if trip:
+        Notification.objects.create(
+            recipient=user,
+            sender=user,  # В данном случае отправитель - сам пользователь
+            trip=trip,
+            message=f"Поездка из {trip.departure_city.name} в {trip.destination_city.name} началась!",
+            notification_type='start'
+        )
+    
+    # 6. Уведомление о завершении поездки
+    if trip:
+        Notification.objects.create(
+            recipient=user,
+            sender=user,
+            trip=trip,
+            message=f"Поездка из {trip.departure_city.name} в {trip.destination_city.name} завершена.",
+            notification_type='end'
+        )
+    
+    # 7. Уведомление об удалении из поездки
+    if trip and other_users.exists():
+        sender = other_users.first()
+        Notification.objects.create(
+            recipient=user,
+            sender=sender,
+            trip=trip,
+            message=f"Вы были удалены из поездки {trip.departure_city.name} -> {trip.destination_city.name}.",
+            notification_type='removed'
+        )
+
+print("Тестовые уведомления успешно созданы!")
