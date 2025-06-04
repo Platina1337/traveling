@@ -13,7 +13,7 @@
 
 
     <main>
-        <div class="container" style="margin-top: 100px;">
+        <div class="container" style="margin-top: 100px;" id="search">
         <div class="form-section">
             <h1>Сервис совместных поездок <span>в ДНР</span></h1>
             <h2>Найдите свою поездку</h2>
@@ -58,7 +58,7 @@
             <img src="{% static 'img/women-high-fiving-car.png' %}" alt="Happy people in car">
         </div>
     </div>
-        <div class="background-fluid" style="background-color: white; max-width: 100%;">
+        <div class="background-fluid" style="background-color: white; max-width: 100%;" id="about">
             <div class="info-container">
                 <div class="info-card" style="background-color: var(--color-lightergray)">
                     <div class="card-content">
@@ -82,7 +82,7 @@
                 </div>
             </div>
         </div>
-        <div class="popular-routes">
+        <div class="popular-routes" id="routes">
     <h2 style="text-align: start; margin-left: 15px;">Популярные маршруты</h2>
     <div class="routes-container">
         <a href="{% url 'main:catalog' %}?departure_city=Москва" class="route-card">
@@ -144,47 +144,47 @@
     </div>
 </div>
         </div>
-        <section style="background-color: white; max-width: 100%; padding: 50px 0;">
+        <section style="background-color: white; max-width: 100%; padding: 50px 0;" id="faq">
             <div class="faq-section">
-                <h2 class="faq-heading">ОТВЕТЫ НА ВОПРОСЫ ПОПУТЧИКОВ И ВОДИТЕЛЕЙ</h2>
+                <h2 class="faq-heading">ЧАСТО ЗАДАВАЕМЫЕ ВОПРОСЫ О FASTTRAVEL</h2>
                 <div class="faq-container">
                     <div class="faq-column">
                         <div class="faq-item">
-                            <button class="faq-question">Как создать поездку? <span class="faq-icon">+</span></button>
+                            <button class="faq-question">Что такое FastTravel? <span class="faq-icon">+</span></button>
                             <div class="faq-answer">
-                                <p>Для создания поездки необходимо зарегистрироваться на сайте. После регистрации вам станет доступна форма создания поездки. Заполните все необходимые поля и нажмите кнопку создать поездку.</p>
+                                <p>FastTravel - это современный сервис для поиска попутчиков и организации совместных поездок. Мы помогаем водителям найти пассажиров для поездки, а пассажирам - найти удобный транспорт по нужному маршруту. Наш сервис делает путешествия более доступными, экономичными и экологичными.</p>
                             </div>
                         </div>
                         <div class="faq-item">
-                            <button class="faq-question">Как найти попутчиков? <span class="faq-icon">+</span></button>
+                            <button class="faq-question">Как начать пользоваться сервисом? <span class="faq-icon">+</span></button>
                             <div class="faq-answer">
-                                <p>Описание, как найти попутчиков.</p>
+                                <p>Для начала работы с FastTravel необходимо зарегистрироваться на сайте. После регистрации вы сможете искать поездки как пассажир или создавать свои поездки как водитель. Регистрация занимает всего несколько минут и требует минимальной информации.</p>
                             </div>
                         </div>
                         <div class="faq-item">
-                            <button class="faq-question">Как связаться с водителем? <span class="faq-icon">+</span></button>
+                            <button class="faq-question">Как работает система бронирования? <span class="faq-icon">+</span></button>
                             <div class="faq-answer">
-                                <p>Описание, как связаться с водителем.</p>
+                                <p>После выбора подходящей поездки вы можете забронировать место. Водитель получит уведомление о вашем запросе и сможет подтвердить бронирование. После подтверждения вы получите доступ к контактной информации водителя для уточнения деталей поездки.</p>
                             </div>
                         </div>
                     </div>
                     <div class="faq-column">
                         <div class="faq-item">
-                            <button class="faq-question">Как изменить детали поездки? <span class="faq-icon">+</span></button>
+                            <button class="faq-question">Как обеспечивается безопасность? <span class="faq-icon">+</span></button>
                             <div class="faq-answer">
-                                <p>Описание, как изменить детали поездки.</p>
+                                <p>Безопасность - наш приоритет. Все пользователи проходят верификацию, а система рейтингов и отзывов помогает выбрать надежного водителя или пассажира. Мы также предоставляем страховку на время поездки и круглосуточную поддержку.</p>
                             </div>
                         </div>
                         <div class="faq-item">
-                            <button class="faq-question">Как найти поездку для пассажира? <span class="faq-icon">+</span></button>
+                            <button class="faq-question">Как происходит оплата? <span class="faq-icon">+</span></button>
                             <div class="faq-answer">
-                                <p>Описание, как найти поездку для пассажира.</p>
+                                <p>Оплата производится наличными водителю после поездки. Цена указывается при создании поездки и не меняется. В будущем мы планируем добавить возможность онлайн-оплаты для большего удобства пользователей.</p>
                             </div>
                         </div>
                         <div class="faq-item">
-                            <button class="faq-question">Как оценить водителя? <span class="faq-icon">+</span></button>
+                            <button class="faq-question">Что делать, если поездка отменена? <span class="faq-icon">+</span></button>
                             <div class="faq-answer">
-                                <p>Описание, как оценить водителя.</p>
+                                <p>Если водитель отменяет поездку, вы получите уведомление и сможете найти альтернативный вариант. Мы рекомендуем бронировать поездки заранее и всегда иметь запасной план. В случае частых отмен водитель получает предупреждение, что влияет на его рейтинг.</p>
                             </div>
                         </div>
                     </div>
@@ -195,8 +195,8 @@
     <footer style="background-color: var(--color-lightergray); max-width: 100%;">
         <div class="unique-footer">
             <div class="unique-footer-left">
-                <h1 class="unique-footer-title">Название</h1>
-                <p class="unique-footer-copyright">©Название 2024</p>
+                <h1 class="unique-footer-title">FastTravel</h1>
+                <p class="unique-footer-copyright">©FastTravel 2025</p>
                 <div class="unique-footer-socials">
                     <a href="#"><img src="{% static 'img/vk-icon.svg' %}" alt="VK"></a>
                     <a href="#"><img src="{% static 'img/telegram-icon.svg' %}" alt="Telegram"></a>
@@ -206,17 +206,15 @@
             <div class="unique-footer-center">
                 <ul class="unique-footer-links">
                     <li style="font-size: 24px; color: #43466580; font-weight: bold;">Общее</li>
-                    <li><a href="#">Условия пользования</a></li>
-                    <li><a href="#">Необходимые документы</a></li>
-                    <li><a href="#">Новости и акции</a></li>
-                    <li><a href="#">FAQ</a></li>
-                    <li><a href="#">Контакты</a></li>
+                    <li><a href="#about">О сервисе</a></li>
+                    <li><a href="#routes">Популярные маршруты</a></li>
+                    <li><a href="#faq">FAQ</a></li>
+                    
                 </ul>
             </div>
             <div class="unique-footer-right">
                 <p class="unique-footer-contact">8 800 123 45 67</p>
                 <a href="mailto:email@name.com" class="unique-footer-email">email@name.com</a>
-                <p class="unique-footer-chat">Чат</p>
             </div>
             <div class="unique-footer-buttons-column">
                 <div class="unique-footer-buttons">
@@ -231,5 +229,5 @@
         </div>
     </footer>
 
-
+    <script src="{% static 'js/home.js' %}"></script>
 {% endblock content %}
