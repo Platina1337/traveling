@@ -19,7 +19,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-
+run_ngrok.py
 # Django
 *.log
 local_settings.py
